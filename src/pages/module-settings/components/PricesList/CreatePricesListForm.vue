@@ -311,41 +311,46 @@ export default defineComponent({
     },
 
     async submit() {
-      console.log(this.form.package)
       this.savingPriceList = true
       const requestdata = {
-        // area: this.form.area.value,
         huntingTypeId: this.form.hunting_type_id.value,
         sales_package_ids: this.form.package?.filter((v: any) => v?.value !== undefined).map((v: any) => v?.value),
-        // description: this.form.description,
-        // salesQuotaId: this.form.sales_quota_id.value,
         amount: this.form.amount,
         currency: this.form.currency.value,
         duration: this.form.duration.value,
-        season_id: this.form.season.value,
-        // speciesObjectList: this.speciesObjects,
-        // companionDays: this.form.companion_days,
+        season_id: this.form.season.value.id,
+        //chriss' codes
+        start_at : this.form.season.value.start_at,
+        end_at: this.form.season.value.end_at,
+        is_active: 1,
+        area_id : 3,
+        user_id : 1,
         companionAmount: this.form.companion_amount,
-        // observerDays: this.form.observer_days,
         observerAmount: this.form.observer_amount,
       }
 
+
+      // console.log(requestdata);
+      this.savingPriceList = false
+      // return ;
       try {
         const response: any = await this.createPriceList(requestdata)
-
         if (response.status === 201) {
           this.init({ message: response.data.message, color: 'success' })
           this.resetForm()
           this.resetValidationForm()
           this.speciesObjects = []
           this.savingPriceList = false
+        }else{
+            console.log(response);
+           this.savingPriceList = false
         }
       } catch (error: any) {
         this.savingPriceList = false
         const errors = handleErrors(error.response)
         console.log(error)
         this.init({
-          message: '\n' + errors.map((error, index) => `${index + 1}. ${error}`).join('\n'),
+          message: error.message,
           color: 'danger',
         })
       }
@@ -372,9 +377,9 @@ export default defineComponent({
     async getSeasonList() {
       try {
         const response = await this.getSeasons()
-        this.seasonsOptions = response.data.map((item: { id: any; name: any }) => {
+        this.seasonsOptions = response.data.map((item: { id: any; name: any;}) => {
           return {
-            value: item.id,
+            value: item,
             text: item.name,
           }
         })

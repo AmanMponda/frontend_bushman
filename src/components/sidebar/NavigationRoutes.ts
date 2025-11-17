@@ -200,6 +200,15 @@ export default {
 
           displayName: 'menu.settings-area',
         },
+  {
+          name: 'hunting-types',
+          meta: {
+            icon: 'area_chart',
+          },
+
+          displayName: 'menu.hunting-types',
+        },
+        
         {
           name: 'species-settings',
           meta: {

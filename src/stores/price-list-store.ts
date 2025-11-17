@@ -151,6 +151,11 @@ export const usePriceListStore = defineStore('price-list', {
         observer_days: payload.observerDays,
         observer_amount: payload.observerAmount,
         season_id: payload.season_id,
+        start_date: payload.start_at,
+        end_date:payload.end_at,
+        is_active:payload.is_active,
+        area_id : payload.area_id,
+        user_id : payload.user_id,
         species_object_list: payload.speciesObjectList,
       })
 

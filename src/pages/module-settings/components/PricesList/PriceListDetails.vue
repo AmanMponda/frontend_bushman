@@ -15,7 +15,7 @@
     </p>
     <VaDivider />
     <h6 class="captalized-text">
-      {{ priceListItem.sales_package.area.name }}({{ priceListItem.sales_package.area.description }})
+      {{ priceListItem.sales_package?.area?.name }}({{ priceListItem.sales_package.area.description }})
     </h6>
 
     <div class="va-table-responsive">
@@ -24,7 +24,7 @@
           <tr>
             <th>Package Name</th>
             <th>Hunting Type</th>
-            <th>Amount({{ priceListItem.price_list_type.currency }})</th>
+            <th>Amount({{ priceListItem.price_list_type.currency?.name }})</th>
             <th>Duration(Days)</th>
             <th>Licence</th>
             <th>Licence duration(Days)</th>
@@ -37,9 +37,9 @@
             <td>{{ priceListItem.price_list_type.hunting_type.name }}</td>
             <td>{{ priceListItem.price_list_type.amount }}</td>
             <td>{{ priceListItem.price_list_type.duration }}</td>
-            <td>{{ priceListItem.sales_package.regulatory_package.name }}</td>
-            <td>{{ priceListItem.sales_package.regulatory_package.duration }}</td>
-            <td v-if="priceListItem.price_list_type.is_active">
+            <td>{{ priceListItem.sales_package.regulatory_package?.name }}</td>
+            <td>{{ priceListItem.sales_package.regulatory_package?.duration }}</td>
+            <td v-if="priceListItem.price_list_type?.is_active">
               <VaBadge text="Active" color="success" />
             </td>
             <td v-else>
@@ -78,7 +78,7 @@
       <table class="va-table va-table--hoverable">
         <thead>
           <tr>
-            <th>Amount({{ priceListItem.price_list_type.currency }})</th>
+            <th>Amount({{ priceListItem.price_list_type.currency.name }})</th>
           </tr>
         </thead>
         <tbody>
@@ -98,13 +98,13 @@
         <thead>
           <tr>
             <th>Service</th>
-            <th>Amount ({{ priceListItem.price_list_type.currency }})</th>
+            <th>Amount ({{ priceListItem.price_list_type.currency.name }})</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>Observer</td>
-            <td>{{ priceListItem.price_list_type.currency }}{{ priceListItem.observer[0].amount }} per day/ person</td>
+            <td>{{ priceListItem.price_list_type.currency.name }}{{ priceListItem.observer[0]?.amount }} per day/ person</td>
           </tr>
           <tr>
             <td>Change of Area Fees</td>

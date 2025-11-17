@@ -261,7 +261,6 @@ export default defineComponent({
 
       try {
         const response = await this.createSalesPackage(requestdata)
-
         if (response.status === 201) {
           this.saving = false
           console.log(response)

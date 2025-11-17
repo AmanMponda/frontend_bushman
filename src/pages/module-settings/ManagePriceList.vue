@@ -43,13 +43,7 @@
                 placeholder="Filter By Area"
                 @update:modelValue="getPriceLists"
               />
-              <!-- <VaSelect
-                v-model="quotaValue"
-                :options="quotasOptions"
-                placeholder="Filter By Quota"
-                @update:modelValue="getPriceLists"
-              /> -->
-              <!-- <div class="flex justify-end"> -->
+         
               <VaButton
                 class="px-2 py-0"
                 color="primary"
@@ -60,8 +54,7 @@
               >
                 Download
               </VaButton>
-              <!-- </div> -->
-              <!-- @click="generatePDF()" -->
+
             </div>
           </template>
         </ModuleTable>
@@ -88,9 +81,7 @@ import { useQuotaStore } from '../../stores/quota-store'
 import { useSettingsStore } from '../../stores/settings-store'
 import downloadPdf from '../../utils/pdfDownloader'
 
-// import pdfMake from 'pdfmake/build/pdfmake'
-// import * as pdfFonts from 'pdfmake/build/vfs_fonts'
-// pdfMake.vfs = pdfFonts.pdfMake.vfs
+
 const defaultItem = {
   name: '',
   start_date: null,
@@ -245,16 +236,12 @@ export default defineComponent({
           this.poriceListPdf = response?.data.pdf
           this.items = response?.data?.data.map((item: any) => ({
             id: item?.id,
-            item: item,
-            package_name: item?.sales_package?.name,
-            // quota: item?.sales_package?.sales_quota?.name,
-            area: item?.sales_package?.area
-              ? item?.sales_package?.area?.name
-              : item?.price_list_type?.price_list?.area.name,
-            hunting_type: item?.price_list_type?.hunting_type?.name,
-            amount: `${item?.price_list_type?.currency}${item?.price_list_type.amount}`,
-            duration: item?.price_list_type.duration,
-            status: item?.price_list_type.is_active == true ? 'Active' : 'Inactive',
+            package_name: item?.package_name,
+            area: item?.area,
+            hunting_type: item?.hunting_type,
+            amount: item?.amount,
+            duration: item?.duration,
+            status: item?.status,
           }))
         }
       } catch (error) {

@@ -19,7 +19,7 @@
       <h3>Licence Information</h3>
       <p><strong>Package Name:</strong> {{ item.regulatory_package?.name || 'N/A' }}</p>
       <p><strong>Duration:</strong> {{ item.regulatory_package?.duration || 'N/A' }} days</p>
-      <p><strong>Created Date:</strong> {{ item.regulatory_package?.created_date || 'N/A' }}</p>
+      <p><strong>Created Date:</strong> {{ item.regulatory_package?.created_at || 'N/A' }}</p>
       <!-- <p><strong>Updated Date:</strong> {{ item.regulatory_package?.updated_date || 'N/A' }}</p>
       <p><strong>User ID:</strong> {{ item.regulatory_package?.user || 'N/A' }}</p> -->
     </div>

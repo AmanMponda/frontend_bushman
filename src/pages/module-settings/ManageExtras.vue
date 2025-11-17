@@ -22,7 +22,8 @@
       >
     </VaButtonGroup>
   </div>
-  <template v-if="showAddForm"> <SafariExtrasForm></SafariExtrasForm> </template>
+  <template v-if="showAddForm"> <SafariExtrasForm @submitSelectedItemsEvent="setShowAddForm(false)" />
+</template>
 
   <template v-else>
     <VaDataTable :items="safariExtras" :columns="columns" :loading="loadingExtras">

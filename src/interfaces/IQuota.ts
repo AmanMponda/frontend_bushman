@@ -4,7 +4,7 @@ export interface QuotaStats {
   cancelled: any
   taken: any
   provisioned: any
-  tatalQuota: any
+  totalQuota: any
   quota: any
 }
 

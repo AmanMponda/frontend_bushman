@@ -158,6 +158,12 @@ const routes: Array<RouteRecordRaw> = [
             component: () => import('../pages/module-settings/ManageArea.vue'),
           },
 
+            {
+            name: 'hunting-types',
+            path: 'hunting-types',
+            component: () => import('../pages/module-settings/ManageArea.vue'),
+          },
+
           {
             name: 'species-settings',
             path: 'species-settings',
@@ -187,6 +193,20 @@ const routes: Array<RouteRecordRaw> = [
             path: 'approval-chain',
             component: () => import('../pages/module-settings/MangeApprovalChain.vue'),
           },
+        ],
+      },
+
+      // 26 july 2025
+        {
+        name: 'testing',
+        path: '/testing',
+        component: RouteViewComponent,
+        children: [
+          {
+            name: 'test-price-list',
+            path: 'test-price-list',
+            component: () => import('../views/Testing/PriceList.vue'),
+          }
         ],
       },
     ],

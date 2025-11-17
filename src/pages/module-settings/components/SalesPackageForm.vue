@@ -246,13 +246,14 @@ export default defineComponent({
           console.log(response)
           this.init({ message: response.data.message, color: 'success' })
           this.getSalesPackages()
+        }else{
         }
       } catch (error: any) {
         this.saving = false
         const errors = handleErrors(error.response)
         console.log(errors)
         this.init({
-          message: '\n' + errors.map((error, index) => `${index + 1}. ${error}`).join('\n'),
+          message: error instanceof Error ? error.message : 'An error occurred',
           color: 'danger',
         })
       }
@@ -294,7 +295,7 @@ export default defineComponent({
         areaId: this.form.area.value,
         licenceId: this.form.licence.value,
       }
-
+    
       try {
         const response = await this.getHuntingLicenseAreaSpecies(payload)
         if (response.status === 200) {
@@ -308,7 +309,7 @@ export default defineComponent({
         const errors = handleErrors(error.response)
         console.log(errors)
         this.init({
-          message: '\n' + errors.map((error, index) => `${index + 1}. ${error}`).join('\n'),
+          message: error instanceof Error ? error.message : 'An error occurred',
           color: 'danger',
         })
       }
@@ -327,7 +328,6 @@ export default defineComponent({
     },
 
     onChange(id: any, newValue: any) {
-      console.log('Quantity changed:', id, newValue)
       // this.isChanged = true
 
       // Set the original value if it hasn't been set yet
@@ -347,8 +347,6 @@ export default defineComponent({
         color: 'success',
         position: 'bottom-right',
       })
-
-      console.log('updated item list:', this.licenceAreaSpecies)
     },
   },
 })

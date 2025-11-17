@@ -288,7 +288,6 @@ export default defineComponent({
         approval_chain_levels: this.addingitems,
       }
 
-      console.log(payload)
       this.saving = true
       try {
         const response = await this.createApprovalChain(payload)

@@ -48,12 +48,12 @@
             </VaSelect>
           </VaValue> -->
           <!-- packageNamesOptions -->
-          <VaSelect
+        <VaInput
             v-model="packageForm.name"
             label="Name"
-            :options="packageNamesOptions"
-            placeholder="Select Package Name"
-            :rules="[(v: any) => !!v || 'Species is required']"
+            placeholder="Enter package Name"
+            type="text"
+            :rules="[(v: any) => !!v || 'Package Name is required']"
             required
           />
 
@@ -62,7 +62,7 @@
             v-model="packageForm.duration"
             label="Duration"
             placeholder="Enter package Duration"
-            type="text"
+            type="number"
             :rules="[(v: any) => !!v || 'Duration is required']"
             required
           />
@@ -322,7 +322,7 @@ export default defineComponent({
         return
       }
       const rdata = {
-        name: this.packageForm.name.value,
+        name: this.packageForm.name,
         duration: this.packageForm.duration,
         speciesObjectList: this.speciesObjects,
       }
@@ -334,11 +334,13 @@ export default defineComponent({
           this.resetpackageForm()
           this.resetCreatedItem()
           this.speciesObjects = []
+        }else{
+          console.log(response.data)
         }
       } catch (error) {
         const errors = handleErrors(error)
         this.toast.init({
-          message: '\n' + errors.map((error, index) => `${index + 1}. ${error}`).join('\n'),
+          message: error instanceof Error ? error.message : 'An error occurred',
           color: 'danger',
         })
       }

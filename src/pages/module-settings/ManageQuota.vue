@@ -429,6 +429,8 @@ export default defineComponent({
           this.savingQuota = false
           this.toast.init({ message: response.data.message, color: 'success' })
           this.resetForm()
+          this.getQs()
+          this.showAddQuotaModal()
           this.resetCreatedItem()
         } else {
           const errors = handleErrors(response)

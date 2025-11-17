@@ -29,22 +29,21 @@ export const useStatsStore = defineStore('stats', {
       }
       const response = await axios.request(config)
 
-      if (response.status === 200) {
-        this.quotaStats = response.data.map((item: any) => {
-          return {
-            confirmed: item.confirmed,
-            pending: item.pending,
-            cancelled: item.cancelled,
-            taken: item.taken,
-            provisioned: item.provisioned,
-            tatalQuota: item.total_quota_balance,
-            quota: item.name,
-          }
-        })[0]
-        console.log(this.quotaStats)
-        this.loadingStats = false
-        return response
-      }
+     if (response.status === 200) {
+  this.quotaStats = {
+    confirmed: response.data.data.confirmed,
+    pending: response.data.data.pending,
+    cancelled: response.data.data.cancelled,
+    taken: response.data.data.taken,
+    provisioned: response.data.data.provisioned,
+    totalQuota: response.data.data.total_quota_balance,
+    quota: response.data.data.name,
+  };
+  
+  console.log(this.quotaStats);
+  this.loadingStats = false;
+  return response;
+}
       return response
     },
   },

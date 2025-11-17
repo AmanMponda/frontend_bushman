@@ -139,7 +139,6 @@ export const useSettingsStore = defineStore('settings-store', {
     },
 
     async getLicenceRegulatoryHuntingPackageSpecies(payload: any) {
-      console.log(payload)
       const url =
         import.meta.env.VITE_APP_BASE_URL +
         import.meta.env.VITE_APP_LICENCE_REGULATORY_HUNTING_PACKAGE_SPECIES_URL +

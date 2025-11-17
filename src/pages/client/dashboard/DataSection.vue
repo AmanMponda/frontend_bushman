@@ -41,8 +41,6 @@ export default defineComponent({
     const { getColor } = useColors()
 
     return {
-      // dashboardMetrics: [] as DashboardMetric[],
-      // quotaStats: {} as QuotaStats,
       getColor,
     }
   },
@@ -52,20 +50,11 @@ export default defineComponent({
 
     dashboardMetrics(): DashboardMetric[] {
       return [
-        // {
-        //   id: 'openInvoices',
-        //   title: 'Open invoices',
-        //   value: '$0',
-        //   icon: 'mso-attach_money',
-        //   changeText: this.quotaStats ? this.quotaStats.quota : '',
-        //   changeDirection: 'up',
-        //   iconBackground: this.getColor('success'),
-        //   iconColor: this.getColor('on-success'),
-        // },
+
         {
           id: 'totalquota',
           title: 'Total Quota Balance',
-          value: this.quotaStats ? this.quotaStats.tatalQuota : '0',
+          value: this.quotaStats ? this.quotaStats.totalQuota : '0',
           icon: 'mso-folder_open',
           changeText: this.quotaStats ? this.quotaStats.quota : '',
           changeDirection: 'up',
