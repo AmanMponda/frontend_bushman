@@ -205,13 +205,8 @@ export default defineComponent({
       this.getAreas()
     },
 
-    showHuntingArea(_e: any) {
-      // console.log(_e.id)
+    showHuntingArea() {
       this.showHuntingAreaList = !this.showHuntingAreaList
-      //   this.areaForm.salesQuota = {
-      //     value: e.id,
-      //     text: this.generateQuotaYear(e.start_date, e.end_date) + ` - ${e.name}`,
-      //   }
     },
 
     async createNewHuntingArea() {
