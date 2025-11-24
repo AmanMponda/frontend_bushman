@@ -43,7 +43,7 @@
                 placeholder="Filter By Area"
                 @update:modelValue="getPriceLists"
               />
-         
+
               <VaButton
                 class="px-2 py-0"
                 color="primary"
@@ -54,7 +54,6 @@
               >
                 Download
               </VaButton>
-
             </div>
           </template>
         </ModuleTable>
@@ -80,7 +79,6 @@ import CreatePricesListForm from './components/PricesList/CreatePricesListForm.v
 import { useQuotaStore } from '../../stores/quota-store'
 import { useSettingsStore } from '../../stores/settings-store'
 import downloadPdf from '../../utils/pdfDownloader'
-
 
 const defaultItem = {
   name: '',
@@ -200,32 +198,32 @@ export default defineComponent({
       console.log('Row data received:', rowData)
       // eslint-disable-next-line no-console
       console.log('Current showPriceList:', this.showPriceList)
-      
+
       // Get the price list ID from the row data
       const priceListId = rowData?.id
-      
+
       if (!priceListId) {
         // eslint-disable-next-line no-console
         console.error('No price list ID found in row data')
         return
       }
-      
+
       try {
         // Fetch the full price list detail by ID
         // eslint-disable-next-line no-console
         console.log('Fetching price list detail for ID:', priceListId)
         const response = await this.getPriceListById(priceListId)
-        
+
         // Backend returns { success: true, data: {...}, message: "..." }
         // So we need to access response.data.data to get the actual item
         this.item = response.data.data || response.data
-        
+
         // eslint-disable-next-line no-console
         console.log('Fetched price list detail:', this.item)
-        
+
         // Toggle to show the detail view
         this.showPriceList = false
-        
+
         // eslint-disable-next-line no-console
         console.log('Switched to detail view')
       } catch (error) {
@@ -335,7 +333,7 @@ export default defineComponent({
             console.error('Data is not an array:', dataArray)
             this.items = []
           }
-          
+
           console.log('Updated items:', this.items)
         }
       } catch (error) {

@@ -246,7 +246,8 @@ export default defineComponent({
           console.log(response)
           this.init({ message: response.data.message, color: 'success' })
           this.getSalesPackages()
-        }else{
+        } else {
+          // No action needed for non-200 status
         }
       } catch (error: any) {
         this.saving = false
@@ -295,7 +296,7 @@ export default defineComponent({
         areaId: this.form.area.value,
         licenceId: this.form.licence.value,
       }
-    
+
       try {
         const response = await this.getHuntingLicenseAreaSpecies(payload)
         if (response.status === 200) {

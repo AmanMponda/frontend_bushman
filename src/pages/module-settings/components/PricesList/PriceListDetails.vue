@@ -104,7 +104,9 @@
         <tbody>
           <tr>
             <td>Observer</td>
-            <td>{{ priceListItem.price_list_type.currency.name }}{{ priceListItem.observer[0]?.amount }} per day/ person</td>
+            <td>
+              {{ priceListItem.price_list_type.currency.name }}{{ priceListItem.observer[0]?.amount }} per day/ person
+            </td>
           </tr>
           <tr>
             <td>Change of Area Fees</td>

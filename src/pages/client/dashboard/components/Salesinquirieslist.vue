@@ -116,11 +116,12 @@ export default defineComponent({
               name: item?.entity?.full_name,
               country: item?.entity?.country?.name || 'N/A',
               nationality: item?.entity?.nationality?.name || 'N/A',
-              contacts: item?.entity?.contacts?.map((contact: any) => ({
-                id: contact.id,
-                name: contact?.contact,
-                contactable: contact?.contactable,
-              })) || [],
+              contacts:
+                item?.entity?.contacts?.map((contact: any) => ({
+                  id: contact.id,
+                  name: contact?.contact,
+                  contactable: contact?.contactable,
+                })) || [],
               preference: {
                 no_of_hunters: pref?.no_of_hunters || 0,
                 no_of_observers: pref?.no_of_observers || 0,
@@ -135,11 +136,12 @@ export default defineComponent({
                 accommodation_type: pref?.accommodation_type || '',
                 payment_method: pref?.payment_method || '',
               },
-              preferred_species: item?.preferred_species?.map((species: any) => ({
-                id: species?.id,
-                name: species?.species?.name,
-                quantity: species?.quantity,
-              })) || [],
+              preferred_species:
+                item?.preferred_species?.map((species: any) => ({
+                  id: species?.id,
+                  name: species?.species?.name,
+                  quantity: species?.quantity,
+                })) || [],
             }
           })
 

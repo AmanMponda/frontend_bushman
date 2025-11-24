@@ -20,7 +20,8 @@ export const usePriceListStore = defineStore('price-list', {
       const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_PRICE_LIST
 
       const params: any = {}
-      if (hunting_type_id !== '' && hunting_type_id !== null && hunting_type_id !== undefined) params.hunting_type_id = hunting_type_id
+      if (hunting_type_id !== '' && hunting_type_id !== null && hunting_type_id !== undefined)
+        params.hunting_type_id = hunting_type_id
       if (area_id !== '' && area_id !== null && area_id !== undefined) params.area_id = area_id
       if (quota_id !== '' && quota_id !== null && quota_id !== undefined) params.quota_id = quota_id
 
@@ -54,7 +55,8 @@ export const usePriceListStore = defineStore('price-list', {
       const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_PRICE_LIST
 
       const params: any = {}
-      if (hunting_type_id !== '' && hunting_type_id !== null && hunting_type_id !== undefined) params.hunting_type_id = hunting_type_id
+      if (hunting_type_id !== '' && hunting_type_id !== null && hunting_type_id !== undefined)
+        params.hunting_type_id = hunting_type_id
       if (area_id !== '' && area_id !== null && area_id !== undefined) params.area_id = area_id
       if (quota_id !== '' && quota_id !== null && quota_id !== undefined) params.quota_id = quota_id
 
@@ -77,7 +79,7 @@ export const usePriceListStore = defineStore('price-list', {
 
     async getPriceListById(id: any) {
       const url = `${import.meta.env.VITE_APP_BASE_URL}${import.meta.env.VITE_APP_PRICE_LIST}${id}`
-      
+
       console.log('Fetching price list detail, URL:', url)
 
       const config = {
@@ -88,10 +90,10 @@ export const usePriceListStore = defineStore('price-list', {
           'Content-Type': 'application/json',
         },
       }
-      
+
       const response = await axios.request(config)
       console.log('Price list detail response:', response.data)
-      
+
       return response
     },
 
@@ -181,10 +183,10 @@ export const usePriceListStore = defineStore('price-list', {
         observer_amount: payload.observerAmount,
         season_id: payload.season_id,
         start_date: payload.start_at,
-        end_date:payload.end_at,
-        is_active:payload.is_active,
-        area_id : payload.area_id,
-        user_id : payload.user_id,
+        end_date: payload.end_at,
+        is_active: payload.is_active,
+        area_id: payload.area_id,
+        user_id: payload.user_id,
         species_object_list: payload.speciesObjectList,
       })
 

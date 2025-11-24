@@ -69,14 +69,13 @@ import { defineComponent, ref, reactive } from 'vue'
 import { mapState, mapActions } from 'pinia'
 import { useForm, useToast } from 'vuestic-ui'
 import handleErrors from '../../../utils/errorHandler'
-import ManageExtras from '../ManageExtras.vue'
 // import { useAccountsStore } from '../../stores/account-store'
 // import { useSalesInquiriesStore } from '../../stores/sales-store'
 // import handleErrors from '../../utils/errorHandler'
 
 export default defineComponent({
   emits: ['submitSelectedItemsEvent'],
-  
+
   setup() {
     const { init } = useToast()
 
@@ -164,7 +163,7 @@ export default defineComponent({
       try {
         const response: any = await this.createSafariExtras(payload)
         if (response.status === 201) {
-        this.$emit('submitSelectedItemsEvent');
+          this.$emit('submitSelectedItemsEvent')
           this.init({ message: response.data.message, color: 'success' })
         }
       } catch (error: any) {

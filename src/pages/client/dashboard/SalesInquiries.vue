@@ -245,59 +245,58 @@
               </table>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-
-             <h3 class="font-bold text-lg mb-2">Preferred Species</h3>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-              <VaSelect
-                v-model="form.species"
-                label="Species"
-                :options="speciesOptions"
-                placeholder="Select Species"
-                :rules="[(v: any) => !!v || 'Species is required']"
-                required
-              />
-
-              <VaCounter
-                v-model="form.quantity"
-                label="Quantity"
-                manual-input
-                :min="1"
-                :max="100"
-                :rules="[(v: any) => v || 'Quantity is required']"
-              />
-              <VaButtonGroup>
-                <VaButton
-                  class="px-0 py-0"
-                  color="primary"
-                  icon="add"
-                  size="small"
-                  round
-                  @click="addNewSpeciesItemToStorage()"
+              <h3 class="font-bold text-lg mb-2">Preferred Species</h3>
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                <VaSelect
+                  v-model="form.species"
+                  label="Species"
+                  :options="speciesOptions"
+                  placeholder="Select Species"
+                  :rules="[(v: any) => !!v || 'Species is required']"
+                  required
                 />
-              </VaButtonGroup>
-            </div>
 
-            <div class="mt-6">
-              <VaList>
-                <VaListLabel v-if="speciesObjects.length > 0" class="text-md mb-2 text-left"
-                  >Selected Species</VaListLabel
-                >
-                <VaListLabel v-else color="secondary" class="va-text-code mb-2 text-left"
-                  >No Species Selected</VaListLabel
-                >
+                <VaCounter
+                  v-model="form.quantity"
+                  label="Quantity"
+                  manual-input
+                  :min="1"
+                  :max="100"
+                  :rules="[(v: any) => v || 'Quantity is required']"
+                />
+                <VaButtonGroup>
+                  <VaButton
+                    class="px-0 py-0"
+                    color="primary"
+                    icon="add"
+                    size="small"
+                    round
+                    @click="addNewSpeciesItemToStorage()"
+                  />
+                </VaButtonGroup>
+              </div>
 
-                <VaListItem v-for="(s, index) in speciesObjects" :key="index" class="list__item">
-                  <VaListItemSection>
-                    <VaListItemLabel>
-                      Name: {{ s.name }}
-                      <VaIcon name="delete" size="small" color="primary" @click="deleteFromStorage(index)" />
-                    </VaListItemLabel>
-                    <VaListItemLabel caption>Quantity: {{ s.quantity }}</VaListItemLabel>
-                  </VaListItemSection>
-                </VaListItem>
-              </VaList>
+              <div class="mt-6">
+                <VaList>
+                  <VaListLabel v-if="speciesObjects.length > 0" class="text-md mb-2 text-left"
+                    >Selected Species</VaListLabel
+                  >
+                  <VaListLabel v-else color="secondary" class="va-text-code mb-2 text-left"
+                    >No Species Selected</VaListLabel
+                  >
+
+                  <VaListItem v-for="(s, index) in speciesObjects" :key="index" class="list__item">
+                    <VaListItemSection>
+                      <VaListItemLabel>
+                        Name: {{ s.name }}
+                        <VaIcon name="delete" size="small" color="primary" @click="deleteFromStorage(index)" />
+                      </VaListItemLabel>
+                      <VaListItemLabel caption>Quantity: {{ s.quantity }}</VaListItemLabel>
+                    </VaListItemSection>
+                  </VaListItem>
+                </VaList>
+              </div>
             </div>
-          </div>
           </div>
 
           <div class="mt-4 d-flex p-2">
