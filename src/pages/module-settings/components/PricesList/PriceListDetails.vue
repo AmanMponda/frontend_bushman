@@ -1,567 +1,256 @@
 <template>
-  <!-- <h1 class="h1">Price List Details</h1> -->
   <VaSkeletonGroup v-if="cardStore.loading">
     <VaSkeleton class="mb-4" height="160px" variant="squared" />
     <VaSkeleton class="mb-4" height="160px" variant="squared" />
     <VaSkeleton height="360px" variant="squared" />
   </VaSkeletonGroup>
 
-  <template v-else>
-    <h1 class="va-h4 captalized-text text-center">Price List Details</h1>
-    <p class="va-h6 captalized-text text-center">
-      {{ format(priceListItem.price_list_type.price_list.start_date, 'MMMM yyyy') }}-{{
-        format(priceListItem.price_list_type.price_list.end_date, 'MMMM yyyy')
-      }}
-    </p>
-    <VaDivider />
-    <h6 class="captalized-text">
-      {{ priceListItem.sales_package?.area?.name }}({{ priceListItem.sales_package.area.description }})
-    </h6>
+  <div v-else class="price-list-details">
+    <!-- Header Section -->
+    <VaCard class="mb-6" stripe stripe-color="primary">
+      <VaCardContent>
+        <div class="text-center">
+          <h1 class="va-h3 mb-2">{{ priceListItem.sales_package.name }}</h1>
+          <div class="flex justify-center items-center gap-4 mb-3">
+            <VaChip color="primary" size="large">
+              <VaIcon name="calendar_month" class="mr-1" />
+              {{ format(priceListItem.price_list_type.price_list.start_date, 'MMM yyyy') }} -
+              {{ format(priceListItem.price_list_type.price_list.end_date, 'MMM yyyy') }}
+            </VaChip>
+            <VaChip color="success" size="large" v-if="priceListItem.price_list_type?.is_active">
+              <VaIcon name="check_circle" class="mr-1" />
+              Active
+            </VaChip>
+            <VaChip color="danger" size="large" v-else>
+              <VaIcon name="cancel" class="mr-1" />
+              Inactive
+            </VaChip>
+          </div>
+          <p class="text-lg text-secondary">
+            <VaIcon name="location_on" size="small" />
+            {{ priceListItem.sales_package?.area?.name }} ({{ priceListItem.sales_package.area.description }})
+          </p>
+        </div>
+      </VaCardContent>
+    </VaCard>
 
-    <div class="va-table-responsive">
-      <table class="va-table va-table--hoverable">
-        <thead>
-          <tr>
-            <th>Package Name</th>
-            <th>Hunting Type</th>
-            <th>Amount({{ priceListItem.price_list_type.currency?.name }})</th>
-            <th>Duration(Days)</th>
-            <th>Licence</th>
-            <th>Licence duration(Days)</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{{ priceListItem.sales_package.name }}</td>
-            <td>{{ priceListItem.price_list_type.hunting_type.name }}</td>
-            <td>{{ priceListItem.price_list_type.amount }}</td>
-            <td>{{ priceListItem.price_list_type.duration }}</td>
-            <td>{{ priceListItem.sales_package.regulatory_package?.name }}</td>
-            <td>{{ priceListItem.sales_package.regulatory_package?.duration }}</td>
-            <td v-if="priceListItem.price_list_type?.is_active">
-              <VaBadge text="Active" color="success" />
-            </td>
-            <td v-else>
-              <VaBadge text="Inactive" color="danger" />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Package Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <VaCard stripe stripe-color="primary">
+        <VaCardContent class="text-center">
+          <VaIcon name="attach_money" size="large" color="primary" class="mb-2" />
+          <div class="text-3xl font-bold">
+            {{ priceListItem.price_list_type.currency.symbol }}{{ formatAmount(priceListItem.price_list_type.amount) }}
+          </div>
+          <div class="text-sm text-secondary mt-1">Base Amount</div>
+        </VaCardContent>
+      </VaCard>
+
+      <VaCard stripe stripe-color="success">
+        <VaCardContent class="text-center">
+          <VaIcon name="schedule" size="large" color="success" class="mb-2" />
+          <div class="text-3xl font-bold">{{ priceListItem.price_list_type.duration }}</div>
+          <div class="text-sm text-secondary mt-1">Days Duration</div>
+        </VaCardContent>
+      </VaCard>
+
+      <VaCard stripe stripe-color="warning">
+        <VaCardContent class="text-center">
+          <VaIcon name="verified" size="large" color="warning" class="mb-2" />
+          <div class="text-lg font-bold">{{ priceListItem.sales_package.regulatory_package?.name }}</div>
+          <div class="text-sm text-secondary mt-1">License Type</div>
+        </VaCardContent>
+      </VaCard>
+
+      <VaCard stripe stripe-color="info">
+        <VaCardContent class="text-center">
+          <VaIcon name="category" size="large" color="info" class="mb-2" />
+          <div class="text-lg font-bold">{{ priceListItem.price_list_type.hunting_type.name }}</div>
+          <div class="text-sm text-secondary mt-1">Hunting Type</div>
+        </VaCardContent>
+      </VaCard>
     </div>
 
-    <VaDivider></VaDivider>
-    <h6 class="captalized-text">Spieces</h6>
-    <div class="va-table-responsive">
-      <table class="va-table va-table--hoverable">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Scientific Name</th>
-            <th>Quantity</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="species in priceListItem.sales_package.species" :key="species.id">
-            <td>{{ species.species.name }}</td>
-            <td>{{ species.species.scientific_name }}</td>
-            <td>{{ species.quantity }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Species Section -->
+    <VaCard class="mb-6" stripe stripe-color="success">
+      <VaCardTitle class="flex items-center gap-2">
+        <VaIcon name="pets" />
+        Available Species ({{ priceListItem.sales_package.species.length }})
+      </VaCardTitle>
+      <VaCardContent>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <VaCard
+            v-for="species in priceListItem.sales_package.species"
+            :key="species.id"
+            class="species-card"
+            :color="species.quantity > 0 ? '#f0f9ff' : '#fef2f2'"
+          >
+            <VaCardContent>
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <div class="font-semibold text-base">{{ species.species.name }}</div>
+                  <div class="text-sm text-secondary italic">{{ species.species.scientific_name }}</div>
+                </div>
+                <VaBadge :color="species.quantity > 0 ? 'success' : 'danger'" class="ml-2">
+                  Qty: {{ species.quantity }}
+                </VaBadge>
+              </div>
+            </VaCardContent>
+          </VaCard>
+        </div>
+      </VaCardContent>
+    </VaCard>
+
+    <!-- Trophy Fees Section -->
+    <VaCard class="mb-6" stripe stripe-color="warning">
+      <VaCardTitle class="flex items-center gap-2">
+        <VaIcon name="military_tech" />
+        Trophy Fees ({{ priceListItem.price_list_type.currency.name }})
+      </VaCardTitle>
+      <VaCardContent>
+        <div v-if="priceListItem.trophy_fees && priceListItem.trophy_fees.length > 0">
+          <div class="va-table-responsive">
+            <table class="va-table va-table--hoverable w-full">
+              <thead>
+                <tr>
+                  <th class="text-left">Species</th>
+                  <th class="text-left">Scientific Name</th>
+                  <th class="text-center">Sequence</th>
+                  <th class="text-right">Price ({{ priceListItem.price_list_type.currency.symbol }})</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="fee in priceListItem.trophy_fees" :key="fee.id">
+                  <td class="font-semibold">{{ fee.species.name }}</td>
+                  <td class="text-secondary italic">{{ fee.species.scientific_name }}</td>
+                  <td class="text-center">
+                    <VaBadge :text="getSequenceLabel(fee.sequence_order)" color="primary" />
+                  </td>
+                  <td class="text-right font-bold text-lg">
+                    {{ priceListItem.price_list_type.currency.symbol }}{{ formatAmount(fee.price_usd) }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <VaAlert v-else color="info" border="top">
+          No trophy fees available for this package
+        </VaAlert>
+      </VaCardContent>
+    </VaCard>
+
+    <!-- Safari Extras & Additional Costs -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Safari Extras -->
+      <VaCard stripe stripe-color="info">
+        <VaCardTitle class="flex items-center gap-2">
+          <VaIcon name="add_circle" />
+          Safari Extras
+        </VaCardTitle>
+        <VaCardContent>
+          <div class="space-y-3">
+            <!-- Observer -->
+            <div
+              v-if="priceListItem.observer && priceListItem.observer.length > 0"
+              class="p-4 rounded-lg bg-gray-50"
+            >
+              <div class="flex justify-between items-start mb-2">
+                <div>
+                  <div class="font-semibold text-base">Observer</div>
+                  <div class="text-sm text-secondary">Observer cost</div>
+                </div>
+                <div class="text-right">
+                  <div class="font-bold text-lg">
+                    {{ priceListItem.price_list_type.currency.symbol }}{{ priceListItem.observer[0]?.amount }}
+                  </div>
+                  <div class="text-xs text-secondary">per day / person</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Other Extras -->
+            <div
+              v-for="extra in priceListItem.safari_extras"
+              :key="extra.id"
+              class="p-4 rounded-lg bg-gray-50"
+            >
+              <div class="flex justify-between items-start mb-2">
+                <div>
+                  <div class="font-semibold text-base capitalize">{{ extra.name }}</div>
+                  <div class="text-sm text-secondary">{{ extra.description }}</div>
+                </div>
+                <div class="text-right">
+                  <div class="font-bold text-lg">{{ extra.currency.symbol }}{{ extra.amount }}</div>
+                  <div class="text-xs text-secondary">{{ formatChargesPer(extra.charges_per) }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </VaCardContent>
+      </VaCard>
+
+      <!-- Companion Hunter Costs -->
+      <VaCard stripe stripe-color="success">
+        <VaCardTitle class="flex items-center gap-2">
+          <VaIcon name="groups" />
+          Companion & Observer Costs
+        </VaCardTitle>
+        <VaCardContent>
+          <div class="space-y-4">
+            <!-- Companion Hunter -->
+            <div v-if="priceListItem.componions_hunter && priceListItem.componions_hunter.length > 0">
+              <div class="text-sm font-semibold text-secondary mb-2">Companion Hunter</div>
+              <div
+                v-for="companion in priceListItem.componions_hunter"
+                :key="companion.id"
+                class="p-4 rounded-lg bg-green-50"
+              >
+                <div class="flex justify-between items-center">
+                  <span class="text-base">Daily Rate</span>
+                  <span class="font-bold text-xl">
+                    {{ priceListItem.price_list_type.currency.symbol }}{{ companion.amount }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </VaCardContent>
+      </VaCard>
     </div>
 
-    <VaDivider></VaDivider>
+    <!-- Important Notes -->
+    <VaCard class="mb-6" stripe stripe-color="danger">
+      <VaCardContent>
+        <VaAlert color="warning" border="left" class="mb-3">
+          <template #title>
+            <div class="flex items-center gap-2">
+              <VaIcon name="warning" />
+              <span class="font-bold">Important Information</span>
+            </div>
+          </template>
+          All hunts confirmation is subject to quota availability. Other safari packages are available on request
+          and can be customized depending on client requirements.
+        </VaAlert>
 
-    <h6 class="captalized-text">Companion Hunter Costs</h6>
-    <div class="va-table-responsive">
-      <table class="va-table va-table--hoverable">
-        <thead>
-          <tr>
-            <th>Amount({{ priceListItem.price_list_type.currency.name }})</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="companion in priceListItem.componions_hunter" :key="companion.id">
-            <td>{{ companion.amount }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <VaDivider></VaDivider>
-
-    <h6 class="captalized-text">SAFARI EXTRAS</h6>
-
-    <div class="va-table-responsive">
-      <table class="va-table va-table--hoverable">
-        <thead>
-          <tr>
-            <th>Service</th>
-            <th>Description</th>
-            <th>Amount</th>
-            <th>Charges Per</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Observer</td>
-            <td>Observer cost</td>
-            <td>
-              {{ priceListItem.price_list_type.currency.symbol }}{{ priceListItem.observer[0]?.amount }}
-            </td>
-            <td>per day / person</td>
-          </tr>
-          <tr v-for="extra in priceListItem.safari_extras" :key="extra.id">
-            <td>{{ extra.name }}</td>
-            <td>{{ extra.description }}</td>
-            <td>{{ extra.currency.symbol }}{{ extra.amount }}</td>
-            <td>{{ formatChargesPer(extra.charges_per) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <VaAlert color="#e6e6e6" title="*All hunts confirmation is subject to quota availability.!" class="mb-6">
-      Other safari packages are available on request and can be customized depending on client requirement.
-    </VaAlert>
-
-    <VaDivider></VaDivider>
-
-    <h2 class="captalized-text text-center va-h6">More Information</h2>
-
-    <h6 class="captalized-text">Trophy Fees</h6>
-
-    <div class="va-table-responsive">
-      <table class="va-table va-table--hoverable">
-        <thead>
-          <tr>
-            <th>Species</th>
-            <th>Species Availability</th>
-            <th>10 Days</th>
-            <th>14 Days</th>
-            <th>21 Days</th>
-            <th>Price (USD)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1st Buffalo</td>
-            <td>MS BK</td>
-            <td>*</td>
-            <td>*</td>
-            <td>*</td>
-            <td>41</td>
-          </tr>
-          <tr>
-            <td>2nd Buffalo</td>
-            <td>MS, BK</td>
-            <td>*</td>
-            <td>*</td>
-            <td>*</td>
-            <td>43</td>
-          </tr>
-          <tr>
-            <td>3rd Buffalo</td>
-            <td>MS, BK</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>45</td>
-          </tr>
-          <tr>
-            <td>4th Buffalo</td>
-            <td>MS, BK</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>45</td>
-          </tr>
-          <tr>
-            <td>Baboon</td>
-            <td>MS, BK</td>
-            <td>*</td>
-            <td>*</td>
-            <td>*</td>
-            <td>4</td>
-          </tr>
-          <tr>
-            <td>Bushbuck Chobe</td>
-            <td>MS</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>11</td>
-          </tr>
-          <tr>
-            <td>Bushbuck Masai</td>
-            <td>BK</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>12</td>
-          </tr>
-          <tr>
-            <td>Bushpig</td>
-            <td>MS, BK</td>
-            <td>*</td>
-            <td>*</td>
-            <td>*</td>
-            <td>7.5</td>
-          </tr>
-          <tr>
-            <td>Civet Cat</td>
-            <td>MS, BK</td>
-            <td></td>
-            <td>*</td>
-            <td>*</td>
-            <td>7</td>
-          </tr>
-          <tr>
-            <td>Cat Genet</td>
-            <td>MS, BK</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>8</td>
-          </tr>
-          <tr>
-            <td>Crocodile</td>
-            <td>MS</td>
-            <td></td>
-            <td>*</td>
-            <td>*</td>
-            <td>2.9</td>
-          </tr>
-          <tr>
-            <td>Dik Dik</td>
-            <td>MS, BK</td>
-            <td></td>
-            <td>*</td>
-            <td>*</td>
-            <td>8</td>
-          </tr>
-          <tr>
-            <td>Common Dukier</td>
-            <td>MS, BK</td>
-            <td>*</td>
-            <td>*</td>
-            <td>*</td>
-            <td>8</td>
-          </tr>
-          <tr>
-            <td>Harvey’s Red Duiker</td>
-            <td>BK</td>
-            <td>*</td>
-            <td>*</td>
-            <td>*</td>
-            <td>9.5</td>
-          </tr>
-          <tr>
-            <td>Patterson Eland</td>
-            <td>MS, BK</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>4.5</td>
-          </tr>
-          <tr>
-            <td>Elephant 100 Pounds</td>
-            <td>MS</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>35</td>
-          </tr>
-          <tr>
-            <td>Elephant > 100 Pounds</td>
-            <td>MS</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>40</td>
-          </tr>
-          <tr>
-            <td>Gerenuk</td>
-            <td>BK</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>5.5</td>
-          </tr>
-          <tr>
-            <td>Gazella Grant</td>
-            <td>BK</td>
-            <td>*</td>
-            <td>*</td>
-            <td>*</td>
-            <td>1.7</td>
-          </tr>
-          <tr>
-            <td>Gazella Thomson</td>
-            <td>MS, BK</td>
-            <td>*</td>
-            <td>*</td>
-            <td>*</td>
-            <td>1.7</td>
-          </tr>
-          <tr>
-            <td>Gazella Roberts</td>
-            <td>MS</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>2.5</td>
-          </tr>
-          <tr>
-            <td>Hartebeest (COKE'S)</td>
-            <td>MS</td>
-            <td></td>
-            <td>*</td>
-            <td>*</td>
-            <td>1.8</td>
-          </tr>
-          <tr>
-            <td>Hippo</td>
-            <td>MS</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>3</td>
-          </tr>
-          <tr>
-            <td>Spotted Hyena</td>
-            <td>MS, BK</td>
-            <td></td>
-            <td>*</td>
-            <td>*</td>
-            <td>1.5</td>
-          </tr>
-          <tr>
-            <td>Striped Hyena</td>
-            <td>BK</td>
-            <td></td>
-            <td>*</td>
-            <td>*</td>
-            <td>2</td>
-          </tr>
-          <tr>
-            <td>Impala</td>
-            <td>MS, BK</td>
-            <td>*</td>
-            <td>*</td>
-            <td>*</td>
-            <td>8</td>
-          </tr>
-          <tr>
-            <td>Jackal</td>
-            <td>MS, BK</td>
-            <td></td>
-            <td>*</td>
-            <td>*</td>
-            <td>7</td>
-          </tr>
-          <tr>
-            <td>Klipspringer</td>
-            <td>MS, BK</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>1.7</td>
-          </tr>
-          <tr>
-            <td>Kudu (Greater)</td>
-            <td>BK</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>4.5</td>
-          </tr>
-          <tr>
-            <td>Kudu (Lesser)</td>
-            <td>BK</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>6</td>
-          </tr>
-          <tr>
-            <td>Leopard</td>
-            <td>MS, BK</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>9.5</td>
-          </tr>
-          <tr>
-            <td>Lion</td>
-            <td>MS, BK</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>13</td>
-          </tr>
-          <tr>
-            <td>Ostrich</td>
-            <td>MS, BK</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>2</td>
-          </tr>
-          <tr>
-            <td>Fringe Eared Oryx</td>
-            <td>BK</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>6.5</td>
-          </tr>
-          <tr>
-            <td>Porcupine</td>
-            <td>MS, BK</td>
-            <td></td>
-            <td>*</td>
-            <td>*</td>
-            <td>7</td>
-          </tr>
-          <tr>
-            <td>Ratel Honey Badger</td>
-            <td>MS</td>
-            <td></td>
-            <td>*</td>
-            <td>*</td>
-            <td>9.5</td>
-          </tr>
-          <tr>
-            <td>Bohor Reedbuck</td>
-            <td>MS, BK</td>
-            <td>*</td>
-            <td>*</td>
-            <td>*</td>
-            <td>15</td>
-          </tr>
-          <tr>
-            <td>Mountain Reedbuck Common</td>
-            <td>BK</td>
-            <td>*</td>
-            <td>*</td>
-            <td>*</td>
-            <td>15</td>
-          </tr>
-          <tr>
-            <td>Roan</td>
-            <td>MS</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>6</td>
-          </tr>
-          <tr>
-            <td>Serval Cat</td>
-            <td>MS, BK</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>7</td>
-          </tr>
-          <tr>
-            <td>Steinbuck</td>
-            <td>BK</td>
-            <td>*</td>
-            <td>*</td>
-            <td>*</td>
-            <td>7</td>
-          </tr>
-          <tr>
-            <td>Suni</td>
-            <td>BK</td>
-            <td></td>
-            <td>*</td>
-            <td>*</td>
-            <td>1.25</td>
-          </tr>
-          <tr>
-            <td>Topi</td>
-            <td>MS</td>
-            <td></td>
-            <td>*</td>
-            <td>*</td>
-            <td>1.8</td>
-          </tr>
-          <tr>
-            <td>Warthog</td>
-            <td>MS, BK</td>
-            <td>*</td>
-            <td>*</td>
-            <td>*</td>
-            <td>8</td>
-          </tr>
-          <tr>
-            <td>Wildbeest</td>
-            <td>MS, BK</td>
-            <td>*</td>
-            <td>*</td>
-            <td>*</td>
-            <td>1.65</td>
-          </tr>
-          <tr>
-            <td>Waterbuck - Deffessa</td>
-            <td>MS</td>
-            <td></td>
-            <td>*</td>
-            <td>*</td>
-            <td>1.5</td>
-          </tr>
-          <tr>
-            <td>Wild Cat</td>
-            <td>MS, BK</td>
-            <td></td>
-            <td>*</td>
-            <td></td>
-            <td>8</td>
-          </tr>
-          <tr>
-            <td>Zebra</td>
-            <td>MS, BK</td>
-            <td>*</td>
-            <td>*</td>
-            <td>*</td>
-            <td>1.8</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <VaDivider></VaDivider>
-
-    <VaAlert color="#e6e6e6" title="UPGRADE FEES!" class="mb-6">
-      *If 4th Buffalo is taken upgrade fees of USD 5,000 (plus trophy fees)
-    </VaAlert>
-
-    <!-- <PriceListPackagesDetails :prece-list-item="priceListItem" />
-    <PriceListQuota :item="priceListItem" />
-    <PricesSpeciesList :species-items="priceListItem.sales_package.species"> </PricesSpeciesList>
-
-    <ObComCosts :companion-items="priceListItem.componions_hunter" :title="'Companion Costs'"></ObComCosts>
-    <ObComCosts :companion-items="priceListItem.observer" :title="'Observer Cost'"></ObComCosts>
-
-    <AdditionCharges></AdditionCharges> -->
-    <!-- <PriceListByHuntingType /> -->
-  </template>
+        <VaAlert color="info" border="left" v-if="hasUpgradeFees">
+          <template #title>
+            <div class="flex items-center gap-2">
+              <VaIcon name="info" />
+              <span class="font-bold">Upgrade Fees</span>
+            </div>
+          </template>
+          If additional trophies beyond the standard package are taken, upgrade fees may apply (plus trophy fees).
+        </VaAlert>
+      </VaCardContent>
+    </VaCard>
+  </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-// import PaymentInfo from './../../billing/PaymentInfo.vue'
-// import Invoices from './../../billing/Invoices.vue'
 import { usePaymentCardsStore } from '../../../../stores/payment-cards'
 import { format } from 'date-fns'
-// import PriceListPackagesDetails from './PriceListPackagesDetails.vue'
-// import PriceListQuota from './PriceListQuota.vue'
-// import PriceListByHuntingType from './PriceListByHuntingType.vue'
-// import PricesSpeciesList from './PricesSpeciesList.vue'
-// import ObComCosts from './ObComCosts.vue'
-// import AdditionCharges from './AdditionCharges.vue'
 
 export default defineComponent({
   components: {
@@ -590,6 +279,15 @@ export default defineComponent({
     loading() {
       return this.cardStore.loading
     },
+    hasUpgradeFees() {
+      // Check if there are multiple sequences of the same species indicating upgrade possibilities
+      const speciesSequences = new Map()
+      this.priceListItem.trophy_fees?.forEach((fee: any) => {
+        const count = speciesSequences.get(fee.species_id) || 0
+        speciesSequences.set(fee.species_id, count + 1)
+      })
+      return Array.from(speciesSequences.values()).some((count) => count > 1)
+    },
   },
   mounted() {
     this.cardStore.load()
@@ -600,25 +298,47 @@ export default defineComponent({
       // Convert "PER_DAY" to "per day", "PER_ROUND" to "per round", etc.
       return chargesPer.toLowerCase().replace('_', ' ')
     },
+    formatAmount(amount: string | number) {
+      const num = typeof amount === 'string' ? parseFloat(amount) : amount
+      return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    },
+    getSequenceLabel(sequence: number) {
+      const suffixes = ['th', 'st', 'nd', 'rd']
+      const value = sequence % 100
+      const suffix = suffixes[(value - 20) % 10] || suffixes[value] || suffixes[0]
+      return `${sequence}${suffix}`
+    },
   },
 })
 </script>
 
 <style scoped>
-.captalized-text {
+.price-list-details {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.species-card {
+  transition: all 0.3s ease;
+}
+
+.species-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.va-table th {
+  font-weight: 600;
   text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
 }
 
-.terms-of-business {
-  padding: 20px;
+.va-table tbody tr {
+  transition: background-color 0.2s ease;
 }
 
-.safari-rate-include {
-  display: flex;
-  justify-content: space-between;
-}
-
-.column {
-  width: 30%; /* Adjust width as needed */
+.va-table tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
 }
 </style>
