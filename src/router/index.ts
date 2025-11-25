@@ -181,6 +181,13 @@ const routes: Array<RouteRecordRaw> = [
             component: () => import('../pages/module-settings/ManageExtras.vue'),
           },
 
+          // Trophy Fees
+          {
+            name: 'trophy-fees',
+            path: 'trophy-fees',
+            component: () => import('../pages/module-settings/ManageTrophyFees.vue'),
+          },
+
           // PriceList
           {
             name: 'price-list',

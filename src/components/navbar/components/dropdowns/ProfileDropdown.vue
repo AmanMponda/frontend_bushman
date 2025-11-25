@@ -5,7 +5,7 @@
         <VaButton preset="secondary" color="textPrimary">
           <span class="profile-dropdown__anchor min-w-max">
             <slot />
-            <VaAvatar src="/pholder.jpeg" :size="32" color="warning"> </VaAvatar>
+            <VaAvatar :src="`${baseUrl}pholder.jpeg`" :size="32" color="warning"> </VaAvatar>
           </span>
         </VaButton>
       </template>
@@ -38,6 +38,8 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useColors } from 'vuestic-ui'
+
+const baseUrl = import.meta.env.BASE_URL
 
 const { colors, setHSLAColor } = useColors()
 const hoverColor = computed(() => setHSLAColor(colors.focus, { a: 0.1 }))

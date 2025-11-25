@@ -254,6 +254,15 @@ export default {
           displayName: 'menu.sales-extra-services',
         },
 
+        // trophy-fees
+        {
+          name: 'trophy-fees',
+          meta: {
+            icon: 'military_tech',
+          },
+          displayName: 'menu.trophy-fees',
+        },
+
         // approval - chain,
         {
           name: 'approval-chain',
