@@ -98,39 +98,25 @@
         <thead>
           <tr>
             <th>Service</th>
-            <th>Amount ({{ priceListItem.price_list_type.currency.name }})</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Charges Per</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>Observer</td>
+            <td>Observer cost</td>
             <td>
-              {{ priceListItem.price_list_type.currency.name }}{{ priceListItem.observer[0]?.amount }} per day/ person
+              {{ priceListItem.price_list_type.currency.symbol }}{{ priceListItem.observer[0]?.amount }}
             </td>
+            <td>per day / person</td>
           </tr>
-          <tr>
-            <td>Change of Area Fees</td>
-            <td>$5</td>
-          </tr>
-          <tr>
-            <td>Baiting vehicle/ Photographic vehicle</td>
-            <td>$4</td>
-          </tr>
-          <tr>
-            <td>Baiting vehicle with Professional Hunter</td>
-            <td>$7</td>
-          </tr>
-          <tr>
-            <td>WIFI Charges</td>
-            <td>$30 per day</td>
-          </tr>
-          <tr>
-            <td>Firearm Hire</td>
-            <td>$100 per day</td>
-          </tr>
-          <tr>
-            <td>Ammo Purchase</td>
-            <td>$2.5 per Round</td>
+          <tr v-for="extra in priceListItem.safari_extras" :key="extra.id">
+            <td>{{ extra.name }}</td>
+            <td>{{ extra.description }}</td>
+            <td>{{ extra.currency.symbol }}{{ extra.amount }}</td>
+            <td>{{ formatChargesPer(extra.charges_per) }}</td>
           </tr>
         </tbody>
       </table>
@@ -607,6 +593,13 @@ export default defineComponent({
   },
   mounted() {
     this.cardStore.load()
+  },
+  methods: {
+    formatChargesPer(chargesPer: string) {
+      if (!chargesPer) return ''
+      // Convert "PER_DAY" to "per day", "PER_ROUND" to "per round", etc.
+      return chargesPer.toLowerCase().replace('_', ' ')
+    },
   },
 })
 </script>
