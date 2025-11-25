@@ -205,13 +205,8 @@ export default defineComponent({
       this.getAreas()
     },
 
-    showHuntingArea(e: any) {
-      // console.log(e.id)
+    showHuntingArea() {
       this.showHuntingAreaList = !this.showHuntingAreaList
-      //   this.areaForm.salesQuota = {
-      //     value: e.id,
-      //     text: this.generateQuotaYear(e.start_date, e.end_date) + ` - ${e.name}`,
-      //   }
     },
 
     async createNewHuntingArea() {
@@ -236,9 +231,9 @@ export default defineComponent({
             color: 'success',
           })
           this.resetareaForm()
-        }else{
+        } else {
           // console.log(requestData);
-          console.log(response);
+          console.log(response)
         }
       } catch (error) {
         this.saving = false
@@ -268,32 +263,31 @@ export default defineComponent({
           }
         })
 
-       interface Item {
-  id: string;
-  name: string;
-  description: string;
-  location?: {
-    geo_coordinates?: {
-      coordinates?: string;
-    };
-  };
-}
+        interface Item {
+          id: string
+          name: string
+          description: string
+          location?: {
+            geo_coordinates?: {
+              coordinates?: string
+            }
+          }
+        }
 
-if (response.status === 200) {
-  this.items = response.data.map((item: Item) => {
-    const coords = JSON.parse(item?.location?.geo_coordinates?.coordinates || '[]');
-    return {
-      id: item?.id,
-      name: item?.name,
-      description: item?.description,
-      lat: coords[0]?.lat,
-      lng: coords[0]?.lng,
-    };
-  });
+        if (response.status === 200) {
+          this.items = response.data.map((item: Item) => {
+            const coords = JSON.parse(item?.location?.geo_coordinates?.coordinates || '[]')
+            return {
+              id: item?.id,
+              name: item?.name,
+              description: item?.description,
+              lat: coords[0]?.lat,
+              lng: coords[0]?.lng,
+            }
+          })
 
-  this.loading = false;
-}
- else {
+          this.loading = false
+        } else {
           this.loading = false
           this.toast.init({
             message: 'No hunting areas found',

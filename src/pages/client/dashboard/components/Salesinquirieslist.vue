@@ -107,37 +107,43 @@ export default defineComponent({
         )
         if (response.status === 200) {
           this.loading = false
-          this.salesInquiryItems = response.data.map((item: any) => ({
-            id: item.id,
-            selfitem: item,
-            name: item?.entity?.full_name,
-            country: item?.entity?.country?.name,
-            nationality: item?.entity?.nationality.name,
-            contacts: item?.entity?.contacts?.map((contact: any) => ({
-              id: contact.id,
-              name: contact?.contact,
-              contactable: contact?.contactable,
-            })),
-            preference: {
-              no_of_hunters: item?.preference?.no_of_hunters,
-              no_of_observers: item?.preference?.no_of_observers,
-              no_of_days: item?.preference?.no_of_days,
-              no_of_companions: item?.preference?.no_of_companions,
-              special_requests: item?.preference?.special_requests,
-              start_date: item?.preference?.start_date !== null ? formatDateTime(item?.preference?.start_date) : '',
-              end_date: item?.preference?.end_date !== null ? formatDateTime(item?.preference?.end_date) : '',
-              budget_estimation: item?.preference?.budget_estimation,
-              prev_experience: item?.preference?.prev_experience,
-              preferred_date: formatDateTime(item?.preference?.preferred_date),
-              accommodation_type: item?.preference?.accommodation_type,
-              payment_method: item?.preference?.payment_method,
-            },
-            preferred_species: item?.preferred_species?.map((species: any) => ({
-              id: species?.id,
-              name: species?.species?.name,
-              quantity: species?.quantity,
-            })),
-          }))
+          this.salesInquiryItems = response.data.map((item: any) => {
+            // Get first preference (or empty if none)
+            const pref = item?.preferences?.[0] || {}
+            return {
+              id: item.id,
+              selfitem: item,
+              name: item?.entity?.full_name,
+              country: item?.entity?.country?.name || 'N/A',
+              nationality: item?.entity?.nationality?.name || 'N/A',
+              contacts:
+                item?.entity?.contacts?.map((contact: any) => ({
+                  id: contact.id,
+                  name: contact?.contact,
+                  contactable: contact?.contactable,
+                })) || [],
+              preference: {
+                no_of_hunters: pref?.no_of_hunters || 0,
+                no_of_observers: pref?.no_of_observers || 0,
+                no_of_days: pref?.no_of_days || 0,
+                no_of_companions: pref?.no_of_companions || 0,
+                special_requests: pref?.special_requests || '',
+                start_date: pref?.start_date ? formatDateTime(pref.start_date) : '',
+                end_date: pref?.end_date ? formatDateTime(pref.end_date) : '',
+                budget_estimation: pref?.budget_estimation || '',
+                prev_experience: pref?.prev_experience || '',
+                preferred_date: pref?.preferred_date ? formatDateTime(pref.preferred_date) : '',
+                accommodation_type: pref?.accommodation_type || '',
+                payment_method: pref?.payment_method || '',
+              },
+              preferred_species:
+                item?.preferred_species?.map((species: any) => ({
+                  id: species?.id,
+                  name: species?.species?.name,
+                  quantity: species?.quantity,
+                })) || [],
+            }
+          })
 
           this.filtered = this.salesInquiryItems
 

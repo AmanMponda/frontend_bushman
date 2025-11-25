@@ -17,41 +17,70 @@ export const usePriceListStore = defineStore('price-list', {
 
   actions: {
     async getPriceList(hunting_type_id: any = '', area_id: any = '', quota_id: any = '') {
-      const url =
-        import.meta.env.VITE_APP_BASE_URL +
-        import.meta.env.VITE_APP_PRICE_LIST +
-        '?hunting_type_id=' +
-        hunting_type_id +
-        '&area_id=' +
-        area_id +
-        '&quota_id=' +
-        quota_id
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_PRICE_LIST
+
+      const params: any = {}
+      if (hunting_type_id !== '' && hunting_type_id !== null && hunting_type_id !== undefined)
+        params.hunting_type_id = hunting_type_id
+      if (area_id !== '' && area_id !== null && area_id !== undefined) params.area_id = area_id
+      if (quota_id !== '' && quota_id !== null && quota_id !== undefined) params.quota_id = quota_id
+
+      console.log('API URL:', url, 'params:', params)
 
       const config = {
         method: 'get',
         maxBodyLength: Infinity,
         url: url,
+        params,
         headers: {
           'Content-Type': 'application/json',
         },
       }
 
       const response = await axios.request(config)
-      if (response.data.length > 0) {
-        this.priceList = response.data
+      console.log('API response data:', response.data)
+
+      // Normalize response to always set an array on the store
+      const raw = response.data
+      const items = Array.isArray(raw) ? raw : raw?.data ?? []
+      if (Array.isArray(items) && items.length > 0) {
+        this.priceList = items
+      } else {
+        this.priceList = []
       }
+
       return response
     },
     async getPriceListByHuntingType(hunting_type_id: any = '', area_id: any = '', quota_id: any = '') {
-      const url =
-        import.meta.env.VITE_APP_BASE_URL +
-        import.meta.env.VITE_APP_PRICE_LIST +
-        '?hunting_type_id=' +
-        hunting_type_id +
-        '&area_id=' +
-        area_id +
-        '&quota_id=' +
-        quota_id
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_PRICE_LIST
+
+      const params: any = {}
+      if (hunting_type_id !== '' && hunting_type_id !== null && hunting_type_id !== undefined)
+        params.hunting_type_id = hunting_type_id
+      if (area_id !== '' && area_id !== null && area_id !== undefined) params.area_id = area_id
+      if (quota_id !== '' && quota_id !== null && quota_id !== undefined) params.quota_id = quota_id
+
+      const config = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: url,
+        params,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+      const response = await axios.request(config)
+
+      const raw = response.data
+      const items = Array.isArray(raw) ? raw : raw?.data ?? []
+      this.itemsByHuntingType = items
+      return response
+    },
+
+    async getPriceListById(id: any) {
+      const url = `${import.meta.env.VITE_APP_BASE_URL}${import.meta.env.VITE_APP_PRICE_LIST}${id}`
+
+      console.log('Fetching price list detail, URL:', url)
 
       const config = {
         method: 'get',
@@ -61,8 +90,10 @@ export const usePriceListStore = defineStore('price-list', {
           'Content-Type': 'application/json',
         },
       }
+
       const response = await axios.request(config)
-      this.itemsByHuntingType = response.data
+      console.log('Price list detail response:', response.data)
+
       return response
     },
 
@@ -152,10 +183,10 @@ export const usePriceListStore = defineStore('price-list', {
         observer_amount: payload.observerAmount,
         season_id: payload.season_id,
         start_date: payload.start_at,
-        end_date:payload.end_at,
-        is_active:payload.is_active,
-        area_id : payload.area_id,
-        user_id : payload.user_id,
+        end_date: payload.end_at,
+        is_active: payload.is_active,
+        area_id: payload.area_id,
+        user_id: payload.user_id,
         species_object_list: payload.speciesObjectList,
       })
 

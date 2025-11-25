@@ -158,7 +158,7 @@ const routes: Array<RouteRecordRaw> = [
             component: () => import('../pages/module-settings/ManageArea.vue'),
           },
 
-            {
+          {
             name: 'hunting-types',
             path: 'hunting-types',
             component: () => import('../pages/module-settings/ManageArea.vue'),
@@ -181,6 +181,13 @@ const routes: Array<RouteRecordRaw> = [
             component: () => import('../pages/module-settings/ManageExtras.vue'),
           },
 
+          // Trophy Fees
+          {
+            name: 'trophy-fees',
+            path: 'trophy-fees',
+            component: () => import('../pages/module-settings/ManageTrophyFees.vue'),
+          },
+
           // PriceList
           {
             name: 'price-list',
@@ -197,7 +204,7 @@ const routes: Array<RouteRecordRaw> = [
       },
 
       // 26 july 2025
-        {
+      {
         name: 'testing',
         path: '/testing',
         component: RouteViewComponent,
@@ -206,7 +213,7 @@ const routes: Array<RouteRecordRaw> = [
             name: 'test-price-list',
             path: 'test-price-list',
             component: () => import('../views/Testing/PriceList.vue'),
-          }
+          },
         ],
       },
     ],

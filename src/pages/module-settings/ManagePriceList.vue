@@ -43,18 +43,17 @@
                 placeholder="Filter By Area"
                 @update:modelValue="getPriceLists"
               />
-         
+
               <VaButton
                 class="px-2 py-0"
                 color="primary"
                 label="Download"
                 icon="download"
                 size="small"
-                @click="downloadPdf(poriceListPdf)"
+                @click="onDownloadPdf"
               >
                 Download
               </VaButton>
-
             </div>
           </template>
         </ModuleTable>
@@ -80,7 +79,6 @@ import CreatePricesListForm from './components/PricesList/CreatePricesListForm.v
 import { useQuotaStore } from '../../stores/quota-store'
 import { useSettingsStore } from '../../stores/settings-store'
 import downloadPdf from '../../utils/pdfDownloader'
-
 
 const defaultItem = {
   name: '',
@@ -130,8 +128,8 @@ export default defineComponent({
   },
 
   data() {
-    const items: [] = []
-    const printableDataList: [] = []
+    const items: any[] = []
+    const printableDataList: any[] = []
 
     const sform = reactive({
       id: null as any,
@@ -157,12 +155,12 @@ export default defineComponent({
       showModal: false,
       quotasOptions,
       showPriceList: true,
-      quotaItems: [] as any,
-      excellFile: [] as any,
-      itemsByHuntingType: [] as any,
       ShowCreateNewPriceListForm: false,
       loading: false,
       currentQuota: null as any,
+      quotaItems: [] as any,
+      excellFile: [] as any,
+      itemsByHuntingType: [] as any,
       // for filter
       huntingTypeValue: null as any,
       areaValue: null as any,
@@ -186,17 +184,82 @@ export default defineComponent({
   methods: {
     ...mapActions(usePriceListStore, ['getPriceList']),
     ...mapActions(usePriceListStore, ['getPriceListByHuntingType']),
+    ...mapActions(usePriceListStore, ['getPriceListById']),
     ...mapActions(useQuotaStore, ['getQuotas']),
     ...mapActions(useQuotaStore, ['getAreaList']),
     ...mapActions(useQuotaStore, ['generateQuotaYear']),
     ...mapActions(useSettingsStore, ['getHuntingsTypes']),
     ...mapActions(useSettingsStore, ['loadLogo']),
 
-    toggleShowPriceListMethod(e: any) {
-      console.log(e.id)
-      this.item = e.item
-      this.getPriceListByHuntingTypes(e?.item.price_list_type?.hunting_type?.id)
-      this.showPriceList = !this.showPriceList
+    async toggleShowPriceListMethod(rowData: any) {
+      // eslint-disable-next-line no-console
+      console.log('=== Eye button clicked ===')
+      // eslint-disable-next-line no-console
+      console.log('Row data received:', rowData)
+      // eslint-disable-next-line no-console
+      console.log('Current showPriceList:', this.showPriceList)
+
+      // Get the price list ID from the row data
+      const priceListId = rowData?.id
+
+      if (!priceListId) {
+        // eslint-disable-next-line no-console
+        console.error('No price list ID found in row data')
+        return
+      }
+
+      try {
+        // Fetch the full price list detail by ID
+        // eslint-disable-next-line no-console
+        console.log('Fetching price list detail for ID:', priceListId)
+        const response = await this.getPriceListById(priceListId)
+
+        // Backend returns { success: true, data: {...}, message: "..." }
+        // So we need to access response.data.data to get the actual item
+        this.item = response.data.data || response.data
+
+        // eslint-disable-next-line no-console
+        console.log('Fetched price list detail:', this.item)
+
+        // Toggle to show the detail view
+        this.showPriceList = false
+
+        // eslint-disable-next-line no-console
+        console.log('Switched to detail view')
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Error fetching price list detail:', error)
+      }
+    },
+
+    async onDownloadPdf() {
+      const pdf = this.poriceListPdf
+      // debug
+      // eslint-disable-next-line no-console
+      console.log('onDownloadPdf clicked, poriceListPdf length:', pdf ? pdf.length : 0)
+      const isUrl = (s: any) => typeof s === 'string' && /^https?:\/\//i.test(s)
+      const isLikelyBase64 = (s: any) => typeof s === 'string' && s.length > 200 && /^[A-Za-z0-9+/=\r\n]+$/.test(s)
+
+      if (!pdf || (!isUrl(pdf) && !isLikelyBase64(pdf))) {
+        try {
+          this.toast?.init({ message: 'PDF not available for this selection', color: 'warning' })
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn('PDF not available')
+        }
+        return
+      }
+
+      try {
+        await downloadPdf(pdf, `price-list-${Date.now()}.pdf`)
+      } catch (err) {
+        try {
+          this.toast?.init({ message: 'Failed to download PDF', color: 'danger' })
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.error('Failed to download PDF', err)
+        }
+      }
     },
 
     goBack() {
@@ -228,25 +291,54 @@ export default defineComponent({
       this.loading = true
 
       try {
-        // hunting_type_id: any = '', area_id: any = '', quota_id: any = ''
-        const response = await this.getPriceList(this.huntingTypeValue?.value ?? '', this.areaValue?.value ?? '', '')
+        const unwrap = (v: any) => {
+          if (v === null || v === undefined) return ''
+          if (typeof v === 'object' && 'value' in v) return v.value
+          return v
+        }
+
+        const huntingTypeId = unwrap(this.huntingTypeValue) || ''
+        const areaId = unwrap(this.areaValue) || ''
+        const quotaId = unwrap(this.quotaValue) || ''
+
+        console.log('Filter params:', { huntingTypeId, areaId, quotaId })
+        console.log('huntingTypeValue:', this.huntingTypeValue)
+        console.log('areaValue:', this.areaValue)
+        const response = await this.getPriceList(huntingTypeId, areaId, quotaId)
+        console.log('API response:', response)
+        console.log('Response data structure:', response?.data)
+
         if (response.status === 200) {
           this.loading = false
-          this.printableDataList = response?.data
-          this.poriceListPdf = response?.data.pdf
-          this.items = response?.data?.data.map((item: any) => ({
-            id: item?.id,
-            package_name: item?.package_name,
-            area: item?.area,
-            hunting_type: item?.hunting_type,
-            amount: item?.amount,
-            duration: item?.duration,
-            status: item?.status,
-          }))
+
+          // Normalize response: support both `[]` and `{ data: [] }` shapes
+          const raw = response?.data
+          const dataArray = Array.isArray(raw) ? raw : raw?.data ?? []
+          console.log('Data array:', dataArray)
+
+          this.printableDataList = raw
+          this.poriceListPdf = raw?.pdf || ''
+
+          if (Array.isArray(dataArray)) {
+            this.items = dataArray.map((item: any) => ({
+              id: item.id,
+              package_name: item.package_name,
+              area: item.area,
+              hunting_type: item.hunting_type,
+              amount: item.amount,
+              duration: item.duration,
+              status: item.status,
+            }))
+          } else {
+            console.error('Data is not an array:', dataArray)
+            this.items = []
+          }
+
+          console.log('Updated items:', this.items)
         }
       } catch (error) {
         this.loading = false
-        console.log(error)
+        console.error('Error in getPriceLists:', error)
       }
     },
 
@@ -273,7 +365,7 @@ export default defineComponent({
           text: 'All',
         }
 
-        this.areasOptions = response.data.map((item: any) => {
+        this.areasOptions = response?.data?.map((item: any) => {
           return {
             value: item.id,
             text: item.name,
@@ -338,7 +430,7 @@ export default defineComponent({
           value: '',
           text: 'All',
         }
-        this.huntingTypeOptions = response.data.map((item: any) => {
+        this.huntingTypeOptions = response?.data?.map((item: any) => {
           return {
             value: item.id,
             text: item.name,

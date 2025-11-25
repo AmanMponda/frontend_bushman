@@ -244,14 +244,7 @@ import { usePaymentCardsStore } from '../../../../stores/payment-cards'
 import { format } from 'date-fns'
 
 export default defineComponent({
-  components: {
-    // PriceListQuota,
-    // PriceListByHuntingType,
-    // PriceListPackagesDetails,
-    // PricesSpeciesList,
-    // ObComCosts,
-    // AdditionCharges,
-  },
+  components: {},
 
   props: {
     priceListItem: {

@@ -65,8 +65,12 @@ export default defineComponent({
       return this.columns.map(({ name, key, sortable }) => sortable && (name || key)).filter(Boolean)
     },
 
-    clickedView(data) {
-      this.$emit('on-view', data)
+    clickedView(rowData) {
+      // Emit the expected structure
+      this.$emit('on-view', {
+        item: rowData,
+        id: rowData.id,
+      })
     },
   },
 })

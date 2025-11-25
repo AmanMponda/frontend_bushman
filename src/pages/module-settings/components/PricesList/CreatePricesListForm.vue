@@ -320,15 +320,14 @@ export default defineComponent({
         duration: this.form.duration.value,
         season_id: this.form.season.value.id,
         //chriss' codes
-        start_at : this.form.season.value.start_at,
+        start_at: this.form.season.value.start_at,
         end_at: this.form.season.value.end_at,
         is_active: 1,
-        area_id : 3,
-        user_id : 1,
+        area_id: 3,
+        user_id: 1,
         companionAmount: this.form.companion_amount,
         observerAmount: this.form.observer_amount,
       }
-
 
       // console.log(requestdata);
       this.savingPriceList = false
@@ -341,13 +340,13 @@ export default defineComponent({
           this.resetValidationForm()
           this.speciesObjects = []
           this.savingPriceList = false
-        }else{
-            console.log(response);
-           this.savingPriceList = false
+        } else {
+          console.log(response)
+          this.savingPriceList = false
         }
       } catch (error: any) {
         this.savingPriceList = false
-        const errors = handleErrors(error.response)
+        handleErrors(error.response)
         console.log(error)
         this.init({
           message: error.message,
@@ -377,7 +376,7 @@ export default defineComponent({
     async getSeasonList() {
       try {
         const response = await this.getSeasons()
-        this.seasonsOptions = response.data.map((item: { id: any; name: any;}) => {
+        this.seasonsOptions = response.data.map((item: { id: any; name: any }) => {
           return {
             value: item,
             text: item.name,

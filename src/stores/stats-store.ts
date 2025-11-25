@@ -29,21 +29,26 @@ export const useStatsStore = defineStore('stats', {
       }
       const response = await axios.request(config)
 
-     if (response.status === 200) {
-  this.quotaStats = {
-    confirmed: response.data.data.confirmed,
-    pending: response.data.data.pending,
-    cancelled: response.data.data.cancelled,
-    taken: response.data.data.taken,
-    provisioned: response.data.data.provisioned,
-    totalQuota: response.data.data.total_quota_balance,
-    quota: response.data.data.name,
-  };
-  
-  console.log(this.quotaStats);
-  this.loadingStats = false;
-  return response;
-}
+      if (response.status === 200) {
+        // Backend returns { success: true, data: [...species], totals: {...}, pdf: "..." }
+        const totals = response.data.totals || {}
+        const quotaName =
+          response.data.data && response.data.data.length > 0 ? response.data.data[0].quota?.name : 'Unknown'
+
+        this.quotaStats = {
+          confirmed: totals.confirmed || 0,
+          pending: 0, // Not provided in current backend response
+          cancelled: totals.cancelled || 0,
+          taken: totals.taken || 0,
+          provisioned: totals.provisioned || 0,
+          totalQuota: totals.total_quota_balance || 0,
+          quota: quotaName,
+        }
+
+        console.log(this.quotaStats)
+        this.loadingStats = false
+        return response
+      }
       return response
     },
   },

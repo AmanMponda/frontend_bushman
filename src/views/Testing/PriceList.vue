@@ -35,9 +35,7 @@ onMounted(async () => {
     const data = await res.json()
     matrix.value = data.matrix
     huntingTypes.value = Object.keys(matrix.value)
-    salesPackages.value = [
-      ...new Set(huntingTypes.value.flatMap(type => Object.keys(matrix.value[type])))
-    ]
+    salesPackages.value = [...new Set(huntingTypes.value.flatMap((type) => Object.keys(matrix.value[type])))]
   } catch (e) {
     console.error(e)
     error.value = true
@@ -48,7 +46,17 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-table { border-collapse: collapse; width: 100%; }
-th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-th { background-color: #f0f0f0; }
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+th {
+  background-color: #f0f0f0;
+}
 </style>

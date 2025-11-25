@@ -48,7 +48,7 @@
             </VaSelect>
           </VaValue> -->
           <!-- packageNamesOptions -->
-        <VaInput
+          <VaInput
             v-model="packageForm.name"
             label="Name"
             placeholder="Enter package Name"
@@ -334,11 +334,11 @@ export default defineComponent({
           this.resetpackageForm()
           this.resetCreatedItem()
           this.speciesObjects = []
-        }else{
+        } else {
           console.log(response.data)
         }
       } catch (error) {
-        const errors = handleErrors(error)
+        handleErrors(error)
         this.toast.init({
           message: error instanceof Error ? error.message : 'An error occurred',
           color: 'danger',

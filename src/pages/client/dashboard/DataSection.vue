@@ -50,7 +50,6 @@ export default defineComponent({
 
     dashboardMetrics(): DashboardMetric[] {
       return [
-
         {
           id: 'totalquota',
           title: 'Total Quota Balance',
