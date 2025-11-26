@@ -1,6 +1,7 @@
 # Laravel Trophy Fees API Setup
 
 ## Error Analysis
+
 **404 Error:** `http://localhost:8000/api/v1.0/settings/trophy-fees/`
 
 The route doesn't exist in your Laravel backend yet. Follow these steps to create it.
@@ -14,6 +15,7 @@ php artisan make:migration create_trophy_fees_table
 ```
 
 **Migration file:**
+
 ```php
 <?php
 
@@ -285,17 +287,17 @@ Find your `v1.0` API routes group and add:
 
 ```php
 Route::prefix('v1.0')->group(function () {
-    
+
     // ... your existing routes ...
-    
+
     // Settings routes
     Route::prefix('settings')->group(function () {
-        
+
         // ... your existing settings routes ...
-        
+
         // Trophy Fees routes
         Route::apiResource('trophy-fees', App\Http\Controllers\Api\V1\Settings\TrophyFeeController::class);
-        
+
     });
 });
 ```
@@ -317,6 +319,7 @@ Route::prefix('v1.0/settings')->group(function () {
 ## Step 5: Update Species and HuntingArea Models (if needed)
 
 **Species Model:**
+
 ```php
 public function trophyFees()
 {
@@ -325,6 +328,7 @@ public function trophyFees()
 ```
 
 **HuntingArea Model:**
+
 ```php
 public function trophyFees()
 {
@@ -339,16 +343,19 @@ public function trophyFees()
 ### Test with Postman or curl:
 
 **List all trophy fees:**
+
 ```bash
 GET http://localhost:8000/api/v1.0/settings/trophy-fees/
 ```
 
 **Filter by species:**
+
 ```bash
 GET http://localhost:8000/api/v1.0/settings/trophy-fees/?species_id=37
 ```
 
 **Create trophy fee:**
+
 ```bash
 POST http://localhost:8000/api/v1.0/settings/trophy-fees/
 Content-Type: application/json
@@ -362,6 +369,7 @@ Content-Type: application/json
 ```
 
 **Update trophy fee:**
+
 ```bash
 PUT http://localhost:8000/api/v1.0/settings/trophy-fees/1/
 Content-Type: application/json
@@ -375,6 +383,7 @@ Content-Type: application/json
 ```
 
 **Delete trophy fee:**
+
 ```bash
 DELETE http://localhost:8000/api/v1.0/settings/trophy-fees/1/
 ```
@@ -427,14 +436,17 @@ The controller returns data in the format your frontend expects:
 ## Troubleshooting
 
 1. **Still getting 404?**
+
    - Run: `php artisan route:list | grep trophy-fees`
    - Check if route is registered
 
 2. **Database errors?**
+
    - Make sure migration ran: `php artisan migrate:status`
    - Check table exists: `SELECT * FROM trophy_fees;`
 
 3. **CORS errors?**
+
    - Update `config/cors.php`
    - Or install: `php artisan install:api`
 

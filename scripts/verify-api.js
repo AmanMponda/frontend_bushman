@@ -33,7 +33,7 @@ async function checkList(url, opts = {}) {
     }
 
     if (arr.length === 0) {
-      console.warn(`WARN ${url} — array is empty`) 
+      console.warn(`WARN ${url} — array is empty`)
       return { ok: true, res, note: 'empty' }
     }
 
@@ -49,10 +49,13 @@ async function checkPermits() {
   const list = await checkList(url)
   if (!list.ok) return list
 
-  const sample = list.sample || (Array.isArray(list.res.data) && list.res.data[0]) || (list.res.data?.data && list.res.data.data[0])
+  const sample =
+    list.sample || (Array.isArray(list.res.data) && list.res.data[0]) || (list.res.data?.data && list.res.data.data[0])
   if (!sample) return list
 
-  const hasFields = ['permit_number', 'dates', 'issued_date'].every(k => k in sample || (sample.selfitem && k in sample.selfitem))
+  const hasFields = ['permit_number', 'dates', 'issued_date'].every(
+    (k) => k in sample || (sample.selfitem && k in sample.selfitem),
+  )
   console.log(`permits: ${hasFields ? 'OK' : 'MISSING_FIELDS'}`, url)
 
   // If list contains ids, try detail
@@ -97,7 +100,8 @@ async function checkAreaSpecies() {
   const res = await checkList(url)
   if (!res.ok) return res
 
-  const sample = res.sample || (Array.isArray(res.res.data) && res.res.data[0]) || (res.res.data?.data && res.res.data.data[0])
+  const sample =
+    res.sample || (Array.isArray(res.res.data) && res.res.data[0]) || (res.res.data?.data && res.res.data.data[0])
   const okShape = sample && (sample.species || sample.area || sample.quantity !== undefined)
   console.log(`area-species: ${okShape ? 'OK' : 'UNEXPECTED_SHAPE'} ${url}`)
   return res
@@ -133,7 +137,7 @@ async function main() {
   console.log('\nDone. Review warnings/ERRORs above. If shapes differ, update backend or frontend mapping.')
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Fatal error:', err)
   process.exit(1)
 })
