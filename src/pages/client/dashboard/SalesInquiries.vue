@@ -1,5 +1,5 @@
 <template>
-  <VaCard class="w-full">
+  <VaCard class="w-full pt-2">
     <div class="flex flex-col md:flex-row gap-2 mb-2 justify-between px-4 mt-2">
       <div class="flex flex-col md:flex-row gap-2 justify-start">
         <VaButton
