@@ -42,6 +42,7 @@
     "epic-spinners": "^2.0.0",
     "flag-icons": "^6.15.0",
     "ionicons": "^4.6.3",
+    "jspdf": "^3.0.4",
     "leaflet": "^1.9.4",
     "medium-editor": "^5.23.3",
     "pdfmake": "^0.2.14",

@@ -12,7 +12,12 @@
     striped
   >
     <template #cell(actions)="{ rowData }">
-      <VaButton preset="plain" :icon="btnViewicon" @click="clickedView(rowData)"> </VaButton>
+      <div class="flex gap-2">
+        <!-- View Icon -->
+        <VaButton preset="plain" :icon="btnViewicon" @click="clickedView(rowData)"> </VaButton>
+        <!-- Download Icon -->
+        <VaButton preset="plain" icon="download" @click="clickedDownload(rowData)"> </VaButton>
+      </div>
     </template>
   </VaDataTable>
 </template>
@@ -41,7 +46,7 @@ export default defineComponent({
       default: 'visibility',
     },
   },
-  emits: ['on-view'],
+  emits: ['on-view', 'on-download'],
   data() {
     const sortingOrderOptions = [
       { text: 'asc', value: 'asc' },
@@ -68,6 +73,14 @@ export default defineComponent({
     clickedView(rowData) {
       // Emit the expected structure
       this.$emit('on-view', {
+        item: rowData,
+        id: rowData.id,
+      })
+    },
+
+    clickedDownload(rowData) {
+      // Emit the download event with the same structure
+      this.$emit('on-download', {
         item: rowData,
         id: rowData.id,
       })
