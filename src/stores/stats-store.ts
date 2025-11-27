@@ -32,9 +32,8 @@ export const useStatsStore = defineStore('stats', {
       if (response.status === 200) {
         // Backend returns { success: true, data: [...species], totals: {...}, pdf: "..." }
         const totals = response.data.totals || {}
-        const quotaName = response.data.data && response.data.data.length > 0 
-          ? response.data.data[0].quota?.name 
-          : 'Unknown'
+        const quotaName =
+          response.data.data && response.data.data.length > 0 ? response.data.data[0].quota?.name : 'Unknown'
 
         this.quotaStats = {
           confirmed: totals.confirmed || 0,

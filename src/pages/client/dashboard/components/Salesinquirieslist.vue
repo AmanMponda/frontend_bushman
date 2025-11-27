@@ -48,7 +48,6 @@
 import { mapActions } from 'pinia'
 import { defineComponent, ref } from 'vue'
 import { useSalesInquiriesStore } from '../../../../stores/sales-store'
-import { formatDateTime } from '../../../../services/utils'
 import { useSettingsStore } from '../../../../stores/settings-store'
 
 export default defineComponent({
@@ -108,7 +107,7 @@ export default defineComponent({
         if (response.status === 200) {
           this.loading = false
           // Handle paginated response - data is inside response.data.data
-          const dataArray = Array.isArray(response.data) ? response.data : (response.data.data || [])
+          const dataArray = Array.isArray(response.data) ? response.data : response.data.data || []
           this.salesInquiryItems = dataArray.map((item: any) => {
             return {
               id: item.id,

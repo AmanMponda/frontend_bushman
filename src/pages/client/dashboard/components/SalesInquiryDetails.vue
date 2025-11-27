@@ -1,8 +1,10 @@
 <template>
   <div class="flex justify-between items-center mb-6">
     <div class="flex items-center gap-3">
-      <VaBadge :text="item?.inquiry_type === 'standard' ? 'Standard Package' : 'Custom Package'" 
-               :color="item?.inquiry_type === 'standard' ? 'success' : 'info'" />
+      <VaBadge
+        :text="item?.inquiry_type === 'standard' ? 'Standard Package' : 'Custom Package'"
+        :color="item?.inquiry_type === 'standard' ? 'success' : 'info'"
+      />
       <VaBadge :text="item?.code" color="primary" />
     </div>
     <div class="flex gap-2">
@@ -80,12 +82,16 @@
                 <p class="font-semibold">{{ safeString(item?.entity?.country?.name) }}</p>
               </div>
             </div>
-            
+
             <VaDivider class="my-3" />
-            
+
             <h4 class="font-semibold mb-2">Contacts</h4>
             <div class="space-y-2">
-              <div v-for="(contact, index) in safeArray(item.entity?.contacts)" :key="index" class="flex items-center gap-2">
+              <div
+                v-for="(contact, index) in safeArray(item.entity?.contacts)"
+                :key="index"
+                class="flex items-center gap-2"
+              >
                 <VaIcon :name="getContactIcon(contact.contact_type?.name)" size="small" color="info" />
                 <span>{{ contact.contact }}</span>
               </div>
@@ -140,7 +146,7 @@
               <VaIcon name="inventory_2" color="success" />
               <h3 class="text-lg font-bold">Standard Package Details</h3>
             </div>
-            
+
             <div class="grid grid-cols-2 gap-4 mb-4">
               <div class="col-span-2 p-3 bg-green-50 rounded-lg">
                 <p class="text-sm text-gray-600">Package Amount</p>
@@ -163,7 +169,8 @@
               <div>
                 <p class="text-sm text-gray-600">Package Period</p>
                 <p class="font-semibold text-xs">
-                  {{ formatDate(item?.package_details?.start_date) }} - {{ formatDate(item?.package_details?.end_date) }}
+                  {{ formatDate(item?.package_details?.start_date) }} -
+                  {{ formatDate(item?.package_details?.end_date) }}
                 </p>
               </div>
             </div>
@@ -177,7 +184,7 @@
               <VaIcon name="tune" color="info" />
               <h3 class="text-lg font-bold">Custom Package Details</h3>
             </div>
-            
+
             <!-- Custom Areas -->
             <div v-if="safeArray(item?.custom_details?.areas).length > 0" class="mb-4">
               <h4 class="font-semibold mb-2">Hunting Areas</h4>
@@ -195,7 +202,7 @@
                 :items="item?.custom_details?.species"
                 :columns="[
                   { key: 'species_name', label: 'Species', sortable: true },
-                  { key: 'quantity', label: 'Quantity', sortable: true }
+                  { key: 'quantity', label: 'Quantity', sortable: true },
                 ]"
               />
             </div>
@@ -207,18 +214,22 @@
           <VaCardContent>
             <div class="flex items-center gap-2 mb-3">
               <VaIcon name="pets" color="warning" />
-              <h3 class="text-lg font-bold">{{ item?.inquiry_type === 'custom' ? 'Additional Species' : 'Package Species' }}</h3>
+              <h3 class="text-lg font-bold">
+                {{ item?.inquiry_type === 'custom' ? 'Additional Species' : 'Package Species' }}
+              </h3>
             </div>
             <VaDataTable
-              :items="item?.species.map((s: any) => ({
-                species_name: s.species?.name,
-                scientific_name: s.species?.scientific_name,
-                quantity: s.quantity
-              }))"
+              :items="
+                item?.species.map((s: any) => ({
+                  species_name: s.species?.name,
+                  scientific_name: s.species?.scientific_name,
+                  quantity: s.quantity,
+                }))
+              "
               :columns="[
                 { key: 'species_name', label: 'Species', sortable: true },
                 { key: 'scientific_name', label: 'Scientific Name', sortable: true },
-                { key: 'quantity', label: 'Quantity', sortable: true }
+                { key: 'quantity', label: 'Quantity', sortable: true },
               ]"
             />
           </VaCardContent>
@@ -396,10 +407,10 @@ export default defineComponent({
     },
     getContactIcon(contactType: string) {
       const icons: any = {
-        'email': 'email',
-        'phone_number': 'phone',
-        'phone': 'phone',
-        'address': 'home',
+        email: 'email',
+        phone_number: 'phone',
+        phone: 'phone',
+        address: 'home',
       }
       return icons[contactType] || 'info'
     },

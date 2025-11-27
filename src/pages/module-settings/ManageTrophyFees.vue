@@ -3,28 +3,18 @@
     <!-- Header Section -->
     <div class="flex flex-col md:flex-row gap-4 mb-6 justify-between items-center">
       <div>
-        <h2 class="text-2xl font-semibold" v-if="showTrophyFeesList">Trophy Fees Management</h2>
-        <h2 class="text-2xl font-semibold" v-else>{{ editMode ? 'Edit Trophy Fee' : 'Add New Trophy Fee' }}</h2>
-        <p class="text-secondary text-sm mt-1" v-if="showTrophyFeesList">
+        <h2 v-if="showTrophyFeesList" class="text-2xl font-semibold">Trophy Fees Management</h2>
+        <h2 v-else class="text-2xl font-semibold">{{ editMode ? 'Edit Trophy Fee' : 'Add New Trophy Fee' }}</h2>
+        <p v-if="showTrophyFeesList" class="text-secondary text-sm mt-1">
           Manage trophy fees for different species and hunting areas
         </p>
       </div>
-      
+
       <div class="flex gap-2">
-        <VaButton
-          v-if="!showTrophyFeesList"
-          icon="arrow_back"
-          preset="secondary"
-          @click="toggleFormAndList()"
-        >
+        <VaButton v-if="!showTrophyFeesList" icon="arrow_back" preset="secondary" @click="toggleFormAndList()">
           Back to List
         </VaButton>
-        <VaButton
-          v-if="showTrophyFeesList"
-          color="primary"
-          icon="add"
-          @click="toggleFormAndList()"
-        >
+        <VaButton v-if="showTrophyFeesList" color="primary" icon="add" @click="toggleFormAndList()">
           Add Trophy Fee
         </VaButton>
       </div>
@@ -41,7 +31,7 @@
           </div>
         </VaCardContent>
       </VaCard>
-      
+
       <VaCard stripe>
         <VaCardContent class="flex items-center gap-4">
           <VaIcon name="pets" size="large" color="success" />
@@ -51,7 +41,7 @@
           </div>
         </VaCardContent>
       </VaCard>
-      
+
       <VaCard stripe>
         <VaCardContent class="flex items-center gap-4">
           <VaIcon name="location_on" size="large" color="warning" />
@@ -107,12 +97,7 @@
                 </template>
               </VaSelect>
               <div class="flex items-end">
-                <VaButton
-                  v-if="selectedSpecies || selectedArea"
-                  preset="plain"
-                  icon="clear"
-                  @click="clearFilters"
-                >
+                <VaButton v-if="selectedSpecies || selectedArea" preset="plain" icon="clear" @click="clearFilters">
                   Clear Filters
                 </VaButton>
               </div>
@@ -208,14 +193,7 @@
 
         <!-- Action Buttons -->
         <div class="flex gap-3 justify-end">
-          <VaButton
-            v-if="editMode"
-            preset="secondary"
-            icon="close"
-            @click="cancelEdit"
-          >
-            Cancel
-          </VaButton>
+          <VaButton v-if="editMode" preset="secondary" icon="close" @click="cancelEdit"> Cancel </VaButton>
           <VaButton
             :disabled="!isValidTrophyFeeForm"
             color="primary"
@@ -301,12 +279,6 @@ export default defineComponent({
     }
   },
 
-  mounted() {
-    this.getTrophyFees()
-    this.loadSpecies()
-    this.loadAreas()
-  },
-
   computed: {
     uniqueSpeciesCount() {
       const speciesIds = new Set(this.items.map((item: any) => item._raw?.species_id))
@@ -318,13 +290,14 @@ export default defineComponent({
     },
   },
 
+  mounted() {
+    this.getTrophyFees()
+    this.loadSpecies()
+    this.loadAreas()
+  },
+
   methods: {
-    ...mapActions(useTrophyFeesStore, [
-      'fetchTrophyFees',
-      'createTrophyFee',
-      'updateTrophyFee',
-      'deleteTrophyFeeById',
-    ]),
+    ...mapActions(useTrophyFeesStore, ['fetchTrophyFees', 'createTrophyFee', 'updateTrophyFee', 'deleteTrophyFeeById']),
     ...mapActions(useQuotaStore, ['getSpeciesList', 'getAreaList']),
 
     async getTrophyFees() {

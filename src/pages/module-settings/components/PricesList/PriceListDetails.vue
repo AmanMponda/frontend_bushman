@@ -17,11 +17,11 @@
               {{ format(priceListItem.price_list_type.price_list.start_date, 'MMM yyyy') }} -
               {{ format(priceListItem.price_list_type.price_list.end_date, 'MMM yyyy') }}
             </VaChip>
-            <VaChip color="success" size="large" v-if="priceListItem.price_list_type?.is_active">
+            <VaChip v-if="priceListItem.price_list_type?.is_active" color="success" size="large">
               <VaIcon name="check_circle" class="mr-1" />
               Active
             </VaChip>
-            <VaChip color="danger" size="large" v-else>
+            <VaChip v-else color="danger" size="large">
               <VaIcon name="cancel" class="mr-1" />
               Inactive
             </VaChip>
@@ -32,12 +32,7 @@
           </p>
           <!-- Download PDF Button -->
           <div class="mt-4">
-            <VaButton
-              v-if="pdfData"
-              color="primary"
-              icon="download"
-              @click="downloadPriceListPdf"
-            >
+            <VaButton v-if="pdfData" color="primary" icon="download" @click="downloadPriceListPdf">
               Download PDF
             </VaButton>
           </div>
@@ -145,9 +140,7 @@
             </table>
           </div>
         </div>
-        <VaAlert v-else color="info" border="top">
-          No trophy fees available for this package
-        </VaAlert>
+        <VaAlert v-else color="info" border="top"> No trophy fees available for this package </VaAlert>
       </VaCardContent>
     </VaCard>
 
@@ -162,10 +155,7 @@
         <VaCardContent>
           <div class="space-y-3">
             <!-- Observer -->
-            <div
-              v-if="priceListItem.observer && priceListItem.observer.length > 0"
-              class="p-4 rounded-lg bg-gray-50"
-            >
+            <div v-if="priceListItem.observer && priceListItem.observer.length > 0" class="p-4 rounded-lg bg-gray-50">
               <div class="flex justify-between items-start mb-2">
                 <div>
                   <div class="font-semibold text-base">Observer</div>
@@ -181,11 +171,7 @@
             </div>
 
             <!-- Other Extras -->
-            <div
-              v-for="extra in priceListItem.safari_extras"
-              :key="extra.id"
-              class="p-4 rounded-lg bg-gray-50"
-            >
+            <div v-for="extra in priceListItem.safari_extras" :key="extra.id" class="p-4 rounded-lg bg-gray-50">
               <div class="flex justify-between items-start mb-2">
                 <div>
                   <div class="font-semibold text-base capitalize">{{ extra.name }}</div>
@@ -240,11 +226,11 @@
               <span class="font-bold">Important Information</span>
             </div>
           </template>
-          All hunts confirmation is subject to quota availability. Other safari packages are available on request
-          and can be customized depending on client requirements.
+          All hunts confirmation is subject to quota availability. Other safari packages are available on request and
+          can be customized depending on client requirements.
         </VaAlert>
 
-        <VaAlert color="info" border="left" v-if="hasUpgradeFees">
+        <VaAlert v-if="hasUpgradeFees" color="info" border="left">
           <template #title>
             <div class="flex items-center gap-2">
               <VaIcon name="info" />

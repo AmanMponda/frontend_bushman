@@ -1,11 +1,13 @@
 # Sales Inquiry Backend Implementation Guide
 
 ## Overview
+
 This document outlines the backend changes required to support the enhanced Sales Inquiry feature with standard and custom package selection.
 
 ## Database Schema
 
 ### 1. sales_inquiry_price_lists (Already exists)
+
 Links price lists to sales inquiries (many-to-many relationship).
 
 ```sql
@@ -24,6 +26,7 @@ CREATE TABLE `sales_inquiry_price_lists` (
 ```
 
 ### 2. sales_inquiry_companions (Already exists)
+
 Tracks companion and observer counts for price calculations.
 
 ```sql
@@ -41,10 +44,11 @@ CREATE TABLE `sales_inquiry_companions` (
 ```
 
 ### 3. sales_inquiries (Modifications needed)
+
 Add a `package_type` field to distinguish between standard and custom packages.
 
 ```sql
-ALTER TABLE `sales_inquiries` 
+ALTER TABLE `sales_inquiries`
 ADD COLUMN `package_type` ENUM('standard', 'custom') DEFAULT 'standard' AFTER `identity_number`;
 ```
 
@@ -104,10 +108,12 @@ ADD COLUMN `package_type` ENUM('standard', 'custom') DEFAULT 'standard' AFTER `i
 #### Key Changes:
 
 1. **package_type**: New field indicating "standard" or "custom"
+
    - `standard`: Client selected an existing price list
    - `custom`: Client is creating a custom package
 
-2. **price_list_id**: 
+2. **price_list_id**:
+
    - Required when `package_type = "standard"`
    - Null when `package_type = "custom"`
 
@@ -197,7 +203,7 @@ if ($request->package_type === 'custom') {
 
     // 2. Create custom price list (optional approach)
     // You could create a dynamic price list or just store species directly
-    
+
     // 3. Store preferred species
     foreach ($request->preferred_species as $species) {
         SalesInquirySpecies::create([
@@ -209,7 +215,7 @@ if ($request->package_type === 'custom') {
 
     // 4. Handle companions (if applicable)
     // Custom packages might not need this initially
-    
+
     // 5. Store contacts
     foreach ($request->contacts as $contact) {
         EntityContact::create([
@@ -246,9 +252,9 @@ foreach ($preferredSpecies as $species) {
         ->where('area_id', $priceList->area_id)
         ->where('sequence_order', 1) // First animal
         ->first();
-    
+
     $totalPrice += $trophyFee->price_usd * $species->quantity;
-    
+
     // Handle additional animals (2nd, 3rd, etc.)
     // Logic for sequence_order > 1
 }
@@ -303,11 +309,11 @@ $totalPrice += $observerRate * $noOfDays * $noOfObservers;
       }
     ],
     "estimated_price": {
-      "base_amount": 14000.00,
-      "trophy_fees": 82.00,
-      "companion_costs": 5600.00,
-      "observer_costs": 2800.00,
-      "total": 22482.00,
+      "base_amount": 14000.0,
+      "trophy_fees": 82.0,
+      "companion_costs": 5600.0,
+      "observer_costs": 2800.0,
+      "total": 22482.0,
       "currency": "USD"
     }
   }

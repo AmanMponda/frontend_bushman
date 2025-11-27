@@ -1,6 +1,7 @@
 # Sales Inquiry Backend API Specification
 
 ## Endpoint
+
 `POST /api/v1.0/sales-inquiries`
 
 ## Request Structure
@@ -203,7 +204,7 @@ if ($request->inquiry_type === 'custom' && !empty($request->species)) {
 if ($request->preferences['no_of_companions'] > 0 && $request->inquiry_type === 'standard') {
     // Get the sales_inquiry_price_list_id
     $inquiryPriceList = SalesInquiryPriceList::where('sales_inquiry_id', $salesInquiry->id)->first();
-    
+
     SalesInquiryCompanion::create([
         'sales_inquiry_price_list_id' => $inquiryPriceList->id,
         'companions_count' => $request->preferences['no_of_companions'],
@@ -217,6 +218,7 @@ if ($request->preferences['no_of_companions'] > 0 && $request->inquiry_type === 
 ## Key Differences: Standard vs Custom Package
 
 ### Standard Package
+
 - `inquiry_type`: "standard"
 - `price_list_id`: Required (links to `hunting_price_list`)
 - `species`: Empty array (species come from price list)
@@ -226,6 +228,7 @@ if ($request->preferences['no_of_companions'] > 0 && $request->inquiry_type === 
 - Backend creates entry in `sales_inquiry_companions` table with companions and observers count
 
 ### Custom Package
+
 - `inquiry_type`: "custom"
 - `price_list_id`: null
 - `species`: Array of selected species with quantities
@@ -234,6 +237,7 @@ if ($request->preferences['no_of_companions'] > 0 && $request->inquiry_type === 
 - Backend handles custom species entries
 
 ## Contact Types Reference
+
 ```
 1 - email
 2 - phone_number
@@ -245,13 +249,15 @@ if ($request->preferences['no_of_companions'] > 0 && $request->inquiry_type === 
 
 1. **Entity Uniqueness**: Check if entity already exists before creating (by full_name + country_id + nationality_id)
 
-2. **Participants Logic**: 
+2. **Participants Logic**:
+
    - `no_of_companions` → Goes to both `preferences.no_of_companions` AND `preferences.no_of_hunters`
    - `no_of_observers` → Goes to `preferences.no_of_observers`
 
 3. **Date Handling**: All dates should be in ISO 8601 format with timezone
 
 4. **Standard Package Data Inheritance**: When `inquiry_type` is "standard":
+
    - Get `no_of_days` from `hunting_price_list_type.duration`
    - Get `area_id` from `hunting_price_list.area_id`
    - Get species from `sales_package.species`
@@ -277,6 +283,7 @@ if ($request->preferences['no_of_companions'] > 0 && $request->inquiry_type === 
 ## Error Responses
 
 ### Validation Error
+
 ```json
 {
   "success": false,
@@ -289,6 +296,7 @@ if ($request->preferences['no_of_companions'] > 0 && $request->inquiry_type === 
 ```
 
 ### Not Found Error
+
 ```json
 {
   "success": false,

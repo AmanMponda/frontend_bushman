@@ -51,7 +51,7 @@ const downloadPdf = async (base64OrUrl: string, filename = 'price-list-report.pd
     // Otherwise assume PDF base64. Convert to byte array in chunks to avoid memory spikes
     const b64 = cleaned
     const sliceSize = 1024
-    const byteArrays: Uint8Array<ArrayBuffer>[] = []
+    const byteArrays: Uint8Array[] = []
     for (let offset = 0; offset < b64.length; offset += sliceSize) {
       const slice = b64.slice(offset, offset + sliceSize)
       const byteChars = atob(slice)

@@ -54,7 +54,7 @@ export const useSalesInquiriesStore = defineStore('sales_inquiries', {
 
     async createSalesInquiry(payload: any) {
       const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_SALES_INQUIRIES_URL
-      
+
       // The payload is already properly formatted from the component
       // Just send it directly to the backend
       const config = {

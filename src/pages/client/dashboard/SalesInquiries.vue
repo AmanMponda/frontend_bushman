@@ -51,192 +51,160 @@
                 <h3 class="text-xl font-bold text-gray-800">Package Selection</h3>
               </div>
               <div class="flex gap-6 mb-4">
-              <VaRadio
-                v-model="packageSelectionType"
-                option="standard"
-                label="Use Standard Package"
-                @update:modelValue="onPackageTypeChange"
-              />
-              <VaRadio
-                v-model="packageSelectionType"
-                option="custom"
-                label="Create Custom Package"
-                @update:modelValue="onPackageTypeChange"
-              />
-            </div>
+                <VaRadio
+                  v-model="packageSelectionType"
+                  option="standard"
+                  label="Use Standard Package"
+                  @update:modelValue="onPackageTypeChange"
+                />
+                <VaRadio
+                  v-model="packageSelectionType"
+                  option="custom"
+                  label="Create Custom Package"
+                  @update:modelValue="onPackageTypeChange"
+                />
+              </div>
 
-            <template v-if="packageSelectionType === 'standard'">
-              <div class="grid grid-cols-1 gap-4 mb-4">
-                <VaSelect
-                  v-model="form.priceListId"
-                  placeholder="Select Standard Price List"
-                  label="Sales Package"
-                  :rules="[(v: any) => v || 'Price List is required']"
-                  :options="packagesOptions"
-                  searchable
-                  highlight-matched-text
-                  @update:modelValue="populateSpeciesList"
-                >
-                  <template #content="{ value }">
-                    <div v-if="value" class="flex flex-col">
-                      <span class="font-semibold">{{ value.text }}</span>
-                      <span class="text-sm text-gray-500">
-                        {{ value.selfItem?.area || value.selfItem?.area_package || 'N/A' }} • {{ value.selfItem?.hunting_type || 'N/A' }} • {{ value.selfItem?.duration || 0 }} days
-                      </span>
-                    </div>
-                  </template>
-                </VaSelect>
+              <template v-if="packageSelectionType === 'standard'">
+                <div class="grid grid-cols-1 gap-4 mb-4">
+                  <VaSelect
+                    v-model="form.priceListId"
+                    placeholder="Select Standard Price List"
+                    label="Sales Package"
+                    :rules="[(v: any) => v || 'Price List is required']"
+                    :options="packagesOptions"
+                    searchable
+                    highlight-matched-text
+                    @update:modelValue="populateSpeciesList"
+                  >
+                    <template #content="{ value }">
+                      <div v-if="value" class="flex flex-col">
+                        <span class="font-semibold">{{ value.text }}</span>
+                        <span class="text-sm text-gray-500">
+                          {{ value.selfItem?.area || value.selfItem?.area_package || 'N/A' }} •
+                          {{ value.selfItem?.hunting_type || 'N/A' }} • {{ value.selfItem?.duration || 0 }} days
+                        </span>
+                      </div>
+                    </template>
+                  </VaSelect>
 
-                <!-- Display selected package details -->
-                <VaCard v-if="form.priceListId && form.priceListId.selfItem" outlined class="mb-4">
-                  <VaCardTitle class="text-sm font-semibold">Package Details</VaCardTitle>
-                  <VaCardContent>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                      <div>
-                        <span class="text-gray-600">Area:</span>
-                        <span class="ml-1 font-medium">{{ form.priceListId.selfItem?.area || form.priceListId.selfItem?.sales_package?.area?.name || 'N/A' }}</span>
-                      </div>
-                      <div>
-                        <span class="text-gray-600">Hunting Type:</span>
-                        <span class="ml-1 font-medium">{{ form.priceListId.selfItem?.hunting_type || form.priceListId.selfItem?.price_list_type?.hunting_type?.name || 'N/A' }}</span>
-                      </div>
-                      <div>
-                        <span class="text-gray-600">Duration:</span>
-                        <span class="ml-1 font-medium">{{ form.priceListId.selfItem?.duration || form.priceListId.selfItem?.price_list_type?.duration || 0 }} days</span>
-                      </div>
-                      <div>
-                        <span class="text-gray-600">Base Amount:</span>
-                        <span class="ml-1 font-medium">{{ form.priceListId.selfItem?.amount || formatCurrency(form.priceListId.selfItem?.price_list_type?.amount) }}</span>
-                      </div>
-                    </div>
-
-                    <!-- Additional details from detailed API -->
-                    <template v-if="form.priceListId.selfItem?.safari_extras">
-                      <div class="mt-3 pt-3 border-t">
-                        <div class="text-xs font-semibold text-gray-700 mb-2">Safari Extras Available:</div>
-                        <div class="flex flex-wrap gap-1">
-                          <VaBadge
-                            v-for="extra in form.priceListId.selfItem.safari_extras"
-                            :key="extra.id"
-                            :text="`${extra.name} (${extra.currency?.symbol}${extra.amount})`"
-                            color="info"
-                            size="small"
-                          />
+                  <!-- Display selected package details -->
+                  <VaCard v-if="form.priceListId && form.priceListId.selfItem" outlined class="mb-4">
+                    <VaCardTitle class="text-sm font-semibold">Package Details</VaCardTitle>
+                    <VaCardContent>
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                        <div>
+                          <span class="text-gray-600">Area:</span>
+                          <span class="ml-1 font-medium">{{
+                            form.priceListId.selfItem?.area ||
+                            form.priceListId.selfItem?.sales_package?.area?.name ||
+                            'N/A'
+                          }}</span>
+                        </div>
+                        <div>
+                          <span class="text-gray-600">Hunting Type:</span>
+                          <span class="ml-1 font-medium">{{
+                            form.priceListId.selfItem?.hunting_type ||
+                            form.priceListId.selfItem?.price_list_type?.hunting_type?.name ||
+                            'N/A'
+                          }}</span>
+                        </div>
+                        <div>
+                          <span class="text-gray-600">Duration:</span>
+                          <span class="ml-1 font-medium"
+                            >{{
+                              form.priceListId.selfItem?.duration ||
+                              form.priceListId.selfItem?.price_list_type?.duration ||
+                              0
+                            }}
+                            days</span
+                          >
+                        </div>
+                        <div>
+                          <span class="text-gray-600">Base Amount:</span>
+                          <span class="ml-1 font-medium">{{
+                            form.priceListId.selfItem?.amount ||
+                            formatCurrency(form.priceListId.selfItem?.price_list_type?.amount)
+                          }}</span>
                         </div>
                       </div>
-                    </template>
 
-                    <template v-if="form.priceListId.selfItem?.componions_hunter && form.priceListId.selfItem.componions_hunter.length > 0">
-                      <div class="mt-2">
-                        <span class="text-xs text-gray-600">Companion Rate:</span>
-                        <span class="ml-1 text-xs font-medium">${{ form.priceListId.selfItem.componions_hunter[0].amount }}</span>
-                      </div>
-                    </template>
-
-                    <template v-if="form.priceListId.selfItem?.observer && form.priceListId.selfItem.observer.length > 0">
-                      <div class="mt-1">
-                        <span class="text-xs text-gray-600">Observer Rate:</span>
-                        <span class="ml-1 text-xs font-medium">${{ form.priceListId.selfItem.observer[0].amount }}</span>
-                      </div>
-                    </template>
-                  </VaCardContent>
-                </VaCard>
-              </div>
-            </template>
-
-            <template v-else-if="packageSelectionType === 'custom'">
-              <VaAlert color="info" class="mb-4">
-                <template #title>Custom Package</template>
-                You can create a custom package by selecting species and quantities below. This will create a unique price list for this inquiry.
-              </VaAlert>
-            </template>
-
-            <h3 class="font-bold text-lg mb-2 mt-4">Species Included in Package</h3>
-            <template v-if="packageSelectionType === 'standard' && salesPackagesSpecies.length > 0">
-              <VaCard outlined class="mb-4">
-                <VaCardContent>
-                  <div class="va-table-responsive">
-                    <table class="va-table va-table--striped">
-                      <thead>
-                        <tr>
-                          <th>Species Name</th>
-                          <th>Scientific Name</th>
-                          <th>Quantity</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <template v-for="item in salesPackagesSpecies" :key="item.id">
-                          <tr>
-                            <td class="font-medium">{{ item.name }}</td>
-                            <td class="text-sm text-gray-600">{{ item.scientific_name || 'N/A' }}</td>
-                            <td>
-                              <VaBadge :color="item.quantity > 0 ? 'success' : 'danger'" size="medium">
-                                {{ item.quantity }}
-                              </VaBadge>
-                            </td>
-                          </tr>
-                        </template>
-                      </tbody>
-                    </table>
-                  </div>
-                </VaCardContent>
-              </VaCard>
-
-              <!-- Safari Extras Details -->
-              <template v-if="form.priceListId.selfItem?.safari_extras && form.priceListId.selfItem.safari_extras.length > 0">
-                <h3 class="font-bold text-lg mb-2 mt-4">Safari Extras</h3>
-                <VaCard outlined class="mb-4">
-                  <VaCardContent>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      <div
-                        v-for="extra in form.priceListId.selfItem.safari_extras"
-                        :key="extra.id"
-                        class="p-3 border rounded-lg hover:shadow-md transition-shadow"
-                      >
-                        <div class="flex justify-between items-start">
-                          <div class="flex-1">
-                            <div class="font-semibold text-base capitalize">{{ extra.name }}</div>
-                            <div class="text-xs text-gray-600 mt-1">{{ extra.description }}</div>
-                            <div class="mt-2 flex items-center gap-2">
-                              <VaBadge color="primary" size="small">
-                                {{ extra.currency?.symbol }}{{ extra.amount }}
-                              </VaBadge>
-                              <span class="text-xs text-gray-500">{{ formatChargesPer(extra.charges_per) }}</span>
-                            </div>
+                      <!-- Additional details from detailed API -->
+                      <template v-if="form.priceListId.selfItem?.safari_extras">
+                        <div class="mt-3 pt-3 border-t">
+                          <div class="text-xs font-semibold text-gray-700 mb-2">Safari Extras Available:</div>
+                          <div class="flex flex-wrap gap-1">
+                            <VaBadge
+                              v-for="extra in form.priceListId.selfItem.safari_extras"
+                              :key="extra.id"
+                              :text="`${extra.name} (${extra.currency?.symbol}${extra.amount})`"
+                              color="info"
+                              size="small"
+                            />
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  </VaCardContent>
-                </VaCard>
+                      </template>
+
+                      <template
+                        v-if="
+                          form.priceListId.selfItem?.componions_hunter &&
+                          form.priceListId.selfItem.componions_hunter.length > 0
+                        "
+                      >
+                        <div class="mt-2">
+                          <span class="text-xs text-gray-600">Companion Rate:</span>
+                          <span class="ml-1 text-xs font-medium"
+                            >${{ form.priceListId.selfItem.componions_hunter[0].amount }}</span
+                          >
+                        </div>
+                      </template>
+
+                      <template
+                        v-if="form.priceListId.selfItem?.observer && form.priceListId.selfItem.observer.length > 0"
+                      >
+                        <div class="mt-1">
+                          <span class="text-xs text-gray-600">Observer Rate:</span>
+                          <span class="ml-1 text-xs font-medium"
+                            >${{ form.priceListId.selfItem.observer[0].amount }}</span
+                          >
+                        </div>
+                      </template>
+                    </VaCardContent>
+                  </VaCard>
+                </div>
               </template>
 
-              <!-- Trophy Fees Details -->
-              <template v-if="form.priceListId.selfItem?.trophy_fees && form.priceListId.selfItem.trophy_fees.length > 0">
-                <h3 class="font-bold text-lg mb-2 mt-4">Trophy Fees</h3>
+              <template v-else-if="packageSelectionType === 'custom'">
+                <VaAlert color="info" class="mb-4">
+                  <template #title>Custom Package</template>
+                  You can create a custom package by selecting species and quantities below. This will create a unique
+                  price list for this inquiry.
+                </VaAlert>
+              </template>
+
+              <h3 class="font-bold text-lg mb-2 mt-4">Species Included in Package</h3>
+              <template v-if="packageSelectionType === 'standard' && salesPackagesSpecies.length > 0">
                 <VaCard outlined class="mb-4">
                   <VaCardContent>
                     <div class="va-table-responsive">
                       <table class="va-table va-table--striped">
                         <thead>
                           <tr>
-                            <th>Species</th>
+                            <th>Species Name</th>
                             <th>Scientific Name</th>
-                            <th>Sequence</th>
-                            <th>Price (USD)</th>
+                            <th>Quantity</th>
                           </tr>
                         </thead>
                         <tbody>
-                          <template v-for="fee in form.priceListId.selfItem.trophy_fees" :key="fee.id">
+                          <template v-for="item in salesPackagesSpecies" :key="item.id">
                             <tr>
-                              <td class="font-medium">{{ fee.species?.name }}</td>
-                              <td class="text-sm text-gray-600">{{ fee.species?.scientific_name || 'N/A' }}</td>
+                              <td class="font-medium">{{ item.name }}</td>
+                              <td class="text-sm text-gray-600">{{ item.scientific_name || 'N/A' }}</td>
                               <td>
-                                <VaBadge color="info" size="small">
-                                  {{ getSequenceLabel(fee.sequence_order) }}
+                                <VaBadge :color="item.quantity > 0 ? 'success' : 'danger'" size="medium">
+                                  {{ item.quantity }}
                                 </VaBadge>
                               </td>
-                              <td class="font-semibold">${{ fee.price_usd }}</td>
                             </tr>
                           </template>
                         </tbody>
@@ -244,110 +212,190 @@
                     </div>
                   </VaCardContent>
                 </VaCard>
+
+                <!-- Safari Extras Details -->
+                <template
+                  v-if="form.priceListId.selfItem?.safari_extras && form.priceListId.selfItem.safari_extras.length > 0"
+                >
+                  <h3 class="font-bold text-lg mb-2 mt-4">Safari Extras</h3>
+                  <VaCard outlined class="mb-4">
+                    <VaCardContent>
+                      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div
+                          v-for="extra in form.priceListId.selfItem.safari_extras"
+                          :key="extra.id"
+                          class="p-3 border rounded-lg hover:shadow-md transition-shadow"
+                        >
+                          <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                              <div class="font-semibold text-base capitalize">{{ extra.name }}</div>
+                              <div class="text-xs text-gray-600 mt-1">{{ extra.description }}</div>
+                              <div class="mt-2 flex items-center gap-2">
+                                <VaBadge color="primary" size="small">
+                                  {{ extra.currency?.symbol }}{{ extra.amount }}
+                                </VaBadge>
+                                <span class="text-xs text-gray-500">{{ formatChargesPer(extra.charges_per) }}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </VaCardContent>
+                  </VaCard>
+                </template>
+
+                <!-- Trophy Fees Details -->
+                <template
+                  v-if="form.priceListId.selfItem?.trophy_fees && form.priceListId.selfItem.trophy_fees.length > 0"
+                >
+                  <h3 class="font-bold text-lg mb-2 mt-4">Trophy Fees</h3>
+                  <VaCard outlined class="mb-4">
+                    <VaCardContent>
+                      <div class="va-table-responsive">
+                        <table class="va-table va-table--striped">
+                          <thead>
+                            <tr>
+                              <th>Species</th>
+                              <th>Scientific Name</th>
+                              <th>Sequence</th>
+                              <th>Price (USD)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <template v-for="fee in form.priceListId.selfItem.trophy_fees" :key="fee.id">
+                              <tr>
+                                <td class="font-medium">{{ fee.species?.name }}</td>
+                                <td class="text-sm text-gray-600">{{ fee.species?.scientific_name || 'N/A' }}</td>
+                                <td>
+                                  <VaBadge color="info" size="small">
+                                    {{ getSequenceLabel(fee.sequence_order) }}
+                                  </VaBadge>
+                                </td>
+                                <td class="font-semibold">${{ fee.price_usd }}</td>
+                              </tr>
+                            </template>
+                          </tbody>
+                        </table>
+                      </div>
+                    </VaCardContent>
+                  </VaCard>
+                </template>
+
+                <!-- Companion and Observer Rates -->
+                <template
+                  v-if="
+                    (form.priceListId.selfItem?.componions_hunter &&
+                      form.priceListId.selfItem.componions_hunter.length > 0) ||
+                    (form.priceListId.selfItem?.observer && form.priceListId.selfItem.observer.length > 0)
+                  "
+                >
+                  <h3 class="font-bold text-lg mb-2 mt-4">Additional Rates</h3>
+                  <VaCard outlined class="mb-4">
+                    <VaCardContent>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <template
+                          v-if="
+                            form.priceListId.selfItem.componions_hunter &&
+                            form.priceListId.selfItem.componions_hunter.length > 0
+                          "
+                        >
+                          <div class="p-4 bg-blue-50 rounded-lg">
+                            <div class="flex items-center gap-2 mb-2">
+                              <VaIcon name="group" size="small" color="primary" />
+                              <span class="font-semibold text-base">Companion Hunter</span>
+                            </div>
+                            <div class="text-2xl font-bold text-primary">
+                              ${{ form.priceListId.selfItem.componions_hunter[0].amount }}
+                            </div>
+                            <div class="text-xs text-gray-600 mt-1">per companion</div>
+                          </div>
+                        </template>
+                        <template
+                          v-if="form.priceListId.selfItem.observer && form.priceListId.selfItem.observer.length > 0"
+                        >
+                          <div class="p-4 bg-green-50 rounded-lg">
+                            <div class="flex items-center gap-2 mb-2">
+                              <VaIcon name="visibility" size="small" color="success" />
+                              <span class="font-semibold text-base">Observer</span>
+                            </div>
+                            <div class="text-2xl font-bold text-success">
+                              ${{ form.priceListId.selfItem.observer[0].amount }}
+                            </div>
+                            <div class="text-xs text-gray-600 mt-1">per observer</div>
+                          </div>
+                        </template>
+                      </div>
+                    </VaCardContent>
+                  </VaCard>
+                </template>
               </template>
 
-              <!-- Companion and Observer Rates -->
-              <template v-if="(form.priceListId.selfItem?.componions_hunter && form.priceListId.selfItem.componions_hunter.length > 0) || (form.priceListId.selfItem?.observer && form.priceListId.selfItem.observer.length > 0)">
-                <h3 class="font-bold text-lg mb-2 mt-4">Additional Rates</h3>
+              <!-- Custom Package Species Selection -->
+              <template v-if="packageSelectionType === 'custom'">
+                <h3 class="font-bold text-lg mb-2 mt-4">Preferred Species</h3>
                 <VaCard outlined class="mb-4">
                   <VaCardContent>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <template v-if="form.priceListId.selfItem.componions_hunter && form.priceListId.selfItem.componions_hunter.length > 0">
-                        <div class="p-4 bg-blue-50 rounded-lg">
-                          <div class="flex items-center gap-2 mb-2">
-                            <VaIcon name="group" size="small" color="primary" />
-                            <span class="font-semibold text-base">Companion Hunter</span>
-                          </div>
-                          <div class="text-2xl font-bold text-primary">
-                            ${{ form.priceListId.selfItem.componions_hunter[0].amount }}
-                          </div>
-                          <div class="text-xs text-gray-600 mt-1">per companion</div>
-                        </div>
-                      </template>
-                      <template v-if="form.priceListId.selfItem.observer && form.priceListId.selfItem.observer.length > 0">
-                        <div class="p-4 bg-green-50 rounded-lg">
-                          <div class="flex items-center gap-2 mb-2">
-                            <VaIcon name="visibility" size="small" color="success" />
-                            <span class="font-semibold text-base">Observer</span>
-                          </div>
-                          <div class="text-2xl font-bold text-success">
-                            ${{ form.priceListId.selfItem.observer[0].amount }}
-                          </div>
-                          <div class="text-xs text-gray-600 mt-1">per observer</div>
-                        </div>
-                      </template>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <VaSelect
+                        v-model="form.species"
+                        label="Species"
+                        :options="speciesOptions"
+                        placeholder="Select Species"
+                        :rules="[(v: any) => !!v || 'Species is required']"
+                        searchable
+                        highlight-matched-text
+                      />
+
+                      <VaCounter
+                        v-model="form.quantity"
+                        label="Quantity"
+                        manual-input
+                        :min="1"
+                        :max="100"
+                        :rules="[(v: any) => v || 'Quantity is required']"
+                      />
+
+                      <div class="flex items-end">
+                        <VaButton color="primary" icon="add" @click="addNewSpeciesItemToStorage()">
+                          Add Species
+                        </VaButton>
+                      </div>
+                    </div>
+
+                    <VaDivider class="my-4" />
+
+                    <div class="mt-4">
+                      <div class="text-sm font-semibold mb-3">Selected Species</div>
+                      <VaList v-if="speciesObjects.length > 0" class="space-y-2">
+                        <VaListItem
+                          v-for="(s, index) in speciesObjects"
+                          :key="index"
+                          class="border rounded-lg p-3 hover:shadow-md transition-shadow"
+                        >
+                          <VaListItemSection>
+                            <VaListItemLabel class="flex justify-between items-center">
+                              <div>
+                                <span class="font-semibold">{{ s.name }}</span>
+                                <span class="ml-3 text-sm text-gray-600">Qty: {{ s.quantity }}</span>
+                              </div>
+                              <VaButton
+                                preset="plain"
+                                icon="delete"
+                                color="danger"
+                                size="small"
+                                @click="deleteFromStorage(index)"
+                              />
+                            </VaListItemLabel>
+                          </VaListItemSection>
+                        </VaListItem>
+                      </VaList>
+                      <VaAlert v-else color="secondary" border="left" class="mb-0">
+                        No species selected yet. Add species using the form above.
+                      </VaAlert>
                     </div>
                   </VaCardContent>
                 </VaCard>
               </template>
-            </template>
-
-            <!-- Custom Package Species Selection -->
-            <template v-if="packageSelectionType === 'custom'">
-              <h3 class="font-bold text-lg mb-2 mt-4">Preferred Species</h3>
-              <VaCard outlined class="mb-4">
-                <VaCardContent>
-                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <VaSelect
-                      v-model="form.species"
-                      label="Species"
-                      :options="speciesOptions"
-                      placeholder="Select Species"
-                      :rules="[(v: any) => !!v || 'Species is required']"
-                      searchable
-                      highlight-matched-text
-                    />
-
-                    <VaCounter
-                      v-model="form.quantity"
-                      label="Quantity"
-                      manual-input
-                      :min="1"
-                      :max="100"
-                      :rules="[(v: any) => v || 'Quantity is required']"
-                    />
-                    
-                    <div class="flex items-end">
-                      <VaButton
-                        color="primary"
-                        icon="add"
-                        @click="addNewSpeciesItemToStorage()"
-                      >
-                        Add Species
-                      </VaButton>
-                    </div>
-                  </div>
-
-                  <VaDivider class="my-4" />
-
-                  <div class="mt-4">
-                    <div class="text-sm font-semibold mb-3">Selected Species</div>
-                    <VaList v-if="speciesObjects.length > 0" class="space-y-2">
-                      <VaListItem v-for="(s, index) in speciesObjects" :key="index" class="border rounded-lg p-3 hover:shadow-md transition-shadow">
-                        <VaListItemSection>
-                          <VaListItemLabel class="flex justify-between items-center">
-                            <div>
-                              <span class="font-semibold">{{ s.name }}</span>
-                              <span class="ml-3 text-sm text-gray-600">Qty: {{ s.quantity }}</span>
-                            </div>
-                            <VaButton
-                              preset="plain"
-                              icon="delete"
-                              color="danger"
-                              size="small"
-                              @click="deleteFromStorage(index)"
-                            />
-                          </VaListItemLabel>
-                        </VaListItemSection>
-                      </VaListItem>
-                    </VaList>
-                    <VaAlert v-else color="secondary" border="left" class="mb-0">
-                      No species selected yet. Add species using the form above.
-                    </VaAlert>
-                  </div>
-                </VaCardContent>
-              </VaCard>
-            </template>
             </div>
 
             <!-- Basic Information Section -->
@@ -392,32 +440,32 @@
                 <h3 class="text-xl font-bold text-gray-800">Contact Information</h3>
               </div>
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <VaInput
-                v-model="form.email"
-                type="email"
-                placeholder="Enter your email"
-                :rules="[validators.required, validators.email]"
-                label="Email"
-              />
+                <VaInput
+                  v-model="form.email"
+                  type="email"
+                  placeholder="Enter your email"
+                  :rules="[validators.required, validators.email]"
+                  label="Email"
+                />
 
-              <VaInput
-                v-model="form.phone"
-                type="text"
-                placeholder="eg: +971501234567"
-                :rules="[validators.required, validators.tell]"
-                label="Phone"
-              />
-              <!-- <vue-tel-input v-model="form.phone" mode="international" required></vue-tel-input> -->
+                <VaInput
+                  v-model="form.phone"
+                  type="text"
+                  placeholder="eg: +971501234567"
+                  :rules="[validators.required, validators.tell]"
+                  label="Phone"
+                />
+                <!-- <vue-tel-input v-model="form.phone" mode="international" required></vue-tel-input> -->
 
-              <VaInput
-                v-model="form.address"
-                type="text"
-                :max-length="30"
-                placeholder="Enter your address"
-                :rules="[(value: any) => (value && value.length > 0) || 'Address is required']"
-                label="Address"
-              />
-            </div>
+                <VaInput
+                  v-model="form.address"
+                  type="text"
+                  :max-length="30"
+                  placeholder="Enter your address"
+                  :rules="[(value: any) => (value && value.length > 0) || 'Address is required']"
+                  label="Address"
+                />
+              </div>
             </div>
 
             <!-- Participants and Hunting Days Section -->
@@ -427,7 +475,7 @@
                 <h3 class="text-xl font-bold text-gray-800">Participants and Hunting Days</h3>
               </div>
               <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <!-- <VaInput
+                <!-- <VaInput
                 v-model="form.no_of_hunters"
                 label="Number of Hunters"
                 placeholder="Enter Number of Hunters"
@@ -435,40 +483,40 @@
                 type="number"
                 required
               /> -->
-              <VaInput
-                v-model="form.no_of_observers"
-                label="Number of Observers(Optional)"
-                placeholder="Enter Number of Observers"
-                type="number"
-                required
-              />
-              <VaInput
-                v-model="form.no_of_days"
-                label="Number of Days"
-                placeholder="Enter Number of Days"
-                type="number"
-                :rules="[(v: any) => packageSelectionType === 'custom' ? (v || 'This field is required') : true]"
-                :disabled="packageSelectionType === 'standard' && !!form.priceListId"
-                required
-              />
-              <VaInput
-                v-model="form.no_of_companions"
-                label="Number of Companions(Optional)"
-                placeholder="Enter Number of Companions"
-                type="number"
-                required
-              />
-              <VaSelect
-                v-model="form.area"
-                placeholder="Select Area"
-                label="Hunting area"
-                :rules="[(v: any) => packageSelectionType === 'custom' ? (v || 'Hunting area is required') : true]"
-                :options="areasOptions"
-                :disabled="packageSelectionType === 'standard' && !!form.priceListId"
-                searchable
-                highlight-matched-text
-              />
-            </div>
+                <VaInput
+                  v-model="form.no_of_observers"
+                  label="Number of Observers(Optional)"
+                  placeholder="Enter Number of Observers"
+                  type="number"
+                  required
+                />
+                <VaInput
+                  v-model="form.no_of_days"
+                  label="Number of Days"
+                  placeholder="Enter Number of Days"
+                  type="number"
+                  :rules="[(v: any) => (packageSelectionType === 'custom' ? v || 'This field is required' : true)]"
+                  :disabled="packageSelectionType === 'standard' && !!form.priceListId"
+                  required
+                />
+                <VaInput
+                  v-model="form.no_of_companions"
+                  label="Number of Companions(Optional)"
+                  placeholder="Enter Number of Companions"
+                  type="number"
+                  required
+                />
+                <VaSelect
+                  v-model="form.area"
+                  placeholder="Select Area"
+                  label="Hunting area"
+                  :rules="[(v: any) => (packageSelectionType === 'custom' ? v || 'Hunting area is required' : true)]"
+                  :options="areasOptions"
+                  :disabled="packageSelectionType === 'standard' && !!form.priceListId"
+                  searchable
+                  highlight-matched-text
+                />
+              </div>
             </div>
 
             <!-- Season and Tentative Date Section -->
@@ -478,63 +526,53 @@
                 <h3 class="text-xl font-bold text-gray-800">Season and Tentative Date</h3>
               </div>
               <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <VaSelect
-                v-model="form.season"
-                placeholder="Select Season"
-                label="Season"
-                :rules="[(v: any) => packageSelectionType === 'custom' ? (v || 'Season is required') : true]"
-                :options="seasonsOptions"
-                :disabled="packageSelectionType === 'standard' && !!form.priceListId"
-                searchable
-                highlight-matched-text
-              />
-              <!-- <VaInput
+                <VaSelect
+                  v-model="form.season"
+                  placeholder="Select Season"
+                  label="Season"
+                  :rules="[(v: any) => (packageSelectionType === 'custom' ? v || 'Season is required' : true)]"
+                  :options="seasonsOptions"
+                  :disabled="packageSelectionType === 'standard' && !!form.priceListId"
+                  searchable
+                  highlight-matched-text
+                />
+                <!-- <VaInput
               v-model="form.preferred_date"
               type="date"
               placeholder="Select Preferred Date"
               :rules="[(v: any) => v || 'Preferred Date is required']"
               label="Preferred Date"
             /> -->
-              <VaDateInput
-                v-model="form.preferred_date"
-                label="Preferred Date"
-                placeholder="Select Preferred Date"
-                :rules="[(v: any) => v || 'Preferred Date is required']"
-                required
-              />
-              <VaDateInput
-                v-model="form.start_date"
-                label="Start Date"
-                placeholder="Select Start Date"
-                :rules="[(v: any) => v || 'Start Date is required']"
-                required
-              />
-              <VaDateInput
-                v-model="form.end_date"
-                label="End Date"
-                placeholder="Select End Date"
-                :rules="[(v: any) => v || 'End Date is required']"
-                required
-              />
-            </div>
+                <VaDateInput
+                  v-model="form.preferred_date"
+                  label="Preferred Date"
+                  placeholder="Select Preferred Date"
+                  :rules="[(v: any) => v || 'Preferred Date is required']"
+                  required
+                />
+                <VaDateInput
+                  v-model="form.start_date"
+                  label="Start Date"
+                  placeholder="Select Start Date"
+                  :rules="[(v: any) => v || 'Start Date is required']"
+                  required
+                />
+                <VaDateInput
+                  v-model="form.end_date"
+                  label="End Date"
+                  placeholder="Select End Date"
+                  :rules="[(v: any) => v || 'End Date is required']"
+                  required
+                />
+              </div>
             </div>
           </div>
 
           <VaDivider class="my-6" />
 
           <div class="flex justify-end gap-3 p-4">
-            <VaButton
-              preset="secondary"
-              @click="gotBack()"
-            >
-              Cancel
-            </VaButton>
-            <VaButton
-              :loading="saving"
-              icon="save"
-              :disabled="!isValidForm"
-              @click="validateForm() && submit()"
-            >
+            <VaButton preset="secondary" @click="gotBack()"> Cancel </VaButton>
+            <VaButton :loading="saving" icon="save" :disabled="!isValidForm" @click="validateForm() && submit()">
               Submit Enquiry
             </VaButton>
           </div>
@@ -550,7 +588,7 @@
 <script lang="ts">
 import { defineComponent, reactive, ref, computed, onMounted } from 'vue'
 import axios from 'axios'
-import { VaForm, VaInput, VaSelect, VaButton, VaCard, VaCardTitle, VaCardContent, VaBadge, VaAlert, VaRadio, VaDivider, VaIcon } from 'vuestic-ui'
+import { VaForm, VaInput, VaSelect, VaButton } from 'vuestic-ui'
 import handleErrors from '../../../utils/errorHandler'
 import { validators } from '../../../services/utils'
 // import SalesConfirmationClientDetails from './components/SalesConfirmationClientDetails.vue'
@@ -835,7 +873,7 @@ export default defineComponent({
 
     async submit() {
       this.saving = true
-      
+
       // Validate required fields
       if (!this.form.full_name || !this.form.country || !this.form.nationality || !this.form.email) {
         this.init({
@@ -928,10 +966,10 @@ export default defineComponent({
         // Entity and contacts
         entity: entityData,
         contacts: contacts,
-        
+
         // Sales inquiry basic info
         inquiry_type: this.packageSelectionType, // 'standard' or 'custom'
-        
+
         // Preferences
         preferences: preferences,
       }
@@ -948,9 +986,9 @@ export default defineComponent({
         requestdata.area_id = this.form.area?.value
         requestdata.season_id = this.form.season?.value || null
       }
-      
+
       console.log('Request payload:', JSON.stringify(requestdata, null, 2))
-      
+
       try {
         const response: any = await this.createSalesInquiry(requestdata)
 
@@ -964,7 +1002,7 @@ export default defineComponent({
       } catch (error: any) {
         this.saving = false
         console.error('Error creating sales inquiry:', error)
-        
+
         // Handle errors with server response
         if (error.response) {
           const errors = handleErrors(error.response)
@@ -1139,9 +1177,7 @@ export default defineComponent({
           if (this.packageSelectionType === 'standard') {
             // Set hunting area
             if (priceListData.sales_package?.area?.name) {
-              const areaOption = this.areasOptions.find(
-                (a: any) => a.text === priceListData.sales_package.area.name
-              )
+              const areaOption = this.areasOptions.find((a: any) => a.text === priceListData.sales_package.area.name)
               if (areaOption) {
                 this.form.area = areaOption
               }
@@ -1271,7 +1307,10 @@ export default defineComponent({
 
     formatChargesPer(chargesPer: string) {
       if (!chargesPer) return ''
-      return chargesPer.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+      return chargesPer
+        .replace(/_/g, ' ')
+        .toLowerCase()
+        .replace(/\b\w/g, (c) => c.toUpperCase())
     },
 
     getSequenceLabel(sequence: number) {
