@@ -59,7 +59,7 @@
         </ModuleTable>
       </template>
       <template v-else>
-        <PricesListDetails :price-list-item="item"></PricesListDetails>
+        <PricesListDetails :price-list-item="item" :pdf-data="individualPriceListPdf"></PricesListDetails>
       </template>
     </template>
     <template v-if="ShowCreateNewPriceListForm">
@@ -166,6 +166,7 @@ export default defineComponent({
       areaValue: null as any,
       quotaValue: null as any,
       poriceListPdf: '' as any,
+      individualPriceListPdf: '' as any,
       downloadPdf,
     }
   },
@@ -214,12 +215,15 @@ export default defineComponent({
         console.log('Fetching price list detail for ID:', priceListId)
         const response = await this.getPriceListById(priceListId)
 
-        // Backend returns { success: true, data: {...}, message: "..." }
+        // Backend returns { success: true, data: {...}, pdf: "...", message: "..." }
         // So we need to access response.data.data to get the actual item
         this.item = response.data.data || response.data
+        // Store the PDF from the response
+        this.individualPriceListPdf = response.data.pdf || ''
 
         // eslint-disable-next-line no-console
         console.log('Fetched price list detail:', this.item)
+        console.log('PDF available:', this.individualPriceListPdf ? 'Yes' : 'No')
 
         // Toggle to show the detail view
         this.showPriceList = false

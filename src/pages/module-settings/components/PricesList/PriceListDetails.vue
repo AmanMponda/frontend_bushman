@@ -30,6 +30,17 @@
             <VaIcon name="location_on" size="small" />
             {{ priceListItem.sales_package?.area?.name }} ({{ priceListItem.sales_package.area.description }})
           </p>
+          <!-- Download PDF Button -->
+          <div class="mt-4">
+            <VaButton
+              v-if="pdfData"
+              color="primary"
+              icon="download"
+              @click="downloadPriceListPdf"
+            >
+              Download PDF
+            </VaButton>
+          </div>
         </div>
       </VaCardContent>
     </VaCard>
@@ -251,6 +262,7 @@
 import { defineComponent } from 'vue'
 import { usePaymentCardsStore } from '../../../../stores/payment-cards'
 import { format } from 'date-fns'
+import downloadPdf from '../../../../utils/pdfDownloader'
 
 export default defineComponent({
   components: {
@@ -266,6 +278,10 @@ export default defineComponent({
     priceListItem: {
       type: Object,
       required: true,
+    },
+    pdfData: {
+      type: String,
+      default: '',
     },
   },
 
@@ -307,6 +323,19 @@ export default defineComponent({
       const value = sequence % 100
       const suffix = suffixes[(value - 20) % 10] || suffixes[value] || suffixes[0]
       return `${sequence}${suffix}`
+    },
+    async downloadPriceListPdf() {
+      if (!this.pdfData) {
+        console.warn('No PDF data available')
+        return
+      }
+      try {
+        const packageName = this.priceListItem?.sales_package?.name || 'price-list'
+        const fileName = `${packageName.replace(/\s+/g, '-')}-${Date.now()}.pdf`
+        await downloadPdf(this.pdfData, fileName)
+      } catch (err) {
+        console.error('Failed to download PDF:', err)
+      }
     },
   },
 })

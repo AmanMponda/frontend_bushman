@@ -1,34 +1,41 @@
 <template>
-  <div class="flex justify-end">
-    <VaButton preset="primary" class="mr-2 mb-2" round icon="add" size="small" @click="_showChartersPriceModal()">
-      Add Charters Costs
-    </VaButton>
-    <VaButton preset="primary" class="mr-2 mb-2" round icon="add" size="small" @click="_showAccommodationModal()">
-      Add accommodation
-    </VaButton>
-    <VaButton preset="primary" class="mr-2 mb-2" round icon="add" size="small" @click="_showSafariExtrasModal()">
-      Add Safari Extras Services
-    </VaButton>
-    <VaButton
-      preset="primary"
-      class="mr-2 mb-2"
-      round
-      icon="arrow_downward"
-      size="small"
-      @click="scrollTo(observerScollRef)"
-    >
-      Add Observers
-    </VaButton>
-    <VaButton
-      preset="primary"
-      class="mr-2 mb-2"
-      round
-      icon="arrow_downward"
-      size="small"
-      @click="scrollTo(companionsScollRef)"
-    >
-      Add Companions
-    </VaButton>
+  <div class="flex justify-between items-center mb-6">
+    <div class="flex items-center gap-3">
+      <VaBadge :text="item?.inquiry_type === 'standard' ? 'Standard Package' : 'Custom Package'" 
+               :color="item?.inquiry_type === 'standard' ? 'success' : 'info'" />
+      <VaBadge :text="item?.code" color="primary" />
+    </div>
+    <div class="flex gap-2">
+      <VaButton preset="primary" class="mr-2 mb-2" round icon="add" size="small" @click="_showChartersPriceModal()">
+        Add Charters Costs
+      </VaButton>
+      <VaButton preset="primary" class="mr-2 mb-2" round icon="add" size="small" @click="_showAccommodationModal()">
+        Add accommodation
+      </VaButton>
+      <VaButton preset="primary" class="mr-2 mb-2" round icon="add" size="small" @click="_showSafariExtrasModal()">
+        Add Safari Extras Services
+      </VaButton>
+      <VaButton
+        preset="primary"
+        class="mr-2 mb-2"
+        round
+        icon="arrow_downward"
+        size="small"
+        @click="scrollTo(observerScollRef)"
+      >
+        Add Observers
+      </VaButton>
+      <VaButton
+        preset="primary"
+        class="mr-2 mb-2"
+        round
+        icon="arrow_downward"
+        size="small"
+        @click="scrollTo(companionsScollRef)"
+      >
+        Add Companions
+      </VaButton>
+    </div>
   </div>
   <VaSplit
     class="split-demo h-[40rem]"
@@ -38,124 +45,184 @@
     ]"
   >
     <template #start>
-      <div class="p-4 bg-gray-100 rounded-lg shadow-md">
-        <VaTitle class="font-bold text-xl mb-2">Sales Inquiry Details</VaTitle>
+      <div class="p-4 bg-gray-100 rounded-lg shadow-md overflow-y-auto">
+        <!-- Header -->
+        <VaCard class="mb-4">
+          <VaCardContent>
+            <div class="flex justify-between items-start">
+              <div>
+                <h2 class="text-2xl font-bold text-gray-800">{{ item?.code }}</h2>
+                <p class="text-gray-600">Created: {{ formatDate(item?.create_date) }}</p>
+              </div>
+              <VaBadge :text="item?.season?.name" color="primary" large />
+            </div>
+          </VaCardContent>
+        </VaCard>
 
-        <h2 class="text-lg">Inquiry Code: {{ item?.code }}</h2>
-        <VaTitle class="text-gray-600">Created on: {{ formatDate(item?.create_date) }}</VaTitle>
+        <!-- Client Information -->
+        <VaCard class="mb-4">
+          <VaCardContent>
+            <div class="flex items-center gap-2 mb-3">
+              <VaIcon name="person" color="primary" />
+              <h3 class="text-lg font-bold">Client Information</h3>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <p class="text-sm text-gray-600">Full Name</p>
+                <p class="font-semibold">{{ safeString(item?.entity?.full_name) }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">Nationality</p>
+                <p class="font-semibold">{{ safeString(item?.entity?.nationality?.name) }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">Country</p>
+                <p class="font-semibold">{{ safeString(item?.entity?.country?.name) }}</p>
+              </div>
+            </div>
+            
+            <VaDivider class="my-3" />
+            
+            <h4 class="font-semibold mb-2">Contacts</h4>
+            <div class="space-y-2">
+              <div v-for="(contact, index) in safeArray(item.entity?.contacts)" :key="index" class="flex items-center gap-2">
+                <VaIcon :name="getContactIcon(contact.contact_type?.name)" size="small" color="info" />
+                <span>{{ contact.contact }}</span>
+              </div>
+            </div>
+          </VaCardContent>
+        </VaCard>
 
-        <VaDivider class="my-4" />
-        <div class="flex flex-col">
-          <VaTitle class="font-bold">Client Information</VaTitle>
-          <p><strong>Full Name:</strong> {{ safeString(item?.entity?.full_name) }}</p>
-          <p><strong>Nationality:</strong> {{ safeString(item?.entity?.nationality?.name) }}</p>
-          <p><strong>Country:</strong> {{ safeString(item?.entity?.country?.name) }}</p>
+        <!-- Preferences Information -->
+        <VaCard class="mb-4">
+          <VaCardContent>
+            <div class="flex items-center gap-2 mb-3">
+              <VaIcon name="event" color="primary" />
+              <h3 class="text-lg font-bold">Hunting Preferences</h3>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <p class="text-sm text-gray-600">Preferred Date</p>
+                <p class="font-semibold">{{ formatDate(item?.formatted_preferences?.preferred_date) }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">Start Date</p>
+                <p class="font-semibold">{{ formatDate(item?.formatted_preferences?.start_date) }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">End Date</p>
+                <p class="font-semibold">{{ formatDate(item?.formatted_preferences?.end_date) }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">Duration</p>
+                <p class="font-semibold">{{ item?.formatted_preferences?.no_of_days || 'N/A' }} days</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">Hunters</p>
+                <p class="font-semibold">{{ item?.formatted_preferences?.no_of_hunters }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">Companions</p>
+                <p class="font-semibold">{{ item?.formatted_preferences?.no_of_companions }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">Observers</p>
+                <p class="font-semibold">{{ item?.formatted_preferences?.no_of_observers }}</p>
+              </div>
+            </div>
+          </VaCardContent>
+        </VaCard>
 
-          <VaTitle class="font-bold mt-4">Contacts:</VaTitle>
-          <VaList>
-            <VaListItem v-for="(contact, index) in safeArray(item.entity?.contacts)" :key="index">
-              <VaListItemContent>{{ contact.contact }}</VaListItemContent>
-            </VaListItem>
-          </VaList>
+        <!-- Standard Package Details -->
+        <VaCard v-if="item?.inquiry_type === 'standard' && item?.package_details" class="mb-4">
+          <VaCardContent>
+            <div class="flex items-center gap-2 mb-3">
+              <VaIcon name="inventory_2" color="success" />
+              <h3 class="text-lg font-bold">Standard Package Details</h3>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div class="col-span-2 p-3 bg-green-50 rounded-lg">
+                <p class="text-sm text-gray-600">Package Amount</p>
+                <p class="text-2xl font-bold text-green-600">
+                  {{ item?.package_details?.currency_name }} {{ formatCurrency(item?.package_details?.amount) }}
+                </p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">Hunting Area</p>
+                <p class="font-semibold">{{ item?.package_details?.area_name }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">Hunting Type</p>
+                <p class="font-semibold">{{ item?.package_details?.hunting_type_name }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">Duration</p>
+                <p class="font-semibold">{{ item?.package_details?.duration }} days</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">Package Period</p>
+                <p class="font-semibold text-xs">
+                  {{ formatDate(item?.package_details?.start_date) }} - {{ formatDate(item?.package_details?.end_date) }}
+                </p>
+              </div>
+            </div>
+          </VaCardContent>
+        </VaCard>
 
-          <VaDivider class="my-4" />
+        <!-- Custom Package Details -->
+        <VaCard v-if="item?.inquiry_type === 'custom' && item?.custom_details" class="mb-4">
+          <VaCardContent>
+            <div class="flex items-center gap-2 mb-3">
+              <VaIcon name="tune" color="info" />
+              <h3 class="text-lg font-bold">Custom Package Details</h3>
+            </div>
+            
+            <!-- Custom Areas -->
+            <div v-if="safeArray(item?.custom_details?.areas).length > 0" class="mb-4">
+              <h4 class="font-semibold mb-2">Hunting Areas</h4>
+              <div class="flex flex-wrap gap-2">
+                <VaChip v-for="(area, index) in item?.custom_details?.areas" :key="index" color="info">
+                  {{ area.area_name }}
+                </VaChip>
+              </div>
+            </div>
 
-          <VaTitle class="font-bold">Preference Information</VaTitle>
-          <p><strong>Preferred Date:</strong> {{ formatDate(item?.preference?.preferred_date) }}</p>
-          <p><strong>No of Companions:</strong> {{ safeString(item?.preference?.no_of_companions.toString()) }}</p>
-          <p><strong>No of Observers:</strong> {{ safeString(item?.preference?.no_of_observers.toString()) }}</p>
-          <p><strong>Number of Days:</strong> {{ safeString(item?.preference?.no_of_days.toString()) }}</p>
+            <!-- Custom Species -->
+            <div v-if="safeArray(item?.custom_details?.species).length > 0">
+              <h4 class="font-semibold mb-2">Requested Species</h4>
+              <VaDataTable
+                :items="item?.custom_details?.species"
+                :columns="[
+                  { key: 'species_name', label: 'Species', sortable: true },
+                  { key: 'quantity', label: 'Quantity', sortable: true }
+                ]"
+              />
+            </div>
+          </VaCardContent>
+        </VaCard>
 
-          <VaDivider class="my-4" />
-
-          <VaTitle class="font-bold">Preferred Species</VaTitle>
-          <table class="table-auto w-full mb-4 border-collapse">
-            <thead>
-              <tr>
-                <th class="px-4 py-2 border-b">Species Name</th>
-                <th class="px-4 py-2 border-b">Quantity</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="safeArray(item?.preferred_species).length === 0">
-                <td colspan="2" class="text-center">No preferred species listed.</td>
-              </tr>
-              <tr v-for="(species, index) in safeArray(item?.preferred_species)" :key="index">
-                <td class="border px-4 py-2">{{ safeString(species.species?.name) }}</td>
-                <td class="border px-4 py-2">{{ safeString(species?.quantity?.toString()) }}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <VaTitle class="font-bold">Area Information</VaTitle>
-          <table class="table-auto w-full border-collapse">
-            <thead>
-              <tr>
-                <th class="px-4 py-2 border-b">Area ID</th>
-                <th class="px-4 py-2 border-b">Area Name</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="safeArray(item.area).length === 0">
-                <td colspan="2" class="text-center">No area information available.</td>
-              </tr>
-              <tr v-for="(area, index) in safeArray(item.area)" :key="index">
-                <td class="border px-4 py-2">{{ safeString(area.id.toString()) }}</td>
-                <td class="border px-4 py-2">{{ safeString(area.area?.name || 'Unnamed') }}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <VaDivider class="my-4" />
-
-          <VaTitle class="font-bold">Price List Summary</VaTitle>
-          <p><strong>Package Name:</strong> {{ item?.price_list?.price_list?.sales_package?.name }}</p>
-
-          <VaDivider class="my-4" />
-
-          <VaTitle class="font-bold">License Package</VaTitle>
-          <p><strong>Name:</strong> {{ item?.price_list?.price_list?.sales_package.regulatory_package?.name }}</p>
-          <p>
-            <strong>Duration:</strong>
-            {{ item?.price_list?.price_list?.sales_package?.regulatory_package?.duration }} days
-          </p>
-
-          <VaDivider class="my-4" />
-
-          <VaTitle class="font-bold">Package Area Information</VaTitle>
-          <p><strong>Area Name:</strong> {{ item?.price_list?.price_list?.sales_package?.area?.name }}</p>
-          <p><strong>Description:</strong> {{ item?.price_list?.price_list?.sales_package?.area?.description }}</p>
-
-          <VaDivider class="my-4" />
-
-          <VaTitle class="font-bold">Hunting Type</VaTitle>
-          <p><strong>Name:</strong> {{ item?.price_list?.price_list?.price_list_type?.hunting_type?.name }}</p>
-          <p>
-            <strong>Price:</strong> {{ item?.price_list?.price_list?.price_list_type?.currency }}
-            {{ item?.price_list?.price_list?.price_list_type?.amount }}
-          </p>
-
-          <VaDivider class="my-4" />
-
-          <VaTitle class="font-bold">Companions</VaTitle>
-          <VaDataTable :items="companions" />
-
-          <VaDivider class="my-4" />
-
-          <p><strong>Observers</strong></p>
-          <VaDataTable :items="observers" />
-          <p><strong>Other Safari Extras</strong></p>
-          <VaDataTable :items="clientSafariExtras" />
-
-          <VaDivider class="my-4" />
-
-          <VaTitle class="font-bold">Accommodation</VaTitle>
-          <VaDataTable :items="accommodations" />
-
-          <VaDivider class="my-4" />
-          <VaTitle class="font-bold">Charters Price</VaTitle>
-          <VaDataTable :items="chartersPrices" />
-        </div>
+        <!-- Additional Species (if added later) -->
+        <VaCard v-if="safeArray(item?.species).length > 0" class="mb-4">
+          <VaCardContent>
+            <div class="flex items-center gap-2 mb-3">
+              <VaIcon name="pets" color="warning" />
+              <h3 class="text-lg font-bold">{{ item?.inquiry_type === 'custom' ? 'Additional Species' : 'Package Species' }}</h3>
+            </div>
+            <VaDataTable
+              :items="item?.species.map((s: any) => ({
+                species_name: s.species?.name,
+                scientific_name: s.species?.scientific_name,
+                quantity: s.quantity
+              }))"
+              :columns="[
+                { key: 'species_name', label: 'Species', sortable: true },
+                { key: 'scientific_name', label: 'Scientific Name', sortable: true },
+                { key: 'quantity', label: 'Quantity', sortable: true }
+              ]"
+            />
+          </VaCardContent>
+        </VaCard>
       </div>
     </template>
 
@@ -320,6 +387,21 @@ export default defineComponent({
 
     formatDate(dateString: string | number | Date) {
       return dateString ? new Date(dateString).toLocaleDateString() : 'Not provided'
+    },
+    formatCurrency(amount: any) {
+      return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(parseFloat(amount) || 0)
+    },
+    getContactIcon(contactType: string) {
+      const icons: any = {
+        'email': 'email',
+        'phone_number': 'phone',
+        'phone': 'phone',
+        'address': 'home',
+      }
+      return icons[contactType] || 'info'
     },
     safeArray(arr: any) {
       return arr || []

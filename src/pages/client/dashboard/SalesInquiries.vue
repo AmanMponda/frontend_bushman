@@ -1,34 +1,33 @@
 <template>
   <VaCard class="w-full">
-    <div class="flex flex-col md:flex-row gap-2 mb-2 justify-between px-4 mt-2">
-      <div class="flex flex-col md:flex-row gap-2 justify-start">
-        <VaButton
-          v-if="showAddSalesInquiriesForm || showDetailsPage"
-          class="px-2"
-          icon="arrow_back"
-          size="small"
-          @click="gotBack()"
-        >
-          Go Back
-        </VaButton>
-      </div>
-      <VaButtonGroup v-if="!showAddSalesInquiriesForm && !showDetailsPage">
-        <VaButton
-          class="px-2"
-          color="primary"
-          label="Add New Quota"
-          round
-          present="secondary"
-          border-color="primary"
-          icon="add"
-          size="small"
-          @click="toggleAddSalesInquiriesForm()"
-          >Create Enquiry</VaButton
-        >
-      </VaButtonGroup>
-    </div>
-
     <VaCardContent>
+      <div class="flex flex-col md:flex-row gap-3 mb-6 justify-between items-center py-4 px-2 bg-gray-50 rounded-lg">
+        <div class="flex flex-col md:flex-row gap-3 justify-start">
+          <VaButton
+            v-if="showAddSalesInquiriesForm || showDetailsPage"
+            class="px-6"
+            icon="arrow_back"
+            size="large"
+            @click="gotBack()"
+          >
+            Go Back
+          </VaButton>
+        </div>
+        <VaButtonGroup v-if="!showAddSalesInquiriesForm && !showDetailsPage">
+          <VaButton
+            class="px-6"
+            color="primary"
+            label="Add New Quota"
+            round
+            present="secondary"
+            border-color="primary"
+            icon="add"
+            size="large"
+            @click="toggleAddSalesInquiriesForm()"
+            >Create Enquiry</VaButton
+          >
+        </VaButtonGroup>
+      </div>
       <template v-if="showDetailsPage">
         <!-- <SalesConfirmationClientDetails :item="selectedInquiryItem"> </SalesConfirmationClientDetails> -->
         <!--  -->
@@ -43,50 +42,356 @@
         </Salesinquirieslist>
         <!-- <VaStepper v-else v-model="step" :steps="steps" vertical controls-hidden> -->
         <!-- <template #step-content-0> -->
-        <VaForm v-else ref="formRef">
-          <div class="p-1">
-            <!-- <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4"> -->
-            <h3 class="font-bold text-lg mb-2">Basic Information</h3>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-              <VaInput
-                v-model="form.full_name"
-                type="text"
-                placeholder="Enter your Full name"
-                :rules="[(value: any) => (value && value.length > 0) || 'Full name is required']"
-                label="Full name"
+        <VaForm v-else ref="formRef" class="space-y-6">
+          <div class="p-6 bg-white rounded-lg">
+            <!-- Package Selection Section -->
+            <div class="mb-6">
+              <div class="flex items-center gap-2 mb-4">
+                <VaIcon name="inventory_2" color="primary" size="large" />
+                <h3 class="text-xl font-bold text-gray-800">Package Selection</h3>
+              </div>
+              <div class="flex gap-6 mb-4">
+              <VaRadio
+                v-model="packageSelectionType"
+                option="standard"
+                label="Use Standard Package"
+                @update:modelValue="onPackageTypeChange"
               />
-              <!-- <VaInput v-model="form.nick_name" placeholder="Nick name" label="Nick name" /> -->
-              <VaSelect
-                v-model="form.country"
-                placeholder="Select Country"
-                label="Country"
-                :rules="[(v: any) => v || 'Country is required']"
-                :options="countries"
-                searchable
-                highlight-matched-text
-              />
-              <VaSelect
-                v-model="form.nationality"
-                placeholder="Select Client nationality"
-                label="Client Nationality"
-                :rules="[(v: any) => v || 'Nationality is required']"
-                :options="nationality"
-                searchable
-                highlight-matched-text
-              />
-              <!-- id_number -->
-              <VaInput
-                v-model="form.id_number"
-                type="text"
-                placeholder="passport/ID number"
-                :rules="[(value: any) => (value && value.length > 0) || 'passport number/id number is required']"
-                label="passport/ID number"
+              <VaRadio
+                v-model="packageSelectionType"
+                option="custom"
+                label="Create Custom Package"
+                @update:modelValue="onPackageTypeChange"
               />
             </div>
 
-            <!-- Experience and Date Group -->
-            <h3 class="font-bold text-lg mb-2">Contacts</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <template v-if="packageSelectionType === 'standard'">
+              <div class="grid grid-cols-1 gap-4 mb-4">
+                <VaSelect
+                  v-model="form.priceListId"
+                  placeholder="Select Standard Price List"
+                  label="Sales Package"
+                  :rules="[(v: any) => v || 'Price List is required']"
+                  :options="packagesOptions"
+                  searchable
+                  highlight-matched-text
+                  @update:modelValue="populateSpeciesList"
+                >
+                  <template #content="{ value }">
+                    <div v-if="value" class="flex flex-col">
+                      <span class="font-semibold">{{ value.text }}</span>
+                      <span class="text-sm text-gray-500">
+                        {{ value.selfItem?.area || value.selfItem?.area_package || 'N/A' }} • {{ value.selfItem?.hunting_type || 'N/A' }} • {{ value.selfItem?.duration || 0 }} days
+                      </span>
+                    </div>
+                  </template>
+                </VaSelect>
+
+                <!-- Display selected package details -->
+                <VaCard v-if="form.priceListId && form.priceListId.selfItem" outlined class="mb-4">
+                  <VaCardTitle class="text-sm font-semibold">Package Details</VaCardTitle>
+                  <VaCardContent>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                      <div>
+                        <span class="text-gray-600">Area:</span>
+                        <span class="ml-1 font-medium">{{ form.priceListId.selfItem?.area || form.priceListId.selfItem?.sales_package?.area?.name || 'N/A' }}</span>
+                      </div>
+                      <div>
+                        <span class="text-gray-600">Hunting Type:</span>
+                        <span class="ml-1 font-medium">{{ form.priceListId.selfItem?.hunting_type || form.priceListId.selfItem?.price_list_type?.hunting_type?.name || 'N/A' }}</span>
+                      </div>
+                      <div>
+                        <span class="text-gray-600">Duration:</span>
+                        <span class="ml-1 font-medium">{{ form.priceListId.selfItem?.duration || form.priceListId.selfItem?.price_list_type?.duration || 0 }} days</span>
+                      </div>
+                      <div>
+                        <span class="text-gray-600">Base Amount:</span>
+                        <span class="ml-1 font-medium">{{ form.priceListId.selfItem?.amount || formatCurrency(form.priceListId.selfItem?.price_list_type?.amount) }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Additional details from detailed API -->
+                    <template v-if="form.priceListId.selfItem?.safari_extras">
+                      <div class="mt-3 pt-3 border-t">
+                        <div class="text-xs font-semibold text-gray-700 mb-2">Safari Extras Available:</div>
+                        <div class="flex flex-wrap gap-1">
+                          <VaBadge
+                            v-for="extra in form.priceListId.selfItem.safari_extras"
+                            :key="extra.id"
+                            :text="`${extra.name} (${extra.currency?.symbol}${extra.amount})`"
+                            color="info"
+                            size="small"
+                          />
+                        </div>
+                      </div>
+                    </template>
+
+                    <template v-if="form.priceListId.selfItem?.componions_hunter && form.priceListId.selfItem.componions_hunter.length > 0">
+                      <div class="mt-2">
+                        <span class="text-xs text-gray-600">Companion Rate:</span>
+                        <span class="ml-1 text-xs font-medium">${{ form.priceListId.selfItem.componions_hunter[0].amount }}</span>
+                      </div>
+                    </template>
+
+                    <template v-if="form.priceListId.selfItem?.observer && form.priceListId.selfItem.observer.length > 0">
+                      <div class="mt-1">
+                        <span class="text-xs text-gray-600">Observer Rate:</span>
+                        <span class="ml-1 text-xs font-medium">${{ form.priceListId.selfItem.observer[0].amount }}</span>
+                      </div>
+                    </template>
+                  </VaCardContent>
+                </VaCard>
+              </div>
+            </template>
+
+            <template v-else-if="packageSelectionType === 'custom'">
+              <VaAlert color="info" class="mb-4">
+                <template #title>Custom Package</template>
+                You can create a custom package by selecting species and quantities below. This will create a unique price list for this inquiry.
+              </VaAlert>
+            </template>
+
+            <h3 class="font-bold text-lg mb-2 mt-4">Species Included in Package</h3>
+            <template v-if="packageSelectionType === 'standard' && salesPackagesSpecies.length > 0">
+              <VaCard outlined class="mb-4">
+                <VaCardContent>
+                  <div class="va-table-responsive">
+                    <table class="va-table va-table--striped">
+                      <thead>
+                        <tr>
+                          <th>Species Name</th>
+                          <th>Scientific Name</th>
+                          <th>Quantity</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <template v-for="item in salesPackagesSpecies" :key="item.id">
+                          <tr>
+                            <td class="font-medium">{{ item.name }}</td>
+                            <td class="text-sm text-gray-600">{{ item.scientific_name || 'N/A' }}</td>
+                            <td>
+                              <VaBadge :color="item.quantity > 0 ? 'success' : 'danger'" size="medium">
+                                {{ item.quantity }}
+                              </VaBadge>
+                            </td>
+                          </tr>
+                        </template>
+                      </tbody>
+                    </table>
+                  </div>
+                </VaCardContent>
+              </VaCard>
+
+              <!-- Safari Extras Details -->
+              <template v-if="form.priceListId.selfItem?.safari_extras && form.priceListId.selfItem.safari_extras.length > 0">
+                <h3 class="font-bold text-lg mb-2 mt-4">Safari Extras</h3>
+                <VaCard outlined class="mb-4">
+                  <VaCardContent>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <div
+                        v-for="extra in form.priceListId.selfItem.safari_extras"
+                        :key="extra.id"
+                        class="p-3 border rounded-lg hover:shadow-md transition-shadow"
+                      >
+                        <div class="flex justify-between items-start">
+                          <div class="flex-1">
+                            <div class="font-semibold text-base capitalize">{{ extra.name }}</div>
+                            <div class="text-xs text-gray-600 mt-1">{{ extra.description }}</div>
+                            <div class="mt-2 flex items-center gap-2">
+                              <VaBadge color="primary" size="small">
+                                {{ extra.currency?.symbol }}{{ extra.amount }}
+                              </VaBadge>
+                              <span class="text-xs text-gray-500">{{ formatChargesPer(extra.charges_per) }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </VaCardContent>
+                </VaCard>
+              </template>
+
+              <!-- Trophy Fees Details -->
+              <template v-if="form.priceListId.selfItem?.trophy_fees && form.priceListId.selfItem.trophy_fees.length > 0">
+                <h3 class="font-bold text-lg mb-2 mt-4">Trophy Fees</h3>
+                <VaCard outlined class="mb-4">
+                  <VaCardContent>
+                    <div class="va-table-responsive">
+                      <table class="va-table va-table--striped">
+                        <thead>
+                          <tr>
+                            <th>Species</th>
+                            <th>Scientific Name</th>
+                            <th>Sequence</th>
+                            <th>Price (USD)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <template v-for="fee in form.priceListId.selfItem.trophy_fees" :key="fee.id">
+                            <tr>
+                              <td class="font-medium">{{ fee.species?.name }}</td>
+                              <td class="text-sm text-gray-600">{{ fee.species?.scientific_name || 'N/A' }}</td>
+                              <td>
+                                <VaBadge color="info" size="small">
+                                  {{ getSequenceLabel(fee.sequence_order) }}
+                                </VaBadge>
+                              </td>
+                              <td class="font-semibold">${{ fee.price_usd }}</td>
+                            </tr>
+                          </template>
+                        </tbody>
+                      </table>
+                    </div>
+                  </VaCardContent>
+                </VaCard>
+              </template>
+
+              <!-- Companion and Observer Rates -->
+              <template v-if="(form.priceListId.selfItem?.componions_hunter && form.priceListId.selfItem.componions_hunter.length > 0) || (form.priceListId.selfItem?.observer && form.priceListId.selfItem.observer.length > 0)">
+                <h3 class="font-bold text-lg mb-2 mt-4">Additional Rates</h3>
+                <VaCard outlined class="mb-4">
+                  <VaCardContent>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <template v-if="form.priceListId.selfItem.componions_hunter && form.priceListId.selfItem.componions_hunter.length > 0">
+                        <div class="p-4 bg-blue-50 rounded-lg">
+                          <div class="flex items-center gap-2 mb-2">
+                            <VaIcon name="group" size="small" color="primary" />
+                            <span class="font-semibold text-base">Companion Hunter</span>
+                          </div>
+                          <div class="text-2xl font-bold text-primary">
+                            ${{ form.priceListId.selfItem.componions_hunter[0].amount }}
+                          </div>
+                          <div class="text-xs text-gray-600 mt-1">per companion</div>
+                        </div>
+                      </template>
+                      <template v-if="form.priceListId.selfItem.observer && form.priceListId.selfItem.observer.length > 0">
+                        <div class="p-4 bg-green-50 rounded-lg">
+                          <div class="flex items-center gap-2 mb-2">
+                            <VaIcon name="visibility" size="small" color="success" />
+                            <span class="font-semibold text-base">Observer</span>
+                          </div>
+                          <div class="text-2xl font-bold text-success">
+                            ${{ form.priceListId.selfItem.observer[0].amount }}
+                          </div>
+                          <div class="text-xs text-gray-600 mt-1">per observer</div>
+                        </div>
+                      </template>
+                    </div>
+                  </VaCardContent>
+                </VaCard>
+              </template>
+            </template>
+
+            <!-- Custom Package Species Selection -->
+            <template v-if="packageSelectionType === 'custom'">
+              <h3 class="font-bold text-lg mb-2 mt-4">Preferred Species</h3>
+              <VaCard outlined class="mb-4">
+                <VaCardContent>
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <VaSelect
+                      v-model="form.species"
+                      label="Species"
+                      :options="speciesOptions"
+                      placeholder="Select Species"
+                      :rules="[(v: any) => !!v || 'Species is required']"
+                      searchable
+                      highlight-matched-text
+                    />
+
+                    <VaCounter
+                      v-model="form.quantity"
+                      label="Quantity"
+                      manual-input
+                      :min="1"
+                      :max="100"
+                      :rules="[(v: any) => v || 'Quantity is required']"
+                    />
+                    
+                    <div class="flex items-end">
+                      <VaButton
+                        color="primary"
+                        icon="add"
+                        @click="addNewSpeciesItemToStorage()"
+                      >
+                        Add Species
+                      </VaButton>
+                    </div>
+                  </div>
+
+                  <VaDivider class="my-4" />
+
+                  <div class="mt-4">
+                    <div class="text-sm font-semibold mb-3">Selected Species</div>
+                    <VaList v-if="speciesObjects.length > 0" class="space-y-2">
+                      <VaListItem v-for="(s, index) in speciesObjects" :key="index" class="border rounded-lg p-3 hover:shadow-md transition-shadow">
+                        <VaListItemSection>
+                          <VaListItemLabel class="flex justify-between items-center">
+                            <div>
+                              <span class="font-semibold">{{ s.name }}</span>
+                              <span class="ml-3 text-sm text-gray-600">Qty: {{ s.quantity }}</span>
+                            </div>
+                            <VaButton
+                              preset="plain"
+                              icon="delete"
+                              color="danger"
+                              size="small"
+                              @click="deleteFromStorage(index)"
+                            />
+                          </VaListItemLabel>
+                        </VaListItemSection>
+                      </VaListItem>
+                    </VaList>
+                    <VaAlert v-else color="secondary" border="left" class="mb-0">
+                      No species selected yet. Add species using the form above.
+                    </VaAlert>
+                  </div>
+                </VaCardContent>
+              </VaCard>
+            </template>
+            </div>
+
+            <!-- Basic Information Section -->
+            <div class="mb-6">
+              <div class="flex items-center gap-2 mb-4">
+                <VaIcon name="person" color="primary" size="large" />
+                <h3 class="text-xl font-bold text-gray-800">Basic Information</h3>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <VaInput
+                  v-model="form.full_name"
+                  type="text"
+                  placeholder="Enter your Full name"
+                  :rules="[(value: any) => (value && value.length > 0) || 'Full name is required']"
+                  label="Full name"
+                />
+                <VaSelect
+                  v-model="form.country"
+                  placeholder="Select Country"
+                  label="Country"
+                  :rules="[(v: any) => v || 'Country is required']"
+                  :options="countries"
+                  searchable
+                  highlight-matched-text
+                />
+                <VaSelect
+                  v-model="form.nationality"
+                  placeholder="Select Client nationality"
+                  label="Client Nationality"
+                  :rules="[(v: any) => v || 'Nationality is required']"
+                  :options="nationality"
+                  searchable
+                  highlight-matched-text
+                />
+              </div>
+            </div>
+
+            <!-- Contact Information Section -->
+            <div class="mb-6">
+              <div class="flex items-center gap-2 mb-4">
+                <VaIcon name="contact_mail" color="primary" size="large" />
+                <h3 class="text-xl font-bold text-gray-800">Contact Information</h3>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <VaInput
                 v-model="form.email"
                 type="email"
@@ -97,7 +402,7 @@
 
               <VaInput
                 v-model="form.phone"
-                type="tell"
+                type="text"
                 placeholder="eg: +971501234567"
                 :rules="[validators.required, validators.tell]"
                 label="Phone"
@@ -113,9 +418,15 @@
                 label="Address"
               />
             </div>
+            </div>
 
-            <h3 class="font-bold text-lg mb-2">Participants and hunting days</h3>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <!-- Participants and Hunting Days Section -->
+            <div class="mb-6">
+              <div class="flex items-center gap-2 mb-4">
+                <VaIcon name="groups" color="primary" size="large" />
+                <h3 class="text-xl font-bold text-gray-800">Participants and Hunting Days</h3>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <!-- <VaInput
                 v-model="form.no_of_hunters"
                 label="Number of Hunters"
@@ -136,7 +447,8 @@
                 label="Number of Days"
                 placeholder="Enter Number of Days"
                 type="number"
-                :rules="[(v: any) => v || 'This field is required']"
+                :rules="[(v: any) => packageSelectionType === 'custom' ? (v || 'This field is required') : true]"
+                :disabled="packageSelectionType === 'standard' && !!form.priceListId"
                 required
               />
               <VaInput
@@ -150,20 +462,29 @@
                 v-model="form.area"
                 placeholder="Select Area"
                 label="Hunting area"
-                :rules="[(v: any) => v || 'Hunting area is required']"
+                :rules="[(v: any) => packageSelectionType === 'custom' ? (v || 'Hunting area is required') : true]"
                 :options="areasOptions"
+                :disabled="packageSelectionType === 'standard' && !!form.priceListId"
                 searchable
                 highlight-matched-text
               />
             </div>
-            <h3 class="font-bold text-lg mb-2">Season and Tentative Date</h3>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            </div>
+
+            <!-- Season and Tentative Date Section -->
+            <div class="mb-6">
+              <div class="flex items-center gap-2 mb-4">
+                <VaIcon name="event" color="primary" size="large" />
+                <h3 class="text-xl font-bold text-gray-800">Season and Tentative Date</h3>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <VaSelect
                 v-model="form.season"
                 placeholder="Select Season"
                 label="Season"
-                :rules="[(v: any) => v || 'Season is required']"
+                :rules="[(v: any) => packageSelectionType === 'custom' ? (v || 'Season is required') : true]"
                 :options="seasonsOptions"
+                :disabled="packageSelectionType === 'standard' && !!form.priceListId"
                 searchable
                 highlight-matched-text
               />
@@ -196,119 +517,25 @@
                 required
               />
             </div>
-
-            <!-- price list selection -->
-            <h3 class="font-bold text-lg mb-2">Package</h3>
-            <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
-              <VaSelect
-                v-model="form.priceListId"
-                placeholder="Select Price List"
-                label="Sales package"
-                :rules="[(v: any) => v || 'Price List is required']"
-                :options="packagesOptions"
-                searchable
-                highlight-matched-text
-                @update:modelValue="populateSpeciesList"
-              />
-            </div>
-
-            <h3 class="font-bold text-lg mb-2">Species</h3>
-            <div class="va-table-responsive">
-              <table class="va-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Quantity</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <template v-for="item in salesPackagesSpecies" :key="item.id">
-                    <tr>
-                      <td>{{ item.name }}</td>
-                      <td>
-                        <VaCounter
-                          v-model="item.quantity"
-                          increase-icon="add_circle_outline"
-                          decrease-icon="remove_circle_outline"
-                          class="w-100 p-0"
-                          manual-input
-                          color="#6938D1"
-                          max="100"
-                          min="0"
-                          max-length="3"
-                          @update:modelValue="(value) => onChange(item.id, value)"
-                        />
-                      </td>
-                    </tr>
-                  </template>
-                </tbody>
-              </table>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-              <h3 class="font-bold text-lg mb-2">Preferred Species</h3>
-              <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                <VaSelect
-                  v-model="form.species"
-                  label="Species"
-                  :options="speciesOptions"
-                  placeholder="Select Species"
-                  :rules="[(v: any) => !!v || 'Species is required']"
-                  required
-                />
-
-                <VaCounter
-                  v-model="form.quantity"
-                  label="Quantity"
-                  manual-input
-                  :min="1"
-                  :max="100"
-                  :rules="[(v: any) => v || 'Quantity is required']"
-                />
-                <VaButtonGroup>
-                  <VaButton
-                    class="px-0 py-0"
-                    color="primary"
-                    icon="add"
-                    size="small"
-                    round
-                    @click="addNewSpeciesItemToStorage()"
-                  />
-                </VaButtonGroup>
-              </div>
-
-              <div class="mt-6">
-                <VaList>
-                  <VaListLabel v-if="speciesObjects.length > 0" class="text-md mb-2 text-left"
-                    >Selected Species</VaListLabel
-                  >
-                  <VaListLabel v-else color="secondary" class="va-text-code mb-2 text-left"
-                    >No Species Selected</VaListLabel
-                  >
-
-                  <VaListItem v-for="(s, index) in speciesObjects" :key="index" class="list__item">
-                    <VaListItemSection>
-                      <VaListItemLabel>
-                        Name: {{ s.name }}
-                        <VaIcon name="delete" size="small" color="primary" @click="deleteFromStorage(index)" />
-                      </VaListItemLabel>
-                      <VaListItemLabel caption>Quantity: {{ s.quantity }}</VaListItemLabel>
-                    </VaListItemSection>
-                  </VaListItem>
-                </VaList>
-              </div>
             </div>
           </div>
 
-          <div class="mt-4 d-flex p-2">
+          <VaDivider class="my-6" />
+
+          <div class="flex justify-end gap-3 p-4">
             <VaButton
-              v-if="!showDetailsPage"
+              preset="secondary"
+              @click="gotBack()"
+            >
+              Cancel
+            </VaButton>
+            <VaButton
               :loading="saving"
               icon="save"
-              class="mr-3 mb-2"
               :disabled="!isValidForm"
               @click="validateForm() && submit()"
             >
-              Save
+              Submit Enquiry
             </VaButton>
           </div>
         </VaForm>
@@ -323,7 +550,7 @@
 <script lang="ts">
 import { defineComponent, reactive, ref, computed, onMounted } from 'vue'
 import axios from 'axios'
-import { VaForm, VaInput, VaSelect, VaButton } from 'vuestic-ui'
+import { VaForm, VaInput, VaSelect, VaButton, VaCard, VaCardTitle, VaCardContent, VaBadge, VaAlert, VaRadio, VaDivider, VaIcon } from 'vuestic-ui'
 import handleErrors from '../../../utils/errorHandler'
 import { validators } from '../../../services/utils'
 // import SalesConfirmationClientDetails from './components/SalesConfirmationClientDetails.vue'
@@ -375,6 +602,8 @@ export default defineComponent({
     const { init } = useToast()
     const showDetailsPage = ref(false)
 
+    const packageSelectionType = ref('standard')
+
     const form = reactive({
       id: null as any,
       full_name: '',
@@ -395,7 +624,6 @@ export default defineComponent({
       area: null as any,
       season: null as any,
       preferred_date: null as any,
-      id_number: '',
       start_date: null as any,
       end_date: null as any,
     })
@@ -444,17 +672,22 @@ export default defineComponent({
     }
 
     const getCategories = async () => {
-      const config = {
-        method: 'get',
-        maxBodyLength: Infinity,
-        url: import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_ENTITY_CATEGORIES_VSET_URL,
-      }
+      try {
+        const config = {
+          method: 'get',
+          maxBodyLength: Infinity,
+          url: import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_ENTITY_CATEGORIES_VSET_URL,
+        }
 
-      const response = await axios.request(config)
-      if (response.status === 200) {
-        categoryOptions.value.push(
-          ...response.data.map((category: { id: any; name: any }) => ({ value: category.id, text: category.name })),
-        )
+        const response = await axios.request(config)
+        if (response.status === 200) {
+          categoryOptions.value.push(
+            ...response.data.map((category: { id: any; name: any }) => ({ value: category.id, text: category.name })),
+          )
+        }
+      } catch (error) {
+        // Endpoint not available - categories not used in current form
+        console.warn('Categories endpoint not available')
       }
     }
 
@@ -479,22 +712,27 @@ export default defineComponent({
     }
 
     const getContactTypes = async () => {
-      const config = {
-        method: 'get',
-        maxBodyLength: Infinity,
-        url: import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_CONTACT_TYPES_URL,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-      const response = await axios.request(config)
-      if (response.status === 200) {
-        contactsTypes.value.push(
-          ...response.data.map((contactType: { id: any; name: any }) => ({
-            value: contactType.id,
-            text: contactType.name,
-          })),
-        )
+      try {
+        const config = {
+          method: 'get',
+          maxBodyLength: Infinity,
+          url: import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_CONTACT_TYPES_URL,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+        const response = await axios.request(config)
+        if (response.status === 200) {
+          contactsTypes.value.push(
+            ...response.data.map((contactType: { id: any; name: any }) => ({
+              value: contactType.id,
+              text: contactType.name,
+            })),
+          )
+        }
+      } catch (error) {
+        // Endpoint not available - contact types not used in current form
+        console.warn('Contact types endpoint not available')
       }
     }
 
@@ -535,6 +773,7 @@ export default defineComponent({
       contactsTypes,
       clients,
       step,
+      packageSelectionType,
       // steps,
       init,
       toggleAddSalesInquiriesForm,
@@ -581,7 +820,7 @@ export default defineComponent({
   },
 
   mounted() {
-    // this.getSpeciesItems()
+    this.getSpecies()
     this.getAreas()
     this.getSeasonList()
     this.getPL()
@@ -592,16 +831,42 @@ export default defineComponent({
     ...mapActions(useQuotaStore, ['getAllSpeciesPerQuotaPerArea']),
     ...mapActions(useSalesInquiriesStore, ['createSalesInquiry']),
     ...mapActions(useSettingsStore, ['getSeasons', 'getSalespackagesSpecies']),
-    ...mapActions(usePriceListStore, ['getPriceList']),
+    ...mapActions(usePriceListStore, ['getPriceList', 'getPriceListById']),
 
     async submit() {
       this.saving = true
-      if (this.salesPackagesSpecies.length === 0) {
+      
+      // Validate required fields
+      if (!this.form.full_name || !this.form.country || !this.form.nationality || !this.form.email) {
         this.init({
-          message: 'Please select at least one species.',
+          message: 'Please fill in all required fields (Name, Country, Nationality, Email).',
           color: 'warning',
         })
+        this.saving = false
         return
+      }
+
+      // Validate based on package selection type
+      if (this.packageSelectionType === 'standard') {
+        if (!this.form.priceListId) {
+          this.init({
+            message: 'Please select a standard price list.',
+            color: 'warning',
+          })
+          this.saving = false
+          return
+        }
+        // For standard packages, no need to check species quantities
+        // The package already has predefined species
+      } else if (this.packageSelectionType === 'custom') {
+        if (this.speciesObjects.length === 0) {
+          this.init({
+            message: 'Please add at least one species for custom package.',
+            color: 'warning',
+          })
+          this.saving = false
+          return
+        }
       }
 
       if (this.form.no_of_hunters <= 0) {
@@ -609,42 +874,83 @@ export default defineComponent({
           message: 'Number of hunters must be greater than zero.',
           color: 'warning',
         })
+        this.saving = false
         return
       }
 
+      // Prepare entity data
+      const entityData = {
+        full_name: this.form.full_name,
+        country_id: this.form.country?.value,
+        nationality_id: this.form.nationality?.value,
+      }
+
+      // Prepare contacts with proper contact type IDs
       const contacts = [
         {
-          contact_type: 'email',
+          contact_type_id: 1, // email type from contact_types table
           contact: this.form.email,
+          contactable: true,
         },
         {
-          contact_type: 'phone',
+          contact_type_id: 2, // phone_number type from contact_types table
           contact: this.form.phone,
+          contactable: true,
         },
         {
-          contact_type: 'address',
+          contact_type_id: 3, // address type from contact_types table
           contact: this.form.address,
+          contactable: false,
         },
       ]
 
-      const requestdata = {
-        fullName: this.form.full_name,
-        contacts: contacts,
-        nationality: this.form.nationality.value,
-        country: this.form.country.value,
-        noOfHunters: this.form.no_of_hunters,
-        noOfDays: this.form.no_of_days,
-        noOfCompanions: this.form.no_of_companions,
-        noOfObservers: this.form.no_of_observers,
-        species: this.salesPackagesSpecies,
-        areaId: this.form.area.value,
-        season: this.form.season,
-        startDate: this.form.start_date,
-        endDate: this.form.end_date,
-        preferredDate: this.form.preferred_date,
-        identityNumber: this.form.id_number,
-        priceListId: this.form.priceListId.value,
+      // Prepare species data based on selection type
+      let speciesData = []
+      if (this.packageSelectionType === 'custom') {
+        // Only send species for custom packages
+        speciesData = this.speciesObjects
       }
+      // For standard packages, species come from the price list, so we don't send them
+
+      // Prepare sales inquiry preferences
+      const preferences = {
+        preferred_date: this.form.preferred_date,
+        start_date: this.form.start_date,
+        end_date: this.form.end_date,
+        no_of_observers: this.form.no_of_observers || 0,
+        no_of_companions: this.form.no_of_companions || 0,
+        // For standard packages, no_of_hunters is companions, no_of_days comes from price list
+        no_of_hunters: this.packageSelectionType === 'standard' ? this.form.no_of_companions : this.form.no_of_hunters,
+        no_of_days: this.packageSelectionType === 'standard' ? null : this.form.no_of_days, // null for standard, backend gets it from price list
+      }
+
+      const requestdata: any = {
+        // Entity and contacts
+        entity: entityData,
+        contacts: contacts,
+        
+        // Sales inquiry basic info
+        inquiry_type: this.packageSelectionType, // 'standard' or 'custom'
+        
+        // Preferences
+        preferences: preferences,
+      }
+
+      // Add fields based on package type
+      if (this.packageSelectionType === 'standard') {
+        // Standard package: include price_list_id and default season_id
+        requestdata.price_list_id = this.form.priceListId?.value
+        requestdata.season_id = 6 // Default season ID
+      } else {
+        // Custom package: include species, area_id, and season_id
+        // Do NOT send price_list_id for custom packages
+        requestdata.species = speciesData
+        requestdata.area_id = this.form.area?.value
+        requestdata.season_id = this.form.season?.value || null
+      }
+      
+      console.log('Request payload:', JSON.stringify(requestdata, null, 2))
+      
       try {
         const response: any = await this.createSalesInquiry(requestdata)
 
@@ -657,12 +963,28 @@ export default defineComponent({
         }
       } catch (error: any) {
         this.saving = false
-        const errors = handleErrors(error.response)
-        console.log(errors)
-        this.init({
-          message: '\n' + errors.map((error, index) => `${index + 1}. ${error}`).join('\n'),
-          color: 'danger',
-        })
+        console.error('Error creating sales inquiry:', error)
+        
+        // Handle errors with server response
+        if (error.response) {
+          const errors = handleErrors(error.response)
+          this.init({
+            message: '\n' + errors.map((error, index) => `${index + 1}. ${error}`).join('\n'),
+            color: 'danger',
+          })
+        } else if (error.request) {
+          // Request was made but no response received
+          this.init({
+            message: 'No response from server. Please check your network connection.',
+            color: 'danger',
+          })
+        } else {
+          // Something else happened
+          this.init({
+            message: error.message || 'An unexpected error occurred',
+            color: 'danger',
+          })
+        }
       }
     },
 
@@ -737,6 +1059,20 @@ export default defineComponent({
       console.log('Species item deleted:', index)
     },
 
+    async getSpecies() {
+      try {
+        const response = await this.getSpeciesList()
+        if (response.status === 200) {
+          this.speciesOptions = response.data.map((item: any) => ({
+            value: item.id,
+            text: item.name,
+          }))
+        }
+      } catch (error) {
+        console.error('Error loading species:', error)
+      }
+    },
+
     async getAreas() {
       try {
         const response = await this.getAreaList()
@@ -770,15 +1106,7 @@ export default defineComponent({
       if (response.status === 200) {
         this.packagesOptions = response.data.data.map((item: any) => ({
           value: item.id,
-          text:
-            item?.sales_package?.regulatory_package?.name +
-            '--->' +
-            item?.sales_package.name +
-            ' ---> ' +
-            item.price_list_type.hunting_type.name +
-            '---> ' +
-            item?.sales_package?.area?.name,
-
+          text: item.package_name || `Package ${item.id}`,
           selfItem: item,
         }))
 
@@ -789,33 +1117,170 @@ export default defineComponent({
     },
 
     async populateSpeciesList() {
-      const response = await this.getSalespackagesSpecies({ salespackageId: this.form.priceListId.value })
-      console.log('response:', response)
+      const settingsStore = useSettingsStore()
+
+      if (!this.form.priceListId || !this.form.priceListId.value) {
+        settingsStore.salesPackagesSpecies = []
+        return
+      }
+
+      try {
+        // Fetch detailed price list information
+        const response = await this.getPriceListById(this.form.priceListId.value)
+        console.log('Price list detail response:', response)
+
+        if (response.status === 200 && response.data.success) {
+          const priceListData = response.data.data
+
+          // Update form with price list details
+          this.form.priceListId.selfItem = priceListData
+
+          // Auto-populate form fields from package data
+          if (this.packageSelectionType === 'standard') {
+            // Set hunting area
+            if (priceListData.sales_package?.area?.name) {
+              const areaOption = this.areasOptions.find(
+                (a: any) => a.text === priceListData.sales_package.area.name
+              )
+              if (areaOption) {
+                this.form.area = areaOption
+              }
+            }
+
+            // Set duration (number of days)
+            if (priceListData.price_list_type?.duration) {
+              this.form.no_of_days = priceListData.price_list_type.duration
+            }
+
+            // Set season based on date range
+            if (priceListData.price_list_type?.price_list?.start_date) {
+              const startDate = new Date(priceListData.price_list_type.price_list.start_date)
+              const seasonOption = this.seasonsOptions.find((s: any) => {
+                if (s.selfItem?.start_date) {
+                  const seasonStart = new Date(s.selfItem.start_date)
+                  return seasonStart.getFullYear() === startDate.getFullYear()
+                }
+                return false
+              })
+              if (seasonOption) {
+                this.form.season = seasonOption
+              }
+            }
+          }
+
+          // Extract species from sales_package.species
+          if (priceListData.sales_package?.species && Array.isArray(priceListData.sales_package.species)) {
+            const speciesList = priceListData.sales_package.species.map((item: any) => ({
+              id: item.species?.id || item.id,
+              name: item.species?.name || item.name || 'Unknown',
+              scientific_name: item.species?.scientific_name || item.scientific_name || 'N/A',
+              quantity: item.quantity || 0,
+              requested_quantity: 0,
+            }))
+
+            // Update store directly
+            settingsStore.salesPackagesSpecies = speciesList
+
+            console.log('Populated species:', speciesList)
+
+            this.init({
+              message: `Loaded ${speciesList.length} species from the selected package.`,
+              color: 'success',
+              position: 'bottom-right',
+            })
+          } else {
+            console.log('No species array found. Response structure:', priceListData.sales_package)
+            settingsStore.salesPackagesSpecies = []
+            this.init({
+              message: 'No species found in the selected package.',
+              color: 'warning',
+              position: 'bottom-right',
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching price list details:', error)
+        this.init({
+          message: 'Failed to load package details. Please try again.',
+          color: 'danger',
+          position: 'bottom-right',
+        })
+        settingsStore.salesPackagesSpecies = []
+      }
     },
 
     onChange(id: any, newValue: any) {
       console.log('Quantity changed:', id, newValue)
-      // this.isChanged = true
-
-      // Set the original value if it hasn't been set yet
-      if (!(id in this.originalQuantities)) {
-        const item = this.salesPackagesSpecies.find((item: any) => item.id === id)
-        this.originalQuantities[id] = item.quantity // Direct assignment
-      }
 
       const updatedItem = this.salesPackagesSpecies.find((item: any) => item.id === id)
       if (updatedItem) {
-        updatedItem.quantity = newValue // Update the quantity with newValue
-        // then update  list
+        updatedItem.requested_quantity = newValue
+        // then update list
         this.salesPackagesSpecies = [...this.salesPackagesSpecies]
-      }
-      this.init({
-        message: `Quantity for ${updatedItem.name} has been updated to ${newValue} quantity(s).`,
-        color: 'success',
-        position: 'bottom-right',
-      })
 
-      console.log('updated item list:', this.packagesOptions.selfItem.sales_package?.species)
+        // Validate against available quantity
+        if (newValue > updatedItem.quantity) {
+          this.init({
+            message: `Warning: Requested quantity (${newValue}) exceeds available quantity (${updatedItem.quantity}) for ${updatedItem.name}.`,
+            color: 'warning',
+            position: 'bottom-right',
+          })
+        } else if (newValue > 0) {
+          this.init({
+            message: `Quantity for ${updatedItem.name} has been set to ${newValue}.`,
+            color: 'success',
+            position: 'bottom-right',
+          })
+        }
+      }
+    },
+
+    onPackageTypeChange() {
+      const settingsStore = useSettingsStore()
+
+      // Reset species selections when switching package types
+      if (this.packageSelectionType === 'standard') {
+        this.form.priceListId = null
+        this.salesPackagesSpecies.forEach((s: any) => {
+          s.requested_quantity = 0
+        })
+      } else {
+        // Reset to custom mode - clear package selection and re-enable fields
+        this.form.priceListId = null
+        this.form.area = null
+        this.form.no_of_days = 0
+        this.form.season = null
+        settingsStore.salesPackagesSpecies = []
+        this.speciesObjects = []
+      }
+    },
+
+    formatDateRange(startDate: string, endDate: string) {
+      if (!startDate || !endDate) return 'N/A'
+      const start = new Date(startDate)
+      const end = new Date(endDate)
+      const startFormatted = start.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+      const endFormatted = end.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+      return `${startFormatted} - ${endFormatted}`
+    },
+
+    formatCurrency(amount: number) {
+      if (!amount) return '$0.00'
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
+    },
+
+    formatChargesPer(chargesPer: string) {
+      if (!chargesPer) return ''
+      return chargesPer.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+    },
+
+    getSequenceLabel(sequence: number) {
+      const labels: { [key: number]: string } = {
+        1: '1st',
+        2: '2nd',
+        3: '3rd',
+      }
+      return labels[sequence] || `${sequence}th`
     },
   },
 })

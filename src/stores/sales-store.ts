@@ -54,29 +54,9 @@ export const useSalesInquiriesStore = defineStore('sales_inquiries', {
 
     async createSalesInquiry(payload: any) {
       const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_SALES_INQUIRIES_URL
-      const formattedDate = payload?.preferredDate ? format(new Date(payload.preferredDate), 'yyyy-MM-dd') : null
-      const start_date = payload.startDate ? format(new Date(payload.startDate), 'yyyy-MM-dd') : null
-      const end_date = payload.endDate ? format(new Date(payload.endDate), 'yyyy-MM-dd') : null
-      const data = JSON.stringify({
-        categories: 'Hunter',
-        full_name: payload?.fullName,
-        contacts: payload?.contacts,
-        nationality: payload?.nationality,
-        country: payload?.country,
-        price_list_id: payload?.priceListId,
-        no_of_hunters: payload?.noOfHunters,
-        no_of_days: payload?.noOfDays,
-        no_of_companions: payload?.noOfCompanions,
-        no_of_observers: payload?.noOfObservers,
-        preferred_species: payload?.species,
-        area_id: payload?.areaId,
-        season: payload?.season.value,
-        preferred_date: formattedDate,
-        start_date: start_date,
-        end_date: end_date,
-        identity_number: payload?.identityNumber,
-      })
-
+      
+      // The payload is already properly formatted from the component
+      // Just send it directly to the backend
       const config = {
         method: 'post',
         maxBodyLength: Infinity,
@@ -84,7 +64,7 @@ export const useSalesInquiriesStore = defineStore('sales_inquiries', {
         headers: {
           'Content-Type': 'application/json',
         },
-        data: data,
+        data: JSON.stringify(payload),
       }
 
       const response = await axios.request(config)

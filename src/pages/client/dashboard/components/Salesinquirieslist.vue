@@ -107,13 +107,15 @@ export default defineComponent({
         )
         if (response.status === 200) {
           this.loading = false
-          this.salesInquiryItems = response.data.map((item: any) => {
-            // Get first preference (or empty if none)
-            const pref = item?.preferences?.[0] || {}
+          // Handle paginated response - data is inside response.data.data
+          const dataArray = Array.isArray(response.data) ? response.data : (response.data.data || [])
+          this.salesInquiryItems = dataArray.map((item: any) => {
             return {
               id: item.id,
               selfitem: item,
-              name: item?.entity?.full_name,
+              code: item?.code || '',
+              inquiry_type: item?.inquiry_type || '',
+              name: item?.entity?.full_name || 'N/A',
               country: item?.entity?.country?.name || 'N/A',
               nationality: item?.entity?.nationality?.name || 'N/A',
               contacts:
@@ -121,27 +123,25 @@ export default defineComponent({
                   id: contact.id,
                   name: contact?.contact,
                   contactable: contact?.contactable,
+                  type: contact?.contact_type?.name || '',
                 })) || [],
               preference: {
-                no_of_hunters: pref?.no_of_hunters || 0,
-                no_of_observers: pref?.no_of_observers || 0,
-                no_of_days: pref?.no_of_days || 0,
-                no_of_companions: pref?.no_of_companions || 0,
-                special_requests: pref?.special_requests || '',
-                start_date: pref?.start_date ? formatDateTime(pref.start_date) : '',
-                end_date: pref?.end_date ? formatDateTime(pref.end_date) : '',
-                budget_estimation: pref?.budget_estimation || '',
-                prev_experience: pref?.prev_experience || '',
-                preferred_date: pref?.preferred_date ? formatDateTime(pref.preferred_date) : '',
-                accommodation_type: pref?.accommodation_type || '',
-                payment_method: pref?.payment_method || '',
+                no_of_hunters: item?.formatted_preferences?.no_of_hunters || 0,
+                no_of_observers: item?.formatted_preferences?.no_of_observers || 0,
+                no_of_days: item?.formatted_preferences?.no_of_days || 0,
+                no_of_companions: item?.formatted_preferences?.no_of_companions || 0,
+                special_requests: item?.formatted_preferences?.special_requests || '',
+                start_date: item?.formatted_preferences?.start_date || '',
+                end_date: item?.formatted_preferences?.end_date || '',
+                budget_estimation: item?.formatted_preferences?.budget_estimation || '',
+                preferred_date: item?.formatted_preferences?.preferred_date || '',
               },
-              preferred_species:
-                item?.preferred_species?.map((species: any) => ({
-                  id: species?.id,
-                  name: species?.species?.name,
-                  quantity: species?.quantity,
-                })) || [],
+              // For standard packages
+              package_details: item?.package_details || null,
+              // For custom packages
+              custom_details: item?.custom_details || null,
+              // Season info
+              season: item?.season?.name || 'N/A',
             }
           })
 
