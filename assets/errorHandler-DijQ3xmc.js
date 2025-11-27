@@ -1,0 +1,2 @@
+const n=a=>{const o=[];if(console.log("Full error response:",a),console.log("Error data:",a==null?void 0:a.data),a){const{status:c,data:t}=a;if(console.log("Status:",c),console.log("Data details:",JSON.stringify(t,null,2)),t&&typeof t=="object")for(const l in t){const s=Array.isArray(t[l])?t[l].join(", "):t[l];o.push(`${l.replace(/_/g," ")}: ${s}`)}else o.push("Unexpected server response format.")}return o};export{n as h};
+//# sourceMappingURL=errorHandler-DijQ3xmc.js.map
