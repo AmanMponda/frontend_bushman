@@ -1,2 +1,0 @@
-import{c as a,K as l,a5 as r,a6 as u,a7 as c,a8 as i}from"./index-CfFSTcA4.js";const p=()=>{const e=l();return a(()=>{var o;return((o=r())==null?void 0:o._context)||(e==null?void 0:e.appContext)})},v=()=>{const e=p(),o=[],s=t=>{const n=i(t,e.value);return n&&o.push(n),n};return{init:t=>s(t),notify:s,close:t=>c(t),closeAll:(t=!1)=>u(t?void 0:e.value),closeAllCreatedInThisHook:()=>{o.forEach(t=>c(t))}}};export{v as u};
-//# sourceMappingURL=useToast-CtGmr2K3.js.map
