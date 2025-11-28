@@ -157,7 +157,7 @@ export default defineComponent({
       isValid: isValidForm,
       validate: validateForm,
       resetValidation: resetValidationForm,
-      reset: resetForm,
+      // reset: resetForm, // Using method-based resetForm instead
     } = useForm(formRef)
 
     const {
@@ -174,7 +174,6 @@ export default defineComponent({
       isValidareaForm,
       validateareaForm,
       resetValidationareaForm,
-      resetForm,
       resetareaForm,
       formRef,
       areaFormRef,

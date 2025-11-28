@@ -44,7 +44,7 @@
       </template>
 
       <template v-else-if="showPackageList">
-        <VaDataTable :items="packages" :columns="columns" :loading="loading" hoverable striped>
+        <VaDataTable :items="packages" :columns="columns as any" :loading="loading" hoverable striped>
           <template #cell(actions)="{ rowData }">
             <div class="flex gap-2">
               <VaButton preset="plain" icon="visibility" title="View" @click="showDetails(rowData)" />
@@ -84,7 +84,6 @@ import { mapActions, mapState } from 'pinia'
 import { useQuotaStore } from '../../stores/quota-store'
 import { useSettingsStore } from '../../stores/settings-store'
 import { usePriceListStore } from '../../stores/price-list-store'
-import ModuleTable from './components/ModuleTable.vue'
 import { useRegulatoryPackageStore } from '../../stores/regulatrory-store'
 import SalesPackageDetails from './components/SalesPackageDetails.vue'
 import SalesPackageForm from './components/SalesPackageForm.vue'
@@ -93,8 +92,6 @@ export default defineComponent({
   components: {
     SalesPackageDetails,
     SalesPackageForm,
-
-    ModuleTable,
   },
   setup() {
     const formRef = ref()

@@ -412,7 +412,7 @@ export default defineComponent({
       this.downloadingPdf = true
       try {
         const response = await this.getCompletePriceListPdf()
-        
+
         if (response.status === 200) {
           const pdf = response.data?.pdf || response.data
           const isUrl = (s: any) => typeof s === 'string' && /^https?:\/\//i.test(s)

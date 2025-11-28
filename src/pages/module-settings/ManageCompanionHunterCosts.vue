@@ -132,7 +132,7 @@ export default defineComponent({
   name: 'ManageCompanionHunterCosts',
 
   setup() {
-    const formRef = ref(null)
+    const formRef = ref(null) as any
     const { validate, reset } = useForm(formRef)
 
     return {

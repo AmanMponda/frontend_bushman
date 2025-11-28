@@ -163,7 +163,7 @@
         :options="termTypeOptions"
         label="Term Type"
         placeholder="Select a term type"
-        :rules="[(v) => !!v || 'Term type is required']"
+        :rules="[(v: any) => !!v || 'Term type is required']"
         required-mark
         :loading="loadingTermTypes"
       />
@@ -172,7 +172,7 @@
         v-model="termForm.content"
         label="Content"
         placeholder="Enter term content"
-        :rules="[(v) => !!v || 'Content is required']"
+        :rules="[(v: any) => !!v || 'Content is required']"
         required-mark
         :min-rows="6"
         :max-rows="12"
@@ -260,7 +260,7 @@
         v-model="termTypeForm.name"
         label="Name"
         placeholder="e.g., Booking Terms, Payment Terms"
-        :rules="[(v) => !!v || 'Name is required']"
+        :rules="[(v: any) => !!v || 'Name is required']"
         required-mark
       />
       <VaTextarea
