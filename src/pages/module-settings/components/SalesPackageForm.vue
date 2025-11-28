@@ -1,6 +1,7 @@
 <template>
   <VaForm ref="formRef">
     <div class="p-1">
+      <h3 class="font-bold text-lg mb-4">{{ editMode ? 'Edit Package' : 'Create New Package' }}</h3>
       <!-- <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4"> -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <VaInput
@@ -89,14 +90,13 @@
   </VaInnerLoading>
   <div class="mt-4 d-flex p-2">
     <VaButton
-      v-if="!showEditForm"
       icon="save"
       :loading="saving"
       class="mr-3 mb-2"
       :disabled="!isValidForm"
       @click="validateForm() && submit()"
     >
-      Save
+      {{ editMode ? 'Update' : 'Save' }}
     </VaButton>
   </div>
 </template>
@@ -121,6 +121,17 @@ export default defineComponent({
     VaSelect,
     VaButton,
   },
+  props: {
+    editMode: {
+      type: Boolean,
+      default: false,
+    },
+    editItem: {
+      type: Object,
+      default: null,
+    },
+  },
+  emits: ['saved'],
   setup() {
     const formRef = ref()
 
@@ -207,6 +218,41 @@ export default defineComponent({
     this.getLicencePackages()
     this.getAreas()
     this.settingsStore.licenceAreaSpecies = []
+
+    // If in edit mode, populate the form with existing data
+    if (this.editMode && this.editItem) {
+      this.form.package_name = this.editItem.name || ''
+      this.form.description = this.editItem.description || ''
+
+      // Set licence and area after options are loaded
+      this.$nextTick(() => {
+        if (this.editItem.regulatory_package) {
+          this.form.licence = {
+            value: this.editItem.regulatory_package.id,
+            text: this.editItem.regulatory_package.name + '->' + this.editItem.regulatory_package.duration + ' days',
+          }
+        }
+        if (this.editItem.area) {
+          this.form.area = {
+            value: this.editItem.area.id,
+            text: this.editItem.area.name,
+          }
+          // Load species for the area
+          this.getLicenceAreaSpeciesList()
+        }
+
+        // Pre-populate species if available
+        if (this.editItem.species && this.editItem.species.length > 0) {
+          setTimeout(() => {
+            this.settingsStore.licenceAreaSpecies = this.editItem.species.map((s: any) => ({
+              id: s.species?.id || s.id,
+              name: s.species?.name || s.name,
+              quantity: s.quantity || 1,
+            }))
+          }, 500)
+        }
+      })
+    }
   },
 
   methods: {
@@ -216,7 +262,12 @@ export default defineComponent({
     ...mapActions(useSettingsStore, ['getHuntingsTypes']),
     ...mapActions(useSettingsStore, ['getCurrencies']),
     ...mapActions(useQuotaStore, ['getQuotas']),
-    ...mapActions(usePriceListStore, ['createPriceList', 'createSalesPackage', 'getSalesPackageList']),
+    ...mapActions(usePriceListStore, [
+      'createPriceList',
+      'createSalesPackage',
+      'getSalesPackageList',
+      'updateSalesPackage',
+    ]),
     ...mapActions(useRegulatoryPackageStore, ['getRegulatoryPackages']),
     ...mapActions(useSettingsStore, ['getHuntingLicenseAreaSpecies']),
 
@@ -227,6 +278,7 @@ export default defineComponent({
           message: 'Please select at least one species.',
           color: 'warning',
         })
+        this.saving = false
         return
       }
 
@@ -239,15 +291,21 @@ export default defineComponent({
       }
 
       try {
-        const response = await this.createSalesPackage(requestdata)
-
-        if (response.status === 201) {
-          this.saving = false
-          console.log(response)
-          this.init({ message: response.data.message, color: 'success' })
-          this.getSalesPackages()
+        let response
+        if (this.editMode && this.editItem) {
+          response = await this.updateSalesPackage(this.editItem.id, requestdata)
+          if (response.status === 200) {
+            this.saving = false
+            this.init({ message: 'Package updated successfully.', color: 'success' })
+            this.$emit('saved')
+          }
         } else {
-          // No action needed for non-200 status
+          response = await this.createSalesPackage(requestdata)
+          if (response.status === 201) {
+            this.saving = false
+            this.init({ message: response.data.message, color: 'success' })
+            this.getSalesPackages()
+          }
         }
       } catch (error: any) {
         this.saving = false

@@ -4,7 +4,7 @@
       <div class="flex flex-col md:flex-row gap-2 mb-2 justify-between">
         <div class="flex flex-col md:flex-row gap-2 justify-start">
           <VaButton
-            v-if="!showPackageList || showDetailsPage"
+            v-if="!showPackageList || showDetailsPage || showEditPackageForm"
             class="px-2 py-2"
             icon="arrow_back"
             size="small"
@@ -13,7 +13,7 @@
             Go Back
           </VaButton>
         </div>
-        <VaButtonGroup v-if="!showCreateNewPackageForm && !showDetailsPage">
+        <VaButtonGroup v-if="!showCreateNewPackageForm && !showDetailsPage && !showEditPackageForm">
           <VaButton
             class="px-2 py-2"
             color="primary"
@@ -38,11 +38,41 @@
       <template v-else-if="showCreateNewPackageForm && !showDetailsPage">
         <SalesPackageForm> </SalesPackageForm>
       </template>
+
+      <template v-else-if="showEditPackageForm">
+        <SalesPackageForm :edit-mode="true" :edit-item="selectItem" @saved="onEditSaved"> </SalesPackageForm>
+      </template>
+
       <template v-else-if="showPackageList">
-        <ModuleTable :items="packages" :columns="columns" :loading="loading" @onView="showDetails"> </ModuleTable>
+        <VaDataTable :items="packages" :columns="columns" :loading="loading" hoverable striped>
+          <template #cell(actions)="{ rowData }">
+            <div class="flex gap-2">
+              <VaButton preset="plain" icon="visibility" title="View" @click="showDetails(rowData)" />
+              <VaButton preset="plain" icon="edit" color="warning" title="Edit" @click="editPackage(rowData)" />
+              <VaButton preset="plain" icon="delete" color="danger" title="Delete" @click="confirmDelete(rowData)" />
+            </div>
+          </template>
+        </VaDataTable>
       </template>
     </VaCardContent>
   </VaCard>
+
+  <!-- Delete Confirmation Modal -->
+  <VaModal v-model="showDeleteModal" hide-default-actions>
+    <template #header>
+      <h3 class="va-h6">Confirm Delete</h3>
+    </template>
+    <p>
+      Are you sure you want to delete <strong>{{ itemToDelete?.name }}</strong
+      >?
+    </p>
+    <template #footer>
+      <div class="flex gap-2 justify-end">
+        <VaButton preset="secondary" @click="showDeleteModal = false">Cancel</VaButton>
+        <VaButton color="danger" :loading="deleting" @click="deletePackage">Delete</VaButton>
+      </div>
+    </template>
+  </VaModal>
 </template>
 
 <script lang="ts">
@@ -186,6 +216,9 @@ export default defineComponent({
       quntityChangedsaved: false,
       showDetailsPage: false,
       selectItem: null as any,
+      showDeleteModal: false,
+      itemToDelete: null as any,
+      deleting: false,
     }
   },
   computed: {
@@ -220,7 +253,13 @@ export default defineComponent({
     ...mapActions(useSettingsStore, ['getHuntingsTypes']),
     ...mapActions(useSettingsStore, ['getCurrencies']),
     ...mapActions(useQuotaStore, ['getQuotas']),
-    ...mapActions(usePriceListStore, ['createPriceList', 'createSalesPackage', 'getSalesPackageList']),
+    ...mapActions(usePriceListStore, [
+      'createPriceList',
+      'createSalesPackage',
+      'getSalesPackageList',
+      'updateSalesPackage',
+      'deleteSalesPackage',
+    ]),
     ...mapActions(useRegulatoryPackageStore, ['getRegulatoryPackages']),
     ...mapActions(useSettingsStore, ['getHuntingLicenseAreaSpecies']),
 
@@ -238,7 +277,51 @@ export default defineComponent({
       this.showCreateNewPackageForm = false
       this.showPackageList = true
       this.showDetailsPage = false
+      this.showEditPackageForm = false
       this.getSalesPackages()
+    },
+
+    editPackage(rowData: any) {
+      this.selectItem = rowData.selfItem
+      this.showEditPackageForm = true
+      this.showPackageList = false
+    },
+
+    onEditSaved() {
+      this.showEditPackageForm = false
+      this.showPackageList = true
+      this.getSalesPackages()
+    },
+
+    confirmDelete(rowData: any) {
+      this.itemToDelete = rowData
+      this.showDeleteModal = true
+    },
+
+    async deletePackage() {
+      if (!this.itemToDelete) return
+
+      this.deleting = true
+      try {
+        const response = await this.deleteSalesPackage(this.itemToDelete.id, true)
+        if (response.status === 200 || response.status === 204) {
+          this.init({
+            message: 'Package deleted successfully.',
+            color: 'success',
+          })
+          this.showDeleteModal = false
+          this.itemToDelete = null
+          this.getSalesPackages()
+        }
+      } catch (error: any) {
+        const errors = handleErrors(error.response)
+        this.init({
+          message: errors.join(', ') || 'Failed to delete package.',
+          color: 'danger',
+        })
+      } finally {
+        this.deleting = false
+      }
     },
 
     async submit() {
@@ -307,7 +390,7 @@ export default defineComponent({
     showDetails(data: any) {
       console.log('Show details for:', data)
       this.showDetailsPage = true
-      this.selectItem = data.selfItem
+      this.selectItem = data.selfItem || data
       // this.showEditForm = true
     },
 

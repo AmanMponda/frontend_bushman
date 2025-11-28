@@ -161,7 +161,7 @@ const routes: Array<RouteRecordRaw> = [
           {
             name: 'hunting-types',
             path: 'hunting-types',
-            component: () => import('../pages/module-settings/ManageArea.vue'),
+            component: () => import('../pages/module-settings/ManageHuntingTypes.vue'),
           },
 
           {
@@ -186,6 +186,27 @@ const routes: Array<RouteRecordRaw> = [
             name: 'trophy-fees',
             path: 'trophy-fees',
             component: () => import('../pages/module-settings/ManageTrophyFees.vue'),
+          },
+
+          // Companion Hunter Costs
+          {
+            name: 'companion-hunter-costs',
+            path: 'companion-hunter-costs',
+            component: () => import('../pages/module-settings/ManageCompanionHunterCosts.vue'),
+          },
+
+          // Terms
+          {
+            name: 'terms',
+            path: 'terms',
+            component: () => import('../pages/module-settings/ManageTerms.vue'),
+          },
+
+          // Safari Fee Deposits
+          {
+            name: 'safari-fee-deposits',
+            path: 'safari-fee-deposits',
+            component: () => import('../pages/module-settings/ManageSafariFeeDeposits.vue'),
           },
 
           // PriceList

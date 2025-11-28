@@ -21,23 +21,24 @@
           label="Add New Quota"
           icon="add"
           size="small"
-          @click="toggleFormAndList()"
+          @click="showCreateForm()"
           >Add a New Hunting Area</VaButton
         >
       </VaButtonGroup>
     </div>
 
-    <ModuleTable
-      v-if="showHuntingAreaList"
-      :items="items"
-      :columns="columns"
-      :loading="loading"
-      @onView="showHuntingArea"
-    ></ModuleTable>
+    <VaDataTable v-if="showHuntingAreaList" :items="items" :columns="columns" :loading="loading" hoverable striped>
+      <template #cell(actions)="{ rowData }">
+        <div class="flex gap-2">
+          <VaButton preset="plain" icon="edit" color="primary" @click="editHuntingArea(rowData)" />
+          <VaButton preset="plain" icon="delete" color="danger" @click="confirmDelete(rowData)" />
+        </div>
+      </template>
+    </VaDataTable>
 
     <div v-else class="p-2">
       <VaForm ref="areaFormRef" class="mb-6">
-        <h3 class="font-bold text-lg mb-2">Hunting are details</h3>
+        <h3 class="font-bold text-lg mb-2">{{ editMode ? 'Edit Hunting Area' : 'New Hunting Area' }}</h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <VaInput
             v-model="areaForm.name"
@@ -79,19 +80,53 @@
         </div>
       </VaForm>
 
-      <div class="mb-6">
+      <div class="mb-6 flex gap-2">
         <VaButton
           :disabled="!isValidareaForm"
           color="primary"
-          icon="save"
+          :icon="editMode ? 'save' : 'add'"
           :loading="saving"
           icon-color="#fff"
-          @click="validateareaForm() && createNewHuntingArea()"
+          @click="validateareaForm() && (editMode ? updateExistingHuntingArea() : createNewHuntingArea())"
         >
-          Save
+          {{ editMode ? 'Update' : 'Save' }}
         </VaButton>
+        <VaButton v-if="editMode" preset="secondary" @click="cancelEdit()"> Cancel </VaButton>
       </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <VaModal v-model="showDeleteModal" hide-default-actions>
+      <template #header>
+        <h3 class="va-h6">Confirm Delete</h3>
+      </template>
+      <div class="p-4">
+        <p class="mb-4">
+          Are you sure you want to delete the hunting area <strong>{{ itemToDelete?.name }}</strong
+          >?
+        </p>
+        <VaAlert color="danger" class="mb-4">
+          <template #icon>
+            <VaIcon name="warning" />
+          </template>
+          <strong>Warning:</strong> This will permanently delete this hunting area and may affect:
+          <ul class="list-disc ml-6 mt-2">
+            <li>Sales Packages using this area</li>
+            <li>Price Lists referencing this area</li>
+            <li>Quotas assigned to this area</li>
+            <li>Trophy Fees for this area</li>
+            <li>Sales Inquiries linked to this area</li>
+          </ul>
+          <p class="mt-2 font-bold">This action cannot be undone!</p>
+        </VaAlert>
+      </div>
+      <template #footer>
+        <div class="flex gap-2 justify-end">
+          <VaButton preset="secondary" @click="showDeleteModal = false">Cancel</VaButton>
+          <VaButton color="danger" :loading="deleting" @click="deleteHuntingAreaConfirmed()"> Force Delete </VaButton>
+        </div>
+      </template>
+    </VaModal>
   </VaCard>
 </template>
 
@@ -102,7 +137,6 @@ import { mapActions } from 'pinia'
 import { reactive } from 'vue'
 import { useToast, useForm } from 'vuestic-ui'
 import handleErrors from '../../utils/errorHandler'
-import ModuleTable from './components/ModuleTable.vue'
 import { useHuntingAreaStore } from '../../stores/hunting-story'
 
 const defaultItem = {
@@ -113,10 +147,7 @@ const defaultItem = {
 }
 
 export default defineComponent({
-  name: 'QuotaPage',
-  components: {
-    ModuleTable,
-  },
+  name: 'ManageArea',
 
   setup() {
     const formRef = ref(null) as any
@@ -166,6 +197,7 @@ export default defineComponent({
       { key: 'description', sortable: true },
       { key: 'lat', label: 'Latitude', sortable: false },
       { key: 'lng', label: 'Longitude', sortable: false },
+      { key: 'actions', label: 'Actions', sortable: false },
     ]
 
     const quotasOptions = [] as any
@@ -187,6 +219,10 @@ export default defineComponent({
       quotaItems: [] as any,
       saving: false,
       loading: false,
+      editMode: false,
+      showDeleteModal: false,
+      itemToDelete: null as any,
+      deleting: false,
     }
   },
 
@@ -198,15 +234,116 @@ export default defineComponent({
 
   methods: {
     ...mapActions(useQuotaStore, ['getAreaList']),
-    ...mapActions(useHuntingAreaStore, ['createHuntingArea']),
+    ...mapActions(useHuntingAreaStore, ['createHuntingArea', 'updateHuntingArea', 'deleteHuntingArea']),
 
     toggleFormAndList() {
       this.showHuntingAreaList = !this.showHuntingAreaList
-      this.getAreas()
+      if (this.showHuntingAreaList) {
+        this.resetForm()
+        this.getAreas()
+      }
+    },
+
+    showCreateForm() {
+      this.editMode = false
+      this.resetForm()
+      this.showHuntingAreaList = false
     },
 
     showHuntingArea() {
       this.showHuntingAreaList = !this.showHuntingAreaList
+    },
+
+    editHuntingArea(rowData: any) {
+      this.editMode = true
+      this.areaForm.id = rowData.id
+      this.areaForm.name = rowData.name
+      this.areaForm.description = rowData.description
+      this.areaForm.lat = rowData.lat
+      this.areaForm.lng = rowData.lng
+      this.showHuntingAreaList = false
+    },
+
+    cancelEdit() {
+      this.resetForm()
+      this.toggleFormAndList()
+    },
+
+    resetForm() {
+      this.editMode = false
+      this.areaForm.id = null
+      this.areaForm.name = null
+      this.areaForm.description = ''
+      this.areaForm.lat = null
+      this.areaForm.lng = null
+      this.resetValidationareaForm()
+    },
+
+    confirmDelete(rowData: any) {
+      this.itemToDelete = rowData
+      this.showDeleteModal = true
+    },
+
+    async deleteHuntingAreaConfirmed() {
+      if (!this.itemToDelete) return
+
+      this.deleting = true
+      try {
+        // Force delete - will delete even if referenced by other tables
+        const response = await this.deleteHuntingArea(this.itemToDelete.id, true)
+        if (response.status === 204 || response.status === 200) {
+          this.toast.init({
+            message: 'Hunting Area deleted successfully',
+            color: 'success',
+          })
+          this.showDeleteModal = false
+          this.itemToDelete = null
+          this.getAreas()
+        }
+      } catch (error: any) {
+        this.deleting = false
+        const errorMessage = error?.response?.data?.detail || error?.response?.data?.message
+        this.toast.init({
+          message: errorMessage || 'Failed to delete hunting area',
+          color: 'danger',
+        })
+      } finally {
+        this.deleting = false
+      }
+    },
+
+    async updateExistingHuntingArea() {
+      this.saving = true
+      const coordinates = [
+        {
+          lat: this.areaForm.lat,
+          lng: this.areaForm.lng,
+        },
+      ]
+      const requestData = {
+        name: this.areaForm.name,
+        description: this.areaForm.description,
+        coordinates: coordinates,
+      }
+      try {
+        const response = await this.updateHuntingArea(this.areaForm.id, requestData)
+        if (response.status === 200) {
+          this.saving = false
+          this.toast.init({
+            message: 'Hunting Area updated successfully',
+            color: 'success',
+          })
+          this.resetForm()
+          this.toggleFormAndList()
+        }
+      } catch (error) {
+        this.saving = false
+        const errors = handleErrors(error)
+        this.toast.init({
+          message: '\n' + errors.map((error: string, index: number) => `${index + 1}. ${error}`).join('\n'),
+          color: 'danger',
+        })
+      }
     },
 
     async createNewHuntingArea() {

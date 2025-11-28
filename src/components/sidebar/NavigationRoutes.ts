@@ -263,6 +263,33 @@ export default {
           displayName: 'menu.trophy-fees',
         },
 
+        // companion-hunter-costs
+        {
+          name: 'companion-hunter-costs',
+          meta: {
+            icon: 'group_add',
+          },
+          displayName: 'menu.companion-hunter-costs',
+        },
+
+        // terms
+        {
+          name: 'terms',
+          meta: {
+            icon: 'description',
+          },
+          displayName: 'menu.terms',
+        },
+
+        // safari-fee-deposits
+        {
+          name: 'safari-fee-deposits',
+          meta: {
+            icon: 'payments',
+          },
+          displayName: 'menu.safari-fee-deposits',
+        },
+
         // approval - chain,
         {
           name: 'approval-chain',

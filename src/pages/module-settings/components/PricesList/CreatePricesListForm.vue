@@ -108,14 +108,13 @@
 
       <div class="mt-4 d-flex p-2">
         <VaButton
-          v-if="!showEditForm"
           icon="save"
           class="mr-3 mb-2"
           :loading="savingPriceList"
           :disabled="!isValidForm"
           @click="validateForm() && submit()"
         >
-          Save
+          {{ editMode ? 'Update' : 'Save' }}
         </VaButton>
       </div>
     </VaForm>
@@ -147,6 +146,17 @@ export default defineComponent({
     VaSelect,
     VaButton,
   },
+  props: {
+    editMode: {
+      type: Boolean,
+      default: false,
+    },
+    editItem: {
+      type: Object,
+      default: null,
+    },
+  },
+  emits: ['saved'],
   setup() {
     const formRef = ref()
 
@@ -288,6 +298,11 @@ export default defineComponent({
     this.getCurrencyList()
     this.getSalesPackages()
     this.getSeasonList()
+
+    // If in edit mode, populate form with existing data
+    if (this.editMode && this.editItem) {
+      this.populateFormForEdit()
+    }
   },
 
   methods: {
@@ -297,7 +312,7 @@ export default defineComponent({
     ...mapActions(useSettingsStore, ['getHuntingsTypes']),
     ...mapActions(useSettingsStore, ['getCurrencies', 'getSeasons']),
     ...mapActions(useQuotaStore, ['getQuotas']),
-    ...mapActions(usePriceListStore, ['createPriceList']),
+    ...mapActions(usePriceListStore, ['createPriceList', 'updatePriceList']),
     ...mapActions(usePriceListStore, ['getSalesPackageList']),
 
     // addNewSpeciesItemToStorage() {},
@@ -313,15 +328,15 @@ export default defineComponent({
     async submit() {
       this.savingPriceList = true
       const requestdata = {
-        huntingTypeId: this.form.hunting_type_id.value,
+        huntingTypeId: this.form.hunting_type_id?.value || this.form.hunting_type_id,
         sales_package_ids: this.form.package?.filter((v: any) => v?.value !== undefined).map((v: any) => v?.value),
         amount: this.form.amount,
-        currency: this.form.currency.value,
-        duration: this.form.duration.value,
-        season_id: this.form.season.value.id,
+        currency: this.form.currency?.value || this.form.currency,
+        duration: this.form.duration?.value || this.form.duration,
+        season_id: this.form.season?.value?.id || this.form.season?.id,
         //chriss' codes
-        start_at: this.form.season.value.start_at,
-        end_at: this.form.season.value.end_at,
+        start_at: this.form.season?.value?.start_at || this.form.season?.start_at,
+        end_at: this.form.season?.value?.end_at || this.form.season?.end_at,
         is_active: 1,
         area_id: 3,
         user_id: 1,
@@ -330,19 +345,25 @@ export default defineComponent({
       }
 
       // console.log(requestdata);
-      this.savingPriceList = false
       // return ;
       try {
-        const response: any = await this.createPriceList(requestdata)
-        if (response.status === 201) {
-          this.init({ message: response.data.message, color: 'success' })
-          this.resetForm()
-          this.resetValidationForm()
-          this.speciesObjects = []
-          this.savingPriceList = false
+        let response: any
+        if (this.editMode && this.editItem) {
+          response = await this.updatePriceList(this.editItem.id, requestdata)
+          if (response.status === 200) {
+            this.init({ message: 'Price list updated successfully', color: 'success' })
+            this.savingPriceList = false
+            this.$emit('saved')
+          }
         } else {
-          console.log(response)
-          this.savingPriceList = false
+          response = await this.createPriceList(requestdata)
+          if (response.status === 201) {
+            this.init({ message: response.data.message, color: 'success' })
+            this.resetForm()
+            this.resetValidationForm()
+            this.speciesObjects = []
+            this.savingPriceList = false
+          }
         }
       } catch (error: any) {
         this.savingPriceList = false
@@ -353,6 +374,54 @@ export default defineComponent({
           color: 'danger',
         })
       }
+    },
+
+    populateFormForEdit() {
+      if (!this.editItem) return
+
+      // Wait for options to load then populate
+      this.$nextTick(() => {
+        setTimeout(() => {
+          // Set amount
+          this.form.amount = this.editItem.amount?.replace('$', '').replace(',', '') || this.editItem.amount
+
+          // Set duration
+          const durationValue = this.editItem.duration
+          this.form.duration = this.durationsOptions.find((d: any) => d.value === durationValue) || {
+            value: durationValue,
+            text: `${durationValue} days`,
+          }
+
+          // Set hunting type
+          if (this.editItem.hunting_type_id) {
+            this.form.hunting_type_id = this.huntingTypesOptions.find(
+              (h: any) => h.value === this.editItem.hunting_type_id,
+            )
+          } else if (this.editItem.hunting_type) {
+            this.form.hunting_type_id = this.huntingTypesOptions.find((h: any) => h.text === this.editItem.hunting_type)
+          }
+
+          // Set season
+          if (this.editItem.season_id) {
+            this.form.season = this.seasonsOptions.find((s: any) => s.value?.id === this.editItem.season_id)
+          }
+
+          // Set currency (default to USD if not set)
+          this.form.currency = this.currencyOptions.find((c: any) => c.text === 'USD') || this.currencyOptions[0]
+
+          // Set companion and observer amounts
+          this.form.companion_amount = this.editItem.companion_amount || null
+          this.form.observer_amount = this.editItem.observer_amount || null
+
+          // Set packages if available
+          if (this.editItem.packages && Array.isArray(this.editItem.packages)) {
+            this.form.package = this.editItem.packages.map((p: any) => ({
+              value: p.id,
+              text: p.name,
+            }))
+          }
+        }, 500)
+      })
     },
 
     async getSpeciesItems() {

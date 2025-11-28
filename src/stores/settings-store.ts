@@ -34,6 +34,19 @@ export const useSettingsStore = defineStore('settings-store', {
       loadingSalesChartersPriceList: false,
       savingSalesChartersPriceList: false,
       showSalesChartersPriceListModal: false,
+
+      // companion hunter costs
+      companionHunterCosts: [] as any,
+      loadingCompanionHunterCosts: false,
+
+      // terms
+      termTypes: [] as any,
+      terms: [] as any,
+      loadingTerms: false,
+
+      // safari fee deposits
+      safariFeeDeposits: [] as any,
+      loadingSafariFeeDeposits: false,
     }
   },
 
@@ -43,6 +56,58 @@ export const useSettingsStore = defineStore('settings-store', {
 
       const config = {
         method: 'get',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+      const response = await axios.request(config)
+      return response
+    },
+
+    async createHuntingType(payload: { name: string; description: string }) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_HUNTING_TYPES_URL
+
+      const config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: JSON.stringify(payload),
+      }
+      const response = await axios.request(config)
+      return response
+    },
+
+    async updateHuntingType(id: number, payload: { name: string; description: string }) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_HUNTING_TYPES_URL + id + '/'
+
+      const config = {
+        method: 'put',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: JSON.stringify(payload),
+      }
+      const response = await axios.request(config)
+      return response
+    },
+
+    async deleteHuntingType(id: number, force: boolean = false) {
+      const url =
+        import.meta.env.VITE_APP_BASE_URL +
+        import.meta.env.VITE_APP_HUNTING_TYPES_URL +
+        id +
+        '/' +
+        (force ? '?force=true' : '')
+
+      const config = {
+        method: 'delete',
         maxBodyLength: Infinity,
         url: url,
         headers: {
@@ -464,6 +529,318 @@ export const useSettingsStore = defineStore('settings-store', {
         this.showSalesChartersPriceListModal = false
         this.getSalesChartersPriceList(true)
       }
+      return response
+    },
+
+    // ============ COMPANION HUNTER COSTS ============
+    async getCompanionHunterCosts() {
+      this.loadingCompanionHunterCosts = true
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_COMPANIONS_HUNTER_COSTS_URL
+
+      const config = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+
+      try {
+        const response = await axios.request(config)
+        if (response.status === 200) {
+          this.companionHunterCosts = response.data
+        }
+        return response
+      } catch (error) {
+        console.error('Error fetching companion hunter costs:', error)
+        throw error
+      } finally {
+        this.loadingCompanionHunterCosts = false
+      }
+    },
+
+    async createCompanionHunterCost(payload: any) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_COMPANIONS_HUNTER_COSTS_URL
+
+      const config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: payload,
+      }
+
+      const response = await axios.request(config)
+      if (response.status === 201) {
+        this.getCompanionHunterCosts()
+      }
+      return response
+    },
+
+    async updateCompanionHunterCost(id: number, payload: any) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_COMPANIONS_HUNTER_COSTS_URL + id + '/'
+
+      const config = {
+        method: 'put',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: payload,
+      }
+
+      const response = await axios.request(config)
+      if (response.status === 200) {
+        this.getCompanionHunterCosts()
+      }
+      return response
+    },
+
+    async deleteCompanionHunterCost(id: number) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_COMPANIONS_HUNTER_COSTS_URL + id + '/'
+
+      const config = {
+        method: 'delete',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+
+      const response = await axios.request(config)
+      if (response.status === 200 || response.status === 204) {
+        this.getCompanionHunterCosts()
+      }
+      return response
+    },
+
+    // Term Types
+    async getTermTypes() {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_TERM_TYPES_URL
+
+      const config = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+
+      const response = await axios.request(config)
+      if (response.status === 200) {
+        this.termTypes = response.data
+      }
+      return response
+    },
+
+    // Terms
+    async getTerms(termTypeId?: number | null) {
+      this.loadingTerms = true
+      let url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_TERMS_URL
+
+      if (termTypeId) {
+        url += `?term_type_id=${termTypeId}`
+      }
+
+      const config = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+
+      try {
+        const response = await axios.request(config)
+        if (response.status === 200) {
+          this.terms = response.data
+        }
+        return response
+      } finally {
+        this.loadingTerms = false
+      }
+    },
+
+    async createTerm(payload: any) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_TERMS_URL
+
+      const config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: payload,
+      }
+
+      const response = await axios.request(config)
+      return response
+    },
+
+    async updateTerm(id: number, payload: any) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_TERMS_URL + id + '/'
+
+      const config = {
+        method: 'put',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: payload,
+      }
+
+      const response = await axios.request(config)
+      return response
+    },
+
+    async deleteTerm(id: number) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_TERMS_URL + id + '/'
+
+      const config = {
+        method: 'delete',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+
+      const response = await axios.request(config)
+      return response
+    },
+
+    // Term Type CRUD
+    async createTermType(payload: any) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_TERM_TYPES_URL
+
+      const config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: payload,
+      }
+
+      const response = await axios.request(config)
+      return response
+    },
+
+    async updateTermType(id: number, payload: any) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_TERM_TYPES_URL + id + '/'
+
+      const config = {
+        method: 'put',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: payload,
+      }
+
+      const response = await axios.request(config)
+      return response
+    },
+
+    async deleteTermType(id: number) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_TERM_TYPES_URL + id + '/'
+
+      const config = {
+        method: 'delete',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+
+      const response = await axios.request(config)
+      return response
+    },
+
+    // Safari Fee Deposits CRUD
+    async getSafariFeeDeposits() {
+      this.loadingSafariFeeDeposits = true
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_SAFARI_FEE_DEPOSITS_URL
+
+      const config = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+
+      try {
+        const response = await axios.request(config)
+        if (response.status === 200) {
+          this.safariFeeDeposits = response.data.data || response.data
+        }
+        return response
+      } finally {
+        this.loadingSafariFeeDeposits = false
+      }
+    },
+
+    async createSafariFeeDeposit(payload: { safari_duration: string; trophy_fee_deposit: number }) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_SAFARI_FEE_DEPOSITS_URL
+
+      const config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: payload,
+      }
+
+      const response = await axios.request(config)
+      return response
+    },
+
+    async updateSafariFeeDeposit(id: number, payload: { safari_duration: string; trophy_fee_deposit: number }) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_SAFARI_FEE_DEPOSITS_URL + id + '/'
+
+      const config = {
+        method: 'put',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: payload,
+      }
+
+      const response = await axios.request(config)
+      return response
+    },
+
+    async deleteSafariFeeDeposit(id: number) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_SAFARI_FEE_DEPOSITS_URL + id + '/'
+
+      const config = {
+        method: 'delete',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+
+      const response = await axios.request(config)
       return response
     },
   },
