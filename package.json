@@ -55,7 +55,7 @@
     "vue-phone-number-input": "^1.12.13",
     "vue-router": "^4.2.5",
     "vue-tel-input": "^9.2.0",
-    "vue2-leaflet": "^2.7.1",
+    "@vue-leaflet/vue-leaflet": "^0.10.1",
     "vuestic-ui": "^1.10.2"
   },
   "devDependencies": {
