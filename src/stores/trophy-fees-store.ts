@@ -32,6 +32,21 @@ export const useTrophyFeesStore = defineStore('trophyFees', {
       }
     },
 
+    async getTrophyFeeById(id: number) {
+      const url = `${import.meta.env.VITE_APP_BASE_URL}${import.meta.env.VITE_APP_TROPHY_FEES_URL}${id}/`
+
+      const config = {
+        method: 'get',
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+
+      const response = await axios.request(config)
+      return response
+    },
+
     async createTrophyFee(payload: any) {
       const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_TROPHY_FEES_URL
 

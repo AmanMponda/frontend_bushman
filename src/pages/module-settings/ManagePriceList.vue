@@ -42,7 +42,7 @@
         <template v-if="showPriceList">
           <!-- Filters Section -->
           <div class="filters-section bg-gray-50 rounded-lg p-4 mb-6 mt-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
               <!-- Season Filter -->
               <div>
                 <label class="block text-sm font-medium text-gray-600 mb-1">
@@ -86,6 +86,24 @@
                 />
               </div>
 
+              <!-- Min Amount Filter -->
+              <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">
+                  <VaIcon name="attach_money" size="small" class="mr-1" />
+                  Min Amount
+                </label>
+                <VaInput v-model="minAmount" type="number" placeholder="Min price" @change="getPriceLists" />
+              </div>
+
+              <!-- Max Amount Filter -->
+              <div>
+                <label class="block text-sm font-medium text-gray-600 mb-1">
+                  <VaIcon name="attach_money" size="small" class="mr-1" />
+                  Max Amount
+                </label>
+                <VaInput v-model="maxAmount" type="number" placeholder="Max price" @change="getPriceLists" />
+              </div>
+
               <!-- Download Button -->
               <div class="flex items-end">
                 <VaButton
@@ -117,128 +135,65 @@
             </div>
           </div>
 
-          <!-- Price List Cards -->
+          <!-- Price List Table -->
           <VaInnerLoading :loading="loading">
             <div v-if="items.length === 0 && !loading" class="text-center py-12">
               <VaIcon name="inventory_2" size="4rem" color="gray" />
               <p class="text-gray-500 mt-4">No price lists found for the selected filters.</p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              <div
-                v-for="item in items"
-                :key="item.id"
-                class="price-card bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden border border-gray-100"
-              >
-                <!-- Card Header -->
-                <div class="card-header bg-gradient-to-r from-amber-600 to-amber-700 text-white p-4">
-                  <div class="flex justify-between items-start">
-                    <div>
-                      <h3 class="font-bold text-lg">{{ item.package_name }}</h3>
-                      <p class="text-amber-100 text-sm mt-1">
-                        <VaIcon name="location_on" size="small" />
-                        {{ item.area }}
-                      </p>
-                    </div>
-                    <VaBadge :text="item.status" :color="item.status === 'Active' ? 'success' : 'warning'" />
-                  </div>
+            <VaDataTable v-else :items="items" :columns="columns" hoverable striped :loading="loading">
+              <template #cell(package_name)="{ rowData }">
+                <div class="font-semibold">{{ rowData.package_name }}</div>
+              </template>
+              <template #cell(area)="{ rowData }">
+                <div class="flex items-center gap-1">
+                  <VaIcon name="location_on" size="small" color="secondary" />
+                  {{ rowData.area }}
                 </div>
-
-                <!-- Card Body -->
-                <div class="p-4">
-                  <!-- Price & Duration -->
-                  <div class="flex justify-between items-center mb-4 pb-4 border-b border-gray-100">
-                    <div>
-                      <div class="text-2xl font-bold text-green-600">{{ item.amount }}</div>
-                      <div class="text-xs text-gray-500">Package Price</div>
-                    </div>
-                    <div class="text-right">
-                      <div class="text-xl font-semibold text-gray-700">{{ item.duration }} Days</div>
-                      <div class="text-xs text-gray-500">Duration</div>
-                    </div>
-                  </div>
-
-                  <!-- Details Grid -->
-                  <div class="grid grid-cols-2 gap-3 mb-4">
-                    <div class="detail-item">
-                      <VaIcon name="category" size="small" color="primary" />
-                      <span class="text-sm text-gray-600 ml-1">{{ item.hunting_type }}</span>
-                    </div>
-                    <div class="detail-item">
-                      <VaIcon name="pets" size="small" color="warning" />
-                      <span class="text-sm text-gray-600 ml-1">{{ item.species_count || 0 }} Species</span>
-                    </div>
-                    <div class="detail-item col-span-2">
-                      <VaIcon name="event" size="small" color="info" />
-                      <span class="text-sm text-gray-600 ml-1">{{ item.season_name || 'N/A' }}</span>
-                    </div>
-                  </div>
-
-                  <!-- Date Range -->
-                  <div class="date-range bg-gray-50 rounded-lg p-3 mb-4">
-                    <div class="flex justify-between text-sm">
-                      <div>
-                        <span class="text-gray-500">Start:</span>
-                        <span class="font-medium ml-1">{{ formatDate(item.start_date) }}</span>
-                      </div>
-                      <div>
-                        <span class="text-gray-500">End:</span>
-                        <span class="font-medium ml-1">{{ formatDate(item.end_date) }}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Species Preview (Top 5) -->
-                  <div v-if="item.species && item.species.length > 0" class="species-preview mb-4">
-                    <div class="text-xs text-gray-500 mb-2 font-medium">INCLUDED SPECIES:</div>
-                    <div class="flex flex-wrap gap-1">
-                      <VaBadge
-                        v-for="species in getActiveSpecies(item.species).slice(0, 4)"
-                        :key="species.id"
-                        :text="`${species.name} (${species.quantity})`"
-                        color="backgroundElement"
-                        class="text-xs"
-                      />
-                      <VaBadge
-                        v-if="getActiveSpecies(item.species).length > 4"
-                        :text="`+${getActiveSpecies(item.species).length - 4} more`"
-                        color="info"
-                        class="text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  <!-- Action Buttons -->
-                  <div class="flex gap-2 pt-3 border-t border-gray-100">
-                    <VaButton
-                      class="flex-1"
-                      preset="secondary"
-                      icon="visibility"
-                      size="small"
-                      @click="toggleShowPriceListMethod(item)"
-                    >
-                      View Details
-                    </VaButton>
-                    <VaButton
-                      preset="plain"
-                      icon="edit"
-                      color="warning"
-                      size="small"
-                      title="Edit"
-                      @click="editPriceList(item)"
-                    />
-                    <VaButton
-                      preset="plain"
-                      icon="delete"
-                      color="danger"
-                      size="small"
-                      title="Delete"
-                      @click="confirmDelete(item)"
-                    />
-                  </div>
+              </template>
+              <template #cell(amount)="{ rowData }">
+                <span class="font-semibold text-green-600">{{ rowData.amount }}</span>
+              </template>
+              <template #cell(duration)="{ rowData }"> {{ rowData.duration }} Days </template>
+              <template #cell(status)="{ rowData }">
+                <VaBadge :text="rowData.status" :color="rowData.status === 'Active' ? 'success' : 'warning'" />
+              </template>
+              <template #cell(season_name)="{ rowData }">
+                {{ rowData.season_name || 'N/A' }}
+              </template>
+              <template #cell(species_count)="{ rowData }">
+                <VaBadge :text="String(rowData.species_count || 0)" color="info" />
+              </template>
+              <template #cell(actions)="{ rowData }">
+                <div class="flex gap-2">
+                  <VaButton
+                    preset="plain"
+                    icon="visibility"
+                    color="primary"
+                    size="small"
+                    title="View Details"
+                    @click="toggleShowPriceListMethod(rowData)"
+                  />
+                  <VaButton
+                    preset="plain"
+                    icon="edit"
+                    color="warning"
+                    size="small"
+                    title="Edit"
+                    @click="editPriceList(rowData)"
+                  />
+                  <VaButton
+                    preset="plain"
+                    icon="delete"
+                    color="danger"
+                    size="small"
+                    title="Delete"
+                    @click="confirmDelete(rowData)"
+                  />
                 </div>
-              </div>
-            </div>
+              </template>
+            </VaDataTable>
           </VaInnerLoading>
         </template>
 
@@ -305,7 +260,20 @@ export default defineComponent({
   },
 
   data() {
+    const columns = [
+      { key: 'package_name', label: 'Package Name', sortable: true },
+      { key: 'area', label: 'Area', sortable: true },
+      { key: 'hunting_type', label: 'Hunting Type', sortable: true },
+      { key: 'amount', label: 'Price', sortable: true },
+      { key: 'duration', label: 'Duration', sortable: true },
+      { key: 'season_name', label: 'Season', sortable: true },
+      { key: 'species_count', label: 'Species', sortable: true },
+      { key: 'status', label: 'Status', sortable: true },
+      { key: 'actions', label: 'Actions', sortable: false, width: 120 },
+    ]
+
     return {
+      columns,
       items: [] as any[],
       printableDataList: [] as any[],
       item: null as any,
@@ -320,6 +288,8 @@ export default defineComponent({
       huntingTypeValue: null as any,
       areaValue: null as any,
       seasonValue: null as any,
+      minAmount: null as any,
+      maxAmount: null as any,
       poriceListPdf: '' as any,
       individualPriceListPdf: '' as any,
       downloadPdf,
@@ -411,7 +381,19 @@ export default defineComponent({
     async onDownloadPdf() {
       this.downloadingPdf = true
       try {
-        const response = await this.getCompletePriceListPdf()
+        const unwrap = (v: any) => {
+          if (v === null || v === undefined) return ''
+          if (typeof v === 'object' && 'value' in v) return v.value
+          return v
+        }
+
+        const huntingTypeId = unwrap(this.huntingTypeValue) || ''
+        const areaId = unwrap(this.areaValue) || ''
+        const seasonId = unwrap(this.seasonValue) || ''
+        const minAmount = this.minAmount || ''
+        const maxAmount = this.maxAmount || ''
+
+        const response = await this.getCompletePriceListPdf(huntingTypeId, areaId, seasonId, minAmount, maxAmount)
 
         if (response.status === 200) {
           const pdf = response.data?.pdf || response.data
@@ -423,7 +405,7 @@ export default defineComponent({
             return
           }
 
-          await downloadPdf(pdf, `complete-price-list-${Date.now()}.pdf`)
+          await downloadPdf(pdf, `price-list-${Date.now()}.pdf`)
         } else {
           this.toast?.init({ message: 'Failed to generate PDF', color: 'danger' })
         }
@@ -509,8 +491,10 @@ export default defineComponent({
         const huntingTypeId = unwrap(this.huntingTypeValue) || ''
         const areaId = unwrap(this.areaValue) || ''
         const seasonId = unwrap(this.seasonValue) || ''
+        const minAmount = this.minAmount || ''
+        const maxAmount = this.maxAmount || ''
 
-        const response = await this.getPriceList(huntingTypeId, areaId, seasonId)
+        const response = await this.getPriceList(huntingTypeId, areaId, seasonId, minAmount, maxAmount)
 
         if (response.status === 200) {
           const raw = response?.data
@@ -524,6 +508,7 @@ export default defineComponent({
               id: item.id,
               package_name: item.package_name,
               area: item.area,
+              area_package: item.area_package,
               hunting_type: item.hunting_type,
               amount: item.amount,
               duration: item.duration,
@@ -534,6 +519,7 @@ export default defineComponent({
               season_name: item.season_name,
               species_count: item.species_count,
               species: item.species || [],
+              companion_hunter_costs: item.companion_hunter_costs || [],
             }))
           } else {
             this.items = []

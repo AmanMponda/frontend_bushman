@@ -12,7 +12,11 @@
     striped
   >
     <template #cell(actions)="{ rowData }">
-      <VaButton preset="plain" :icon="btnViewicon" @click="clickedView(rowData)"> </VaButton>
+      <div class="flex gap-1">
+        <VaButton v-if="showEdit" preset="plain" icon="edit" color="primary" @click="clickedEdit(rowData)" />
+        <VaButton preset="plain" :icon="btnViewicon" @click="clickedView(rowData)" />
+        <VaButton v-if="showDelete" preset="plain" icon="delete" color="danger" @click="clickedDelete(rowData)" />
+      </div>
     </template>
   </VaDataTable>
 </template>
@@ -40,8 +44,16 @@ export default defineComponent({
       type: String,
       default: 'visibility',
     },
+    showEdit: {
+      type: Boolean,
+      default: true,
+    },
+    showDelete: {
+      type: Boolean,
+      default: true,
+    },
   },
-  emits: ['on-view'],
+  emits: ['on-view', 'onView', 'onEdit', 'onDelete'],
   data() {
     const sortingOrderOptions = [
       { text: 'asc', value: 'asc' },
@@ -71,6 +83,16 @@ export default defineComponent({
         item: rowData,
         id: rowData.id,
       })
+      this.$emit('onView', rowData)
+    },
+
+    clickedEdit(rowData) {
+      this.$emit('onEdit', rowData)
+      this.$emit('onView', rowData)
+    },
+
+    clickedDelete(rowData) {
+      this.$emit('onDelete', rowData)
     },
   },
 })

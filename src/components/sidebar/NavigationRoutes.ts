@@ -33,20 +33,20 @@ export default {
           displayName: 'menu.price-list',
         },
         {
-          name: 'quotas',
-          meta: {
-            icon: 'star_half',
-          },
-
-          displayName: 'menu.sales-quotas',
-        },
-        {
           name: 'sales-inquiry',
           meta: {
             icon: 'live_help',
           },
 
           displayName: 'menu.sales-inquiry',
+        },
+        {
+          name: 'quotas',
+          meta: {
+            icon: 'star_half',
+          },
+
+          displayName: 'menu.sales-quotas',
         },
         {
           name: 'sales-confirmation',

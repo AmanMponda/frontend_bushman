@@ -148,6 +148,43 @@
         </VaCard>
 
         <VaCard stripe stripe-color="success" class="mb-4">
+          <VaCardTitle>Season & Currency</VaCardTitle>
+          <VaCardContent>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <VaSelect
+                v-model="trophyFeeForm.season"
+                :options="seasonOptions"
+                label="Season"
+                placeholder="Select a season"
+                :rules="[(v: any) => !!v || 'Season is required']"
+                searchable
+                highlight-matched-text
+                required-mark
+              >
+                <template #prepend>
+                  <VaIcon name="date_range" />
+                </template>
+              </VaSelect>
+
+              <VaSelect
+                v-model="trophyFeeForm.currency"
+                :options="currencyOptions"
+                label="Currency"
+                placeholder="Select a currency"
+                :rules="[(v: any) => !!v || 'Currency is required']"
+                searchable
+                highlight-matched-text
+                required-mark
+              >
+                <template #prepend>
+                  <VaIcon name="payments" />
+                </template>
+              </VaSelect>
+            </div>
+          </VaCardContent>
+        </VaCard>
+
+        <VaCard stripe stripe-color="info" class="mb-4">
           <VaCardTitle>Pricing Details</VaCardTitle>
           <VaCardContent>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -174,47 +211,19 @@
               </VaInput>
 
               <VaInput
-                v-model="trophyFeeForm.price_usd"
-                label="Price (USD)"
+                v-model="trophyFeeForm.amount"
+                label="Amount"
                 type="number"
                 step="0.01"
                 min="0"
                 placeholder="0.00"
-                :rules="[(v: any) => v > 0 || 'Price must be greater than 0']"
+                :rules="[(v: any) => v > 0 || 'Amount must be greater than 0']"
                 required-mark
               >
                 <template #prepend>
                   <VaIcon name="attach_money" />
                 </template>
               </VaInput>
-            </div>
-          </VaCardContent>
-        </VaCard>
-
-        <VaCard stripe stripe-color="info" class="mb-4">
-          <VaCardTitle>
-            <div class="flex items-center gap-2">
-              <VaIcon name="calendar_today" />
-              Safari Days Availability
-            </div>
-          </VaCardTitle>
-          <VaCardContent>
-            <div class="mb-3 text-sm text-secondary">
-              <VaIcon name="info" size="small" class="mr-1" />
-              Select which safari day packages this trophy fee applies to. Leave empty to make it available for all
-              safari days.
-            </div>
-            <VaOptionList
-              v-model="trophyFeeForm.safari_day_ids"
-              :options="safariDaysOptions"
-              type="checkbox"
-              value-by="value"
-              text-by="text"
-              class="safari-days-options"
-            />
-            <div v-if="safariDaysOptions.length === 0" class="text-secondary text-sm mt-2">
-              <VaIcon name="warning" size="small" color="warning" class="mr-1" />
-              No safari days configured. Trophy fee will be available for all packages.
             </div>
           </VaCardContent>
         </VaCard>
@@ -245,6 +254,7 @@ import handleErrors from '../../utils/errorHandler'
 import ModuleTable from './components/ModuleTable.vue'
 import { useTrophyFeesStore } from '../../stores/trophy-fees-store'
 import { useQuotaStore } from '../../stores/quota-store'
+import { useSettingsStore } from '../../stores/settings-store'
 
 export default defineComponent({
   name: 'ManageTrophyFeesPage',
@@ -266,9 +276,9 @@ export default defineComponent({
       { key: 'id', label: 'ID', sortable: true, width: 80 },
       { key: 'species_name', label: 'Species Name', sortable: true },
       { key: 'area_name', label: 'Hunting Area', sortable: true },
-      { key: 'sequence_order', label: 'Sequence Order', sortable: true, width: 150 },
-      { key: 'price_usd', label: 'Price (USD)', sortable: true, width: 130 },
-      { key: 'availability_days', label: 'Available Days', sortable: false, width: 180 },
+      { key: 'season_name', label: 'Season', sortable: true },
+      { key: 'sequence_order', label: 'Sequence', sortable: true, width: 100 },
+      { key: 'amount', label: 'Amount', sortable: true, width: 130 },
       { key: 'actions', label: 'Actions', width: 120 },
     ]
 
@@ -289,9 +299,10 @@ export default defineComponent({
       id: null as any,
       species: null as any,
       area: null as any,
+      season: null as any,
+      currency: null as any,
       sequence_order: 1,
-      price_usd: null as any,
-      safari_day_ids: [] as number[],
+      amount: null as any,
     })
 
     return {
@@ -304,9 +315,11 @@ export default defineComponent({
       toast: useToast(),
       speciesOptions: [] as any[],
       areaOptions: [] as any[],
-      safariDaysOptions: [] as any[],
+      seasonOptions: [] as any[],
+      currencyOptions: [] as any[],
       selectedSpecies: null as any,
       selectedArea: null as any,
+      selectedSeason: null as any,
     }
   },
 
@@ -325,11 +338,14 @@ export default defineComponent({
     this.getTrophyFees()
     this.loadSpecies()
     this.loadAreas()
+    this.loadSeasons()
+    this.loadCurrencies()
   },
 
   methods: {
     ...mapActions(useTrophyFeesStore, ['fetchTrophyFees', 'createTrophyFee', 'updateTrophyFee', 'deleteTrophyFeeById']),
     ...mapActions(useQuotaStore, ['getSpeciesList', 'getAreaList']),
+    ...mapActions(useSettingsStore, ['getSeasons', 'getCurrencies']),
 
     async getTrophyFees() {
       this.loading = true
@@ -341,28 +357,22 @@ export default defineComponent({
         if (this.selectedArea) {
           params.area_id = this.selectedArea.value
         }
+        if (this.selectedSeason) {
+          params.season_id = this.selectedSeason.value
+        }
 
         const response = await this.fetchTrophyFees(params)
 
         if (response.status === 200) {
           const data = response.data.data || response.data
 
-          // Extract safari_days for dropdown if available
-          if (response.data.safari_days) {
-            this.safariDaysOptions = response.data.safari_days.map((day: any) => ({
-              value: day.id,
-              text: day.description || `${day.days}-day safari`,
-              days: day.days,
-            }))
-          }
-
           this.items = data.map((item: any) => ({
             id: item.id,
             species_name: item.species?.name || 'N/A',
             area_name: item.area?.name || 'N/A',
+            season_name: item.season?.name || 'N/A',
             sequence_order: this.getSequenceLabel(item.sequence_order),
-            price_usd: `$${parseFloat(item.price_usd).toFixed(2)}`,
-            availability_days: this.formatAvailabilityDays(item.availability || []),
+            amount: `${item.currency?.symbol || '$'}${parseFloat(item.amount).toFixed(2)}`,
             _raw: item,
           }))
         }
@@ -404,6 +414,7 @@ export default defineComponent({
     clearFilters() {
       this.selectedSpecies = null
       this.selectedArea = null
+      this.selectedSeason = null
       this.getTrophyFees()
     },
 
@@ -413,11 +424,29 @@ export default defineComponent({
       return sequence + (suffixes[(value - 20) % 10] || suffixes[value] || suffixes[0])
     },
 
-    formatAvailabilityDays(availability: any[]) {
-      if (!availability || availability.length === 0) {
-        return 'All Days'
+    async loadSeasons() {
+      try {
+        const response = await this.getSeasons()
+        this.seasonOptions = response.data.map((item: any) => ({
+          value: item.id,
+          text: item.name,
+        }))
+      } catch (error) {
+        console.error('Failed to load seasons', error)
       }
-      return availability.map((a: any) => a.safari_day?.description || `${a.safari_day?.days}-day`).join(', ')
+    },
+
+    async loadCurrencies() {
+      try {
+        const response = await this.getCurrencies()
+        this.currencyOptions = response.data.map((item: any) => ({
+          value: item.id,
+          text: item.name,
+          symbol: item.symbol,
+        }))
+      } catch (error) {
+        console.error('Failed to load currencies', error)
+      }
     },
 
     toggleFormAndList() {
@@ -433,15 +462,18 @@ export default defineComponent({
 
       const raw = rowData._raw
       this.trophyFeeForm.id = raw.id
-      this.trophyFeeForm.species = this.speciesOptions.find((s: any) => s.value === raw.species?.id)
-      this.trophyFeeForm.area = this.areaOptions.find((a: any) => a.value === raw.area?.id)
+      this.trophyFeeForm.species = this.speciesOptions.find(
+        (s: any) => s.value === raw.species_id || s.value === raw.species?.id,
+      )
+      this.trophyFeeForm.area = this.areaOptions.find((a: any) => a.value === raw.area_id || a.value === raw.area?.id)
+      this.trophyFeeForm.season = this.seasonOptions.find(
+        (s: any) => s.value === raw.season_id || s.value === raw.season?.id,
+      )
+      this.trophyFeeForm.currency = this.currencyOptions.find(
+        (c: any) => c.value === raw.currency_id || c.value === raw.currency?.id,
+      )
       this.trophyFeeForm.sequence_order = raw.sequence_order
-      this.trophyFeeForm.price_usd = raw.price_usd
-
-      // Extract safari_day_ids from availability
-      this.trophyFeeForm.safari_day_ids = (raw.availability || [])
-        .map((a: any) => a.safari_day_id || a.safari_day?.id)
-        .filter((id: any) => id != null)
+      this.trophyFeeForm.amount = raw.amount
     },
 
     async saveTrophyFee() {
@@ -450,13 +482,10 @@ export default defineComponent({
         const payload: any = {
           species_id: this.trophyFeeForm.species.value,
           area_id: this.trophyFeeForm.area.value,
+          season_id: this.trophyFeeForm.season.value,
+          currency_id: this.trophyFeeForm.currency.value,
           sequence_order: this.trophyFeeForm.sequence_order,
-          price_usd: this.trophyFeeForm.price_usd,
-        }
-
-        // Include safari_day_ids if any are selected
-        if (this.trophyFeeForm.safari_day_ids && this.trophyFeeForm.safari_day_ids.length > 0) {
-          payload.safari_day_ids = this.trophyFeeForm.safari_day_ids
+          amount: this.trophyFeeForm.amount,
         }
 
         let response
@@ -518,23 +547,14 @@ export default defineComponent({
       this.trophyFeeForm.id = null
       this.trophyFeeForm.species = null
       this.trophyFeeForm.area = null
+      this.trophyFeeForm.season = null
+      this.trophyFeeForm.currency = null
       this.trophyFeeForm.sequence_order = 1
-      this.trophyFeeForm.price_usd = null
-      this.trophyFeeForm.safari_day_ids = []
+      this.trophyFeeForm.amount = null
       this.resetValidationTrophyFeeForm()
     },
   },
 })
 </script>
 
-<style lang="scss" scoped>
-.safari-days-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-
-  :deep(.va-option-list__item) {
-    min-width: 150px;
-  }
-}
-</style>
+<style lang="scss" scoped></style>

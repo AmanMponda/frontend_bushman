@@ -1,5 +1,5 @@
 <template>
-  <VaSkeletonGroup v-if="cardStore.loading">
+  <VaSkeletonGroup v-if="cardStore.loading || !priceListItem || !priceListItem.sales_package">
     <VaSkeleton class="mb-4" height="160px" variant="squared" />
     <VaSkeleton class="mb-4" height="160px" variant="squared" />
     <VaSkeleton height="360px" variant="squared" />
@@ -10,12 +10,12 @@
     <VaCard class="mb-6" stripe stripe-color="primary">
       <VaCardContent>
         <div class="text-center">
-          <h1 class="va-h3 mb-2">{{ priceListItem.sales_package.name }}</h1>
+          <h1 class="va-h3 mb-2">{{ priceListItem.sales_package?.name }}</h1>
           <div class="flex justify-center items-center gap-4 mb-3">
             <VaChip color="primary" size="large">
               <VaIcon name="calendar_month" class="mr-1" />
-              {{ format(priceListItem.price_list_type.price_list.start_date, 'MMM yyyy') }} -
-              {{ format(priceListItem.price_list_type.price_list.end_date, 'MMM yyyy') }}
+              {{ formatDate(priceListItem.price_list_type?.price_list?.start_date) }} -
+              {{ formatDate(priceListItem.price_list_type?.price_list?.end_date) }}
             </VaChip>
             <VaChip v-if="priceListItem.price_list_type?.is_active" color="success" size="large">
               <VaIcon name="check_circle" class="mr-1" />
@@ -28,7 +28,7 @@
           </div>
           <p class="text-lg text-secondary">
             <VaIcon name="location_on" size="small" />
-            {{ priceListItem.sales_package?.area?.name }} ({{ priceListItem.sales_package.area.description }})
+            {{ priceListItem.sales_package?.area?.name }} ({{ priceListItem.sales_package?.area?.description }})
           </p>
           <!-- Download PDF Button -->
           <div class="mt-4">
@@ -81,12 +81,12 @@
     <VaCard class="mb-6" stripe stripe-color="success">
       <VaCardTitle class="flex items-center gap-2">
         <VaIcon name="pets" />
-        Available Species ({{ priceListItem.sales_package.species.length }})
+        Available Species ({{ speciesList.length }})
       </VaCardTitle>
       <VaCardContent>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           <VaCard
-            v-for="species in priceListItem.sales_package.species"
+            v-for="species in speciesList"
             :key="species.id"
             class="species-card"
             :color="species.quantity > 0 ? '#f0f9ff' : '#fef2f2'"
@@ -94,8 +94,8 @@
             <VaCardContent>
               <div class="flex justify-between items-start">
                 <div class="flex-1">
-                  <div class="font-semibold text-base">{{ species.species.name }}</div>
-                  <div class="text-sm text-secondary italic">{{ species.species.scientific_name }}</div>
+                  <div class="font-semibold text-base">{{ getSpeciesName(species) }}</div>
+                  <div class="text-sm text-secondary italic">{{ getSpeciesScientificName(species) }}</div>
                 </div>
                 <VaBadge :color="species.quantity > 0 ? 'success' : 'danger'" class="ml-2">
                   Qty: {{ species.quantity }}
@@ -141,6 +141,36 @@
           </div>
         </div>
         <VaAlert v-else color="info" border="top"> No trophy fees available for this package </VaAlert>
+      </VaCardContent>
+    </VaCard>
+
+    <!-- Upgrade Fees Section -->
+    <VaCard v-if="priceListItem.upgrade_fees && priceListItem.upgrade_fees.length > 0" class="mb-6" stripe stripe-color="warning">
+      <VaCardTitle class="flex items-center gap-2">
+        <VaIcon name="upgrade" />
+        Upgrade Fees
+      </VaCardTitle>
+      <VaCardContent>
+        <div class="va-table-responsive">
+          <table class="va-table va-table--hoverable w-full">
+            <thead>
+              <tr>
+                <th class="text-left">Species</th>
+                <th class="text-right">Amount</th>
+                <th class="text-left">Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="fee in priceListItem.upgrade_fees" :key="fee.id">
+                <td class="font-semibold">{{ fee.species_name }}</td>
+                <td class="text-right font-bold text-lg">
+                  {{ fee.currency_symbol }}{{ formatAmount(fee.amount) }}
+                </td>
+                <td class="text-secondary">{{ fee.description }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </VaCardContent>
     </VaCard>
 
@@ -191,26 +221,29 @@
       <VaCard stripe stripe-color="success">
         <VaCardTitle class="flex items-center gap-2">
           <VaIcon name="groups" />
-          Companion & Observer Costs
+          Companion Hunter Costs
         </VaCardTitle>
         <VaCardContent>
           <div class="space-y-4">
             <!-- Companion Hunter -->
-            <div v-if="priceListItem.componions_hunter && priceListItem.componions_hunter.length > 0">
+            <div v-if="companionHunterCosts && companionHunterCosts.length > 0">
               <div class="text-sm font-semibold text-secondary mb-2">Companion Hunter</div>
               <div
-                v-for="companion in priceListItem.componions_hunter"
+                v-for="companion in companionHunterCosts"
                 :key="companion.id"
-                class="p-4 rounded-lg bg-green-50"
+                class="p-4 rounded-lg bg-green-50 mb-2"
               >
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-base">Days</span>
+                  <span class="font-bold text-xl">{{ companion.days }}</span>
+                </div>
                 <div class="flex justify-between items-center">
-                  <span class="text-base">Daily Rate</span>
-                  <span class="font-bold text-xl">
-                    {{ priceListItem.price_list_type.currency.symbol }}{{ companion.amount }}
-                  </span>
+                  <span class="text-base">Rate</span>
+                  <span class="font-bold text-xl"> {{ currencySymbol }}{{ companion.amount }} </span>
                 </div>
               </div>
             </div>
+            <VaAlert v-else color="info" border="top"> No companion hunter costs available </VaAlert>
           </div>
         </VaCardContent>
       </VaCard>
@@ -282,26 +315,72 @@ export default defineComponent({
       return this.cardStore.loading
     },
     hasUpgradeFees() {
-      // Check if there are multiple sequences of the same species indicating upgrade possibilities
-      const speciesSequences = new Map()
-      this.priceListItem.trophy_fees?.forEach((fee: any) => {
-        const count = speciesSequences.get(fee.species_id) || 0
-        speciesSequences.set(fee.species_id, count + 1)
-      })
-      return Array.from(speciesSequences.values()).some((count) => count > 1)
+      // Check if there are upgrade fees from the API
+      return this.priceListItem.upgrade_fees && this.priceListItem.upgrade_fees.length > 0
+    },
+    // Support both old (sales_package.species) and new (species) API structures
+    speciesList() {
+      // New structure: species array directly on priceListItem
+      if (this.priceListItem.species && Array.isArray(this.priceListItem.species)) {
+        return this.priceListItem.species
+      }
+      // Old structure: nested under sales_package.species
+      return this.priceListItem.sales_package?.species || []
+    },
+    // Support both old (componions_hunter) and new (companion_hunter_costs) API structures
+    companionHunterCosts() {
+      // New structure: companion_hunter_costs array
+      if (this.priceListItem.companion_hunter_costs && Array.isArray(this.priceListItem.companion_hunter_costs)) {
+        return this.priceListItem.companion_hunter_costs
+      }
+      // Old structure: componions_hunter
+      return this.priceListItem.componions_hunter || []
+    },
+    // Get currency symbol from various sources
+    currencySymbol() {
+      return this.priceListItem.price_list_type?.currency?.symbol || this.priceListItem.currency?.symbol || '$'
     },
   },
   mounted() {
     this.cardStore.load()
   },
   methods: {
+    // Format date safely
+    formatDate(dateStr: string | null | undefined) {
+      if (!dateStr) return 'N/A'
+      try {
+        return this.format(dateStr, 'MMM yyyy')
+      } catch {
+        return dateStr
+      }
+    },
+    // Get species name - supports both old nested structure and new flat structure
+    getSpeciesName(species: any) {
+      // New structure: name directly on species object
+      if (species.name) {
+        return species.name
+      }
+      // Old structure: nested species.species.name
+      return species.species?.name || 'Unknown'
+    },
+    // Get species scientific name - supports both structures
+    getSpeciesScientificName(species: any) {
+      // New structure: scientific_name directly on species object
+      if (species.scientific_name) {
+        return species.scientific_name
+      }
+      // Old structure: nested species.species.scientific_name
+      return species.species?.scientific_name || ''
+    },
     formatChargesPer(chargesPer: string) {
       if (!chargesPer) return ''
       // Convert "PER_DAY" to "per day", "PER_ROUND" to "per round", etc.
       return chargesPer.toLowerCase().replace('_', ' ')
     },
-    formatAmount(amount: string | number) {
+    formatAmount(amount: string | number | null | undefined) {
+      if (amount === null || amount === undefined) return 'N/A'
       const num = typeof amount === 'string' ? parseFloat(amount) : amount
+      if (isNaN(num)) return 'N/A'
       return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     },
     getSequenceLabel(sequence: number) {

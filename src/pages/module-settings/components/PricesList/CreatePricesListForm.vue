@@ -89,20 +89,87 @@
         </div>
 
         <!-- companion group -->
-        <h3 class="font-bold text-lg mb-2">Companion's and Observer's Charges(Optional)</h3>
+        <h3 class="font-bold text-lg mb-2">Companion Charges</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <VaInput
             v-model="form.companion_amount"
-            type="text"
+            type="number"
             placeholder="Enter Companion Amount"
-            label="Companion Cost(Per Person)"
+            label="Companion Cost"
           />
-          <VaInput
-            v-model="form.observer_amount"
-            type="text"
-            placeholder="Enter observer Amount"
-            label="Observer Cost(Per Person)"
+          <VaSelect
+            v-model="form.companion_days"
+            :options="durationsOptions"
+            placeholder="Select Companion Days"
+            label="Companion Days"
+            clearable
           />
+        </div>
+
+        <!-- Upgrade Fees Section (Optional) -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-bold text-lg">Upgrade Fees (Optional)</h3>
+            <VaButton size="small" color="primary" icon="add" @click="addUpgradeFee"> Add Upgrade Fee </VaButton>
+          </div>
+          <p class="text-sm text-gray-500 mb-3">
+            Add upgrade fees for additional species that can be hunted beyond the standard package.
+          </p>
+
+          <div v-if="upgradeFees.length > 0" class="space-y-4">
+            <VaCard
+              v-for="(fee, index) in upgradeFees"
+              :key="index"
+              class="p-4 bg-gray-50"
+              stripe
+              stripe-color="warning"
+            >
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <VaSelect
+                  v-model="fee.species_id"
+                  :options="speciesOptions"
+                  placeholder="Select Species"
+                  label="Species"
+                  searchable
+                  highlight-matched-text
+                  :rules="[(v: any) => v || 'Species is required']"
+                />
+                <VaInput
+                  v-model="fee.amount"
+                  type="number"
+                  placeholder="Enter Amount"
+                  label="Amount"
+                  :rules="[(v: any) => v || 'Amount is required']"
+                />
+                <VaSelect
+                  v-model="fee.currency_id"
+                  :options="currencyOptions"
+                  placeholder="Select Currency"
+                  label="Currency"
+                  :rules="[(v: any) => v || 'Currency is required']"
+                />
+                <div class="flex items-end">
+                  <VaButton color="danger" icon="delete" size="small" @click="removeUpgradeFee(index)">
+                    Remove
+                  </VaButton>
+                </div>
+              </div>
+              <div class="mt-3">
+                <VaInput
+                  v-model="fee.description"
+                  type="textarea"
+                  placeholder="Enter description (optional)"
+                  label="Description"
+                  :min-rows="2"
+                />
+              </div>
+            </VaCard>
+          </div>
+
+          <div v-else class="text-center py-4 text-gray-400 border border-dashed border-gray-300 rounded-lg">
+            <VaIcon name="info" size="small" class="mr-1" />
+            No upgrade fees added. Click "Add Upgrade Fee" to add optional upgrade fees.
+          </div>
         </div>
       </div>
 
@@ -191,10 +258,8 @@ export default defineComponent({
       species: null as any,
       quantity: null as any,
       // area: null as any,
-      // companion_days: 0,
+      companion_days: null as any,
       companion_amount: null as any,
-      // observer_days: 0,
-      observer_amount: null as any,
     })
 
     // make as copy of pkg to form package
@@ -277,6 +342,7 @@ export default defineComponent({
       savingPriceList: false,
       durationsOptions,
       seasonsOptions: [] as any,
+      upgradeFees: [] as any[],
     }
   },
   computed: {
@@ -290,16 +356,19 @@ export default defineComponent({
     // use both close modal and show modal to close modal
     // i want if the  closeMadal is true then showModal should be false
   },
-  mounted() {
+  async mounted() {
     // this.getAllSpeciesPerQuotaPerArea()
-    this.getAreas()
-    this.getHuntingTypes()
-    this.getQuotaList()
-    this.getCurrencyList()
-    this.getSalesPackages()
-    this.getSeasonList()
+    await Promise.all([
+      this.getAreas(),
+      this.getHuntingTypes(),
+      this.getQuotaList(),
+      this.getCurrencyList(),
+      this.getSalesPackages(),
+      this.getSeasonList(),
+      this.getSpeciesItems(),
+    ])
 
-    // If in edit mode, populate form with existing data
+    // If in edit mode, populate form with existing data (after options are loaded)
     if (this.editMode && this.editItem) {
       this.populateFormForEdit()
     }
@@ -327,6 +396,24 @@ export default defineComponent({
 
     async submit() {
       this.savingPriceList = true
+
+      // Prepare upgrade fees data (only include valid entries)
+      const validUpgradeFees = this.upgradeFees
+        .filter((fee: any) => fee.species_id && fee.amount && fee.currency_id)
+        .map((fee: any) => {
+          const feeData: any = {
+            species_id: fee.species_id?.value || fee.species_id,
+            amount: parseFloat(fee.amount),
+            currency_id: fee.currency_id?.value || fee.currency_id,
+            description: fee.description || '',
+          }
+          // Include ID for existing fees (when editing)
+          if (fee.id) {
+            feeData.id = fee.id
+          }
+          return feeData
+        })
+
       const requestdata = {
         huntingTypeId: this.form.hunting_type_id?.value || this.form.hunting_type_id,
         sales_package_ids: this.form.package?.filter((v: any) => v?.value !== undefined).map((v: any) => v?.value),
@@ -340,8 +427,9 @@ export default defineComponent({
         is_active: 1,
         area_id: 3,
         user_id: 1,
-        companionAmount: this.form.companion_amount,
-        observerAmount: this.form.observer_amount,
+        companionAmount: this.form.companion_amount ? String(this.form.companion_amount) : null,
+        companionDays: this.form.companion_days?.value || this.form.companion_days,
+        upgrade_fees: validUpgradeFees.length > 0 ? validUpgradeFees : null,
       }
 
       // console.log(requestdata);
@@ -362,6 +450,7 @@ export default defineComponent({
             this.resetForm()
             this.resetValidationForm()
             this.speciesObjects = []
+            this.upgradeFees = []
             this.savingPriceList = false
           }
         }
@@ -379,49 +468,124 @@ export default defineComponent({
     populateFormForEdit() {
       if (!this.editItem) return
 
-      // Wait for options to load then populate
-      this.$nextTick(() => {
-        setTimeout(() => {
-          // Set amount
-          this.form.amount = this.editItem.amount?.replace('$', '').replace(',', '') || this.editItem.amount
+      // Options should already be loaded since we await them in mounted()
+      console.log('Edit Item:', JSON.stringify(this.editItem, null, 2))
+      console.log('Hunting Types Options:', this.huntingTypesOptions)
+      console.log('Seasons Options:', this.seasonsOptions)
+      console.log('Currency Options:', this.currencyOptions)
 
-          // Set duration
-          const durationValue = this.editItem.duration
-          this.form.duration = this.durationsOptions.find((d: any) => d.value === durationValue) || {
-            value: durationValue,
-            text: `${durationValue} days`,
+      // Handle nested structure from API (price_list_type contains the main data)
+      const priceListType = this.editItem.price_list_type || this.editItem
+
+      // Set amount - handle different data structures
+      const rawAmount = priceListType.amount || this.editItem.amount
+      if (rawAmount) {
+        this.form.amount = String(rawAmount).replace('$', '').replace(',', '')
+      }
+
+      // Set duration - handle nested structure
+      const durationValue = priceListType.duration || this.editItem.duration
+      if (durationValue !== undefined && durationValue !== null) {
+        this.form.duration = this.durationsOptions.find((d: any) => d.value === durationValue) || {
+          value: durationValue,
+          text: `${durationValue} days`,
+        }
+      }
+
+      // Set hunting type - match by name since API returns name only
+      const huntingTypeName = priceListType.hunting_type?.name || this.editItem.hunting_type
+      console.log('Hunting Type Name:', huntingTypeName)
+      if (huntingTypeName) {
+        this.form.hunting_type_id = this.huntingTypesOptions.find((h: any) => h.text === huntingTypeName)
+      }
+      console.log('Selected Hunting Type:', this.form.hunting_type_id)
+
+      // Set season - need to find season that matches the date range
+      const startDate = priceListType.price_list?.start_date
+      const endDate = priceListType.price_list?.end_date
+      console.log('Season dates:', startDate, endDate)
+      if (startDate && endDate) {
+        // Find season by matching dates
+        this.form.season = this.seasonsOptions.find(
+          (s: any) => s.value?.start_at === startDate && s.value?.end_at === endDate,
+        )
+        // If not found by exact date, try to find by year
+        if (!this.form.season) {
+          const year = new Date(startDate).getFullYear()
+          this.form.season = this.seasonsOptions.find((s: any) => s.text?.includes(String(year)))
+        }
+      }
+      console.log('Selected Season:', this.form.season)
+
+      // Set currency - match by name since API returns name only
+      const currencyName = priceListType.currency?.name
+      console.log('Currency Name:', currencyName)
+      if (currencyName) {
+        this.form.currency = this.currencyOptions.find((c: any) => c.text === currencyName)
+      }
+      if (!this.form.currency) {
+        // Default to USD if not set
+        this.form.currency = this.currencyOptions.find((c: any) => c.text === 'USD') || this.currencyOptions[0]
+      }
+      console.log('Selected Currency:', this.form.currency)
+
+      // Set companion fields - check for companion_hunter_costs in nested structure
+      const companionCosts = this.editItem.companion_hunter_costs || priceListType.companion_hunter_costs
+      if (companionCosts && companionCosts.length > 0) {
+        const firstCompanion = companionCosts[0]
+        this.form.companion_amount = firstCompanion.amount || null
+        if (firstCompanion.days) {
+          this.form.companion_days = this.durationsOptions.find((d: any) => d.value === firstCompanion.days) || {
+            value: firstCompanion.days,
+            text: `${firstCompanion.days} days`,
           }
-
-          // Set hunting type
-          if (this.editItem.hunting_type_id) {
-            this.form.hunting_type_id = this.huntingTypesOptions.find(
-              (h: any) => h.value === this.editItem.hunting_type_id,
-            )
-          } else if (this.editItem.hunting_type) {
-            this.form.hunting_type_id = this.huntingTypesOptions.find((h: any) => h.text === this.editItem.hunting_type)
+        }
+      } else {
+        // Fallback to direct properties
+        this.form.companion_amount = this.editItem.companion_amount || null
+        if (this.editItem.companion_days) {
+          this.form.companion_days = this.durationsOptions.find(
+            (d: any) => d.value === this.editItem.companion_days,
+          ) || {
+            value: this.editItem.companion_days,
+            text: `${this.editItem.companion_days} days`,
           }
+        }
+      }
 
-          // Set season
-          if (this.editItem.season_id) {
-            this.form.season = this.seasonsOptions.find((s: any) => s.value?.id === this.editItem.season_id)
-          }
+      // Set packages if available - check in sales_package or packages array
+      const salesPackage = this.editItem.sales_package
+      if (salesPackage) {
+        this.form.package = [
+          {
+            value: salesPackage.id,
+            text: salesPackage.name,
+          },
+        ]
+      } else if (this.editItem.packages && Array.isArray(this.editItem.packages)) {
+        this.form.package = this.editItem.packages.map((p: any) => ({
+          value: p.id,
+          text: p.name,
+        }))
+      }
 
-          // Set currency (default to USD if not set)
-          this.form.currency = this.currencyOptions.find((c: any) => c.text === 'USD') || this.currencyOptions[0]
-
-          // Set companion and observer amounts
-          this.form.companion_amount = this.editItem.companion_amount || null
-          this.form.observer_amount = this.editItem.observer_amount || null
-
-          // Set packages if available
-          if (this.editItem.packages && Array.isArray(this.editItem.packages)) {
-            this.form.package = this.editItem.packages.map((p: any) => ({
-              value: p.id,
-              text: p.name,
-            }))
-          }
-        }, 500)
-      })
+      // Populate upgrade fees if available
+      const upgradeFees = this.editItem.upgrade_fees || priceListType.upgrade_fees
+      if (upgradeFees && Array.isArray(upgradeFees) && upgradeFees.length > 0) {
+        this.upgradeFees = upgradeFees.map((fee: any) => ({
+          id: fee.id, // Keep the ID for updating existing fees
+          species_id: this.speciesOptions.find((s: any) => s.value === fee.species_id) || {
+            value: fee.species_id,
+            text: fee.species?.name || `Species ${fee.species_id}`,
+          },
+          amount: fee.amount,
+          currency_id: this.currencyOptions.find((c: any) => c.value === fee.currency_id) || {
+            value: fee.currency_id,
+            text: fee.currency?.name || 'USD',
+          },
+          description: fee.description || '',
+        }))
+      }
     },
 
     async getSpeciesItems() {
@@ -547,6 +711,20 @@ export default defineComponent({
       } catch (error) {
         console.log(error)
       }
+    },
+
+    // Upgrade fees methods
+    addUpgradeFee() {
+      this.upgradeFees.push({
+        species_id: null,
+        amount: null,
+        currency_id: null,
+        description: '',
+      })
+    },
+
+    removeUpgradeFee(index: number) {
+      this.upgradeFees.splice(index, 1)
     },
 
     // get clients

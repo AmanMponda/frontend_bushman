@@ -16,7 +16,13 @@ export const usePriceListStore = defineStore('price-list', {
   },
 
   actions: {
-    async getPriceList(hunting_type_id: any = '', area_id: any = '', season_id: any = '') {
+    async getPriceList(
+      hunting_type_id: any = '',
+      area_id: any = '',
+      season_id: any = '',
+      min_amount: any = '',
+      max_amount: any = '',
+    ) {
       const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_PRICE_LIST
 
       const params: any = {}
@@ -24,6 +30,8 @@ export const usePriceListStore = defineStore('price-list', {
         params.hunting_type_id = hunting_type_id
       if (area_id !== '' && area_id !== null && area_id !== undefined) params.area_id = area_id
       if (season_id !== '' && season_id !== null && season_id !== undefined) params.season_id = season_id
+      if (min_amount !== '' && min_amount !== null && min_amount !== undefined) params.min_amount = min_amount
+      if (max_amount !== '' && max_amount !== null && max_amount !== undefined) params.max_amount = max_amount
 
       console.log('API URL:', url, 'params:', params)
 
@@ -98,7 +106,7 @@ export const usePriceListStore = defineStore('price-list', {
     },
 
     async updatePriceList(id: number, payload: any) {
-      const data = JSON.stringify({
+      const requestBody: any = {
         area: payload.area,
         hunting_type_id: payload.huntingTypeId,
         sales_package_ids: payload.sales_package_ids,
@@ -118,7 +126,14 @@ export const usePriceListStore = defineStore('price-list', {
         area_id: payload.area_id,
         user_id: payload.user_id,
         species_object_list: payload.speciesObjectList,
-      })
+      }
+
+      // Add upgrade_fees only if provided
+      if (payload.upgrade_fees && payload.upgrade_fees.length > 0) {
+        requestBody.upgrade_fees = payload.upgrade_fees
+      }
+
+      const data = JSON.stringify(requestBody)
 
       const config = {
         method: 'put',
@@ -273,7 +288,7 @@ export const usePriceListStore = defineStore('price-list', {
     async createPriceList(payload: any) {
       // const startDate = payload?.startDate ? format(new Date(payload.startDate), 'yyyy-MM-dd') : null
       // const endDate = payload?.endDate ? format(new Date(payload.endDate), 'yyyy-MM-dd') : null
-      const data = JSON.stringify({
+      const requestBody: any = {
         area: payload.area,
         hunting_type_id: payload.huntingTypeId,
         sales_package_ids: payload.sales_package_ids,
@@ -293,7 +308,14 @@ export const usePriceListStore = defineStore('price-list', {
         area_id: payload.area_id,
         user_id: payload.user_id,
         species_object_list: payload.speciesObjectList,
-      })
+      }
+
+      // Add upgrade_fees only if provided
+      if (payload.upgrade_fees && payload.upgrade_fees.length > 0) {
+        requestBody.upgrade_fees = payload.upgrade_fees
+      }
+
+      const data = JSON.stringify(requestBody)
 
       const config = {
         method: 'post',
@@ -309,13 +331,28 @@ export const usePriceListStore = defineStore('price-list', {
       return response
     },
 
-    async getCompletePriceListPdf() {
-      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_COMPLETE_PRICE_LIST_PDF_URL
+    async getCompletePriceListPdf(
+      hunting_type_id: any = '',
+      area_id: any = '',
+      season_id: any = '',
+      min_amount: any = '',
+      max_amount: any = '',
+    ) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_PRICE_LIST
+
+      const params: any = {}
+      if (hunting_type_id !== '' && hunting_type_id !== null && hunting_type_id !== undefined)
+        params.hunting_type_id = hunting_type_id
+      if (area_id !== '' && area_id !== null && area_id !== undefined) params.area_id = area_id
+      if (season_id !== '' && season_id !== null && season_id !== undefined) params.season_id = season_id
+      if (min_amount !== '' && min_amount !== null && min_amount !== undefined) params.min_amount = min_amount
+      if (max_amount !== '' && max_amount !== null && max_amount !== undefined) params.max_amount = max_amount
 
       const config = {
         method: 'get',
         maxBodyLength: Infinity,
         url: url,
+        params,
         headers: {
           'Content-Type': 'application/json',
         },
