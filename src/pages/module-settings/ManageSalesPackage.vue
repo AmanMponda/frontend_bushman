@@ -323,11 +323,16 @@ export default defineComponent({
 
     async submit() {
       this.saving = true
-      if (this.licenceAreaSpecies.length === 0) {
+
+      // Filter out species with quantity 0 or less
+      const speciesWithQuantity = this.licenceAreaSpecies.filter((species: any) => species.quantity > 0)
+
+      if (speciesWithQuantity.length === 0) {
         this.init({
-          message: 'Please select at least one species.',
+          message: 'Please add at least one species with quantity greater than 0.',
           color: 'warning',
         })
+        this.saving = false
         return
       }
 
@@ -336,7 +341,7 @@ export default defineComponent({
         description: this.form.description,
         areaId: this.form.area.value,
         licenceId: this.form.licence.value,
-        speciesObjectList: this.licenceAreaSpecies,
+        speciesObjectList: speciesWithQuantity,
       }
 
       try {

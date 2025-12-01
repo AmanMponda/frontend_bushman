@@ -145,7 +145,12 @@
     </VaCard>
 
     <!-- Upgrade Fees Section -->
-    <VaCard v-if="priceListItem.upgrade_fees && priceListItem.upgrade_fees.length > 0" class="mb-6" stripe stripe-color="warning">
+    <VaCard
+      v-if="priceListItem.upgrade_fees && priceListItem.upgrade_fees.length > 0"
+      class="mb-6"
+      stripe
+      stripe-color="warning"
+    >
       <VaCardTitle class="flex items-center gap-2">
         <VaIcon name="upgrade" />
         Upgrade Fees
@@ -163,9 +168,7 @@
             <tbody>
               <tr v-for="fee in priceListItem.upgrade_fees" :key="fee.id">
                 <td class="font-semibold">{{ fee.species_name }}</td>
-                <td class="text-right font-bold text-lg">
-                  {{ fee.currency_symbol }}{{ formatAmount(fee.amount) }}
-                </td>
+                <td class="text-right font-bold text-lg">{{ fee.currency_symbol }}{{ formatAmount(fee.amount) }}</td>
                 <td class="text-secondary">{{ fee.description }}</td>
               </tr>
             </tbody>
