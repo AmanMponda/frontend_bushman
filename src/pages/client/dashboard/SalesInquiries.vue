@@ -35,525 +35,752 @@
           @editBtnPressed="editInquiry"
         >
         </Salesinquirieslist>
-        <!-- <VaStepper v-else v-model="step" :steps="steps" vertical controls-hidden> -->
-        <!-- <template #step-content-0> -->
-        <VaForm v-else ref="formRef" class="space-y-6">
-          <div class="p-6 bg-white rounded-lg">
-            <!-- Package Reference Section -->
-            <div class="mb-6">
-              <div class="flex items-center gap-2 mb-4">
-                <VaIcon name="inventory_2" color="primary" size="large" />
-                <h3 class="text-xl font-bold text-gray-800">Package Reference</h3>
+        <!-- Form Wizard -->
+        <div v-else class="p-6 bg-white rounded-lg">
+          <!-- Stepper Header -->
+          <VaStepper v-model="currentStep" :steps="wizardSteps" color="primary" class="mb-6">
+            <template #step-button-0>
+              <VaIcon name="person" />
+            </template>
+            <template #step-button-1>
+              <VaIcon name="inventory_2" />
+            </template>
+            <template #step-button-2>
+              <VaIcon name="groups" />
+            </template>
+            <template #step-button-3>
+              <VaIcon name="event" />
+            </template>
+            <template #step-button-4>
+              <VaIcon name="fact_check" />
+            </template>
+          </VaStepper>
+
+          <VaForm ref="formRef" class="space-y-6">
+            <!-- Step 1: Customer Information -->
+            <div v-show="currentStep === 0" class="animate-fade-in">
+              <!-- Customer Selection Section -->
+              <div class="mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                  <VaIcon name="person_search" color="primary" size="large" />
+                  <h3 class="text-xl font-bold text-gray-800">Customer Selection</h3>
+                </div>
+
+                <VaAlert color="info" class="mb-4" border="left">
+                  <template #title>New or Existing Customer?</template>
+                  Select an existing customer to auto-fill their information, or choose "New Customer" to enter details
+                  manually.
+                </VaAlert>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <VaRadio v-model="customerType" option="new" label="New Customer" name="customerType" />
+                  <VaRadio v-model="customerType" option="existing" label="Existing Customer" name="customerType" />
+                </div>
+
+                <div v-if="customerType === 'existing'" class="mt-4">
+                  <VaSelect
+                    v-model="selectedExistingCustomer"
+                    placeholder="Search and select an existing customer"
+                    label="Select Customer"
+                    :options="existingCustomersOptions"
+                    :loading="loadingCustomers"
+                    searchable
+                    highlight-matched-text
+                    clearable
+                    @update:modelValue="populateFormFromCustomer"
+                  >
+                    <template #content="{ value }">
+                      <div v-if="value" class="flex flex-col">
+                        <span class="font-semibold">{{ value.text }}</span>
+                        <span class="text-sm text-gray-500">
+                          {{ value.selfItem?.email || 'N/A' }} • {{ value.selfItem?.country || 'N/A' }}
+                        </span>
+                      </div>
+                    </template>
+                  </VaSelect>
+                </div>
               </div>
 
-              <VaAlert color="info" class="mb-4" border="left">
-                <template #title>Select a Package as Reference</template>
-                Select a package to auto-fill the form with its details. You can then customize all fields to tailor the
-                inquiry to your client's specific needs.
-              </VaAlert>
+              <!-- Basic Information Section -->
+              <div class="mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                  <VaIcon name="person" color="primary" size="large" />
+                  <h3 class="text-xl font-bold text-gray-800">Basic Information</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <VaInput
+                    v-model="form.full_name"
+                    type="text"
+                    placeholder="Enter your Full name"
+                    :rules="[(value: any) => (value && value.length > 0) || 'Full name is required']"
+                    label="Full name"
+                  />
+                  <VaSelect
+                    v-model="form.country"
+                    placeholder="Select Country"
+                    label="Country"
+                    :rules="[(v: any) => v || 'Country is required']"
+                    :options="countries"
+                    searchable
+                    highlight-matched-text
+                  />
+                  <VaSelect
+                    v-model="form.nationality"
+                    placeholder="Select Client nationality"
+                    label="Client Nationality"
+                    :rules="[(v: any) => v || 'Nationality is required']"
+                    :options="nationality"
+                    searchable
+                    highlight-matched-text
+                  />
+                </div>
+              </div>
 
-              <div class="grid grid-cols-1 gap-4 mb-4">
-                <VaSelect
-                  v-model="form.priceListId"
-                  placeholder="Select a Package for Reference (Optional)"
-                  label="Reference Package"
-                  :options="packagesOptions"
-                  searchable
-                  highlight-matched-text
-                  clearable
-                  @update:modelValue="populateFormFromPackage"
-                >
-                  <template #content="{ value }">
-                    <div v-if="value" class="flex flex-col">
-                      <span class="font-semibold">{{ value.text }}</span>
-                      <span class="text-sm text-gray-500">
-                        {{ value.selfItem?.area || value.selfItem?.area_package || 'N/A' }} •
-                        {{ value.selfItem?.hunting_type || 'N/A' }} • {{ value.selfItem?.duration || 0 }} days
-                      </span>
-                    </div>
-                  </template>
-                </VaSelect>
+              <!-- Contact Information Section -->
+              <div class="mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                  <VaIcon name="contact_mail" color="primary" size="large" />
+                  <h3 class="text-xl font-bold text-gray-800">Contact Information</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <VaInput
+                    v-model="form.email"
+                    type="email"
+                    placeholder="Enter your email"
+                    :rules="[validators.required, validators.email]"
+                    label="Email"
+                  />
 
-                <!-- Display selected price list details -->
-                <VaCard v-if="form.priceListId && form.priceListId.selfItem" outlined class="mb-4 bg-gray-50">
-                  <VaCardTitle class="text-sm font-semibold flex items-center gap-2">
-                    <VaIcon name="info" size="small" color="info" />
-                    Price List Details - {{ form.priceListId.selfItem?.sales_package?.name || 'N/A' }}
-                  </VaCardTitle>
-                  <VaCardContent>
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-sm">
-                      <div>
-                        <span class="text-gray-600">Area:</span>
-                        <span class="ml-1 font-medium">{{
-                          form.priceListId.selfItem?.sales_package?.area?.name || 'N/A'
-                        }}</span>
-                      </div>
-                      <div>
-                        <span class="text-gray-600">Hunting Type:</span>
-                        <span class="ml-1 font-medium">{{
-                          form.priceListId.selfItem?.price_list_type?.hunting_type?.name || 'N/A'
-                        }}</span>
-                      </div>
-                      <div>
-                        <span class="text-gray-600">Regulatory Package:</span>
-                        <span class="ml-1 font-medium">{{
-                          form.priceListId.selfItem?.sales_package?.regulatory_package?.name || 'N/A'
-                        }}</span>
-                      </div>
-                      <div>
-                        <span class="text-gray-600">Duration:</span>
-                        <span class="ml-1 font-medium"
-                          >{{ form.priceListId.selfItem?.price_list_type?.duration || 0 }} days</span
-                        >
-                      </div>
-                      <div>
-                        <span class="text-gray-600">Base Amount:</span>
-                        <span class="ml-1 font-medium">
-                          {{ form.priceListId.selfItem?.price_list_type?.currency?.symbol || '$'
-                          }}{{ form.priceListId.selfItem?.price_list_type?.amount || 'N/A' }}
-                        </span>
-                      </div>
-                      <div>
-                        <span class="text-gray-600">Status:</span>
-                        <VaBadge
-                          :text="form.priceListId.selfItem?.price_list_type?.is_active ? 'Active' : 'Inactive'"
-                          :color="form.priceListId.selfItem?.price_list_type?.is_active ? 'success' : 'warning'"
-                          size="small"
-                        />
-                      </div>
-                    </div>
+                  <VaInput
+                    v-model="form.phone"
+                    type="text"
+                    placeholder="eg: +971501234567"
+                    :rules="[validators.required, validators.tell]"
+                    label="Phone"
+                  />
 
-                    <!-- Date Range -->
-                    <div v-if="form.priceListId.selfItem?.price_list_type?.price_list?.start_date" class="mt-2 text-sm">
-                      <span class="text-gray-600">Valid Period:</span>
-                      <span class="ml-1 font-medium">
-                        {{
-                          formatDateRange(
-                            form.priceListId.selfItem.price_list_type.price_list.start_date,
-                            form.priceListId.selfItem.price_list_type.price_list.end_date,
-                          )
-                        }}
-                      </span>
-                    </div>
+                  <VaInput
+                    v-model="form.address"
+                    type="text"
+                    :max-length="30"
+                    placeholder="Enter your address"
+                    :rules="[(value: any) => (value && value.length > 0) || 'Address is required']"
+                    label="Address"
+                  />
+                </div>
+              </div>
+            </div>
 
-                    <!-- Companion Hunter Costs -->
-                    <template
-                      v-if="
-                        form.priceListId.selfItem?.companion_hunter_costs &&
-                        form.priceListId.selfItem.companion_hunter_costs.length > 0
-                      "
-                    >
-                      <div class="mt-2">
-                        <span class="text-xs text-gray-600">Companion Hunter:</span>
-                        <span class="ml-1 text-xs font-medium">
-                          {{ form.priceListId.selfItem?.price_list_type?.currency?.symbol || '$'
-                          }}{{ form.priceListId.selfItem.companion_hunter_costs[0].amount }} ({{
-                            form.priceListId.selfItem.companion_hunter_costs[0].days
-                          }}
-                          days)
+            <!-- Step 2: Package & Species -->
+            <div v-show="currentStep === 1" class="animate-fade-in">
+              <!-- Package Reference Section -->
+              <div class="mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                  <VaIcon name="inventory_2" color="primary" size="large" />
+                  <h3 class="text-xl font-bold text-gray-800">Package Reference</h3>
+                </div>
+
+                <VaAlert color="info" class="mb-4" border="left">
+                  <template #title>Select a Package as Reference</template>
+                  Select a package to auto-fill the form with its details. You can then customize all fields to tailor
+                  the inquiry to your client's specific needs.
+                </VaAlert>
+
+                <div class="grid grid-cols-1 gap-4 mb-4">
+                  <VaSelect
+                    v-model="form.priceListId"
+                    placeholder="Select a Package for Reference (Optional)"
+                    label="Reference Package"
+                    :options="packagesOptions"
+                    searchable
+                    highlight-matched-text
+                    clearable
+                    @update:modelValue="populateFormFromPackage"
+                  >
+                    <template #content="{ value }">
+                      <div v-if="value" class="flex flex-col">
+                        <span class="font-semibold">{{ value.text }}</span>
+                        <span class="text-sm text-gray-500">
+                          {{ value.selfItem?.area || value.selfItem?.area_package || 'N/A' }} •
+                          {{ value.selfItem?.hunting_type || 'N/A' }} • {{ value.selfItem?.duration || 0 }} days
                         </span>
                       </div>
                     </template>
+                  </VaSelect>
 
-                    <!-- Trophy Fees Table -->
-                    <template
-                      v-if="form.priceListId.selfItem?.trophy_fees && form.priceListId.selfItem.trophy_fees.length > 0"
-                    >
-                      <div class="mt-3 pt-3 border-t">
-                        <div class="text-xs font-semibold text-gray-700 mb-2">Trophy Fees:</div>
-                        <div class="va-table-responsive">
-                          <table class="va-table va-table--hoverable w-full text-sm">
-                            <thead>
-                              <tr>
-                                <th class="text-left">Species</th>
-                                <th class="text-center">Sequence</th>
-                                <th class="text-right">Price</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr
-                                v-for="(fee, index) in form.priceListId.selfItem.trophy_fees"
-                                :key="`trophy-${fee.id}-${index}`"
-                              >
-                                <td class="font-medium">{{ fee.species?.name || 'Unknown' }}</td>
-                                <td class="text-center">
-                                  <VaBadge :text="getSequenceLabel(fee.sequence_order)" color="primary" size="small" />
-                                </td>
-                                <td class="text-right font-semibold">
-                                  {{ form.priceListId.selfItem?.price_list_type?.currency?.symbol || '$'
-                                  }}{{ fee.amount }}
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
+                  <!-- Display selected price list details -->
+                  <VaCard v-if="form.priceListId && form.priceListId.selfItem" outlined class="mb-4 bg-gray-50">
+                    <VaCardTitle class="text-sm font-semibold flex items-center gap-2">
+                      <VaIcon name="info" size="small" color="info" />
+                      Price List Details - {{ form.priceListId.selfItem?.sales_package?.name || 'N/A' }}
+                    </VaCardTitle>
+                    <VaCardContent>
+                      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-sm">
+                        <div>
+                          <span class="text-gray-600">Area:</span>
+                          <span class="ml-1 font-medium">{{
+                            form.priceListId.selfItem?.sales_package?.area?.name || 'N/A'
+                          }}</span>
                         </div>
-                      </div>
-                    </template>
-
-                    <!-- Upgrade Fees -->
-                    <template
-                      v-if="
-                        form.priceListId.selfItem?.upgrade_fees && form.priceListId.selfItem.upgrade_fees.length > 0
-                      "
-                    >
-                      <div class="mt-3 pt-3 border-t">
-                        <div class="text-xs font-semibold text-gray-700 mb-2">Upgrade Fees:</div>
-                        <div class="flex flex-wrap gap-1">
+                        <div>
+                          <span class="text-gray-600">Hunting Type:</span>
+                          <span class="ml-1 font-medium">{{
+                            form.priceListId.selfItem?.price_list_type?.hunting_type?.name || 'N/A'
+                          }}</span>
+                        </div>
+                        <div>
+                          <span class="text-gray-600">Regulatory Package:</span>
+                          <span class="ml-1 font-medium">{{
+                            form.priceListId.selfItem?.sales_package?.regulatory_package?.name || 'N/A'
+                          }}</span>
+                        </div>
+                        <div>
+                          <span class="text-gray-600">Duration:</span>
+                          <span class="ml-1 font-medium"
+                            >{{ form.priceListId.selfItem?.price_list_type?.duration || 0 }} days</span
+                          >
+                        </div>
+                        <div>
+                          <span class="text-gray-600">Base Amount:</span>
+                          <span class="ml-1 font-medium">
+                            {{ form.priceListId.selfItem?.price_list_type?.currency?.symbol || '$'
+                            }}{{ form.priceListId.selfItem?.price_list_type?.amount || 'N/A' }}
+                          </span>
+                        </div>
+                        <div>
+                          <span class="text-gray-600">Status:</span>
                           <VaBadge
-                            v-for="fee in form.priceListId.selfItem.upgrade_fees"
-                            :key="fee.id"
-                            :text="`${fee.species_name} (${fee.currency_symbol || '$'}${fee.amount})`"
-                            color="warning"
+                            :text="form.priceListId.selfItem?.price_list_type?.is_active ? 'Active' : 'Inactive'"
+                            :color="form.priceListId.selfItem?.price_list_type?.is_active ? 'success' : 'warning'"
                             size="small"
                           />
                         </div>
                       </div>
-                    </template>
+
+                      <!-- Date Range -->
+                      <div
+                        v-if="form.priceListId.selfItem?.price_list_type?.price_list?.start_date"
+                        class="mt-2 text-sm"
+                      >
+                        <span class="text-gray-600">Valid Period:</span>
+                        <span class="ml-1 font-medium">
+                          {{
+                            formatDateRange(
+                              form.priceListId.selfItem.price_list_type.price_list.start_date,
+                              form.priceListId.selfItem.price_list_type.price_list.end_date,
+                            )
+                          }}
+                        </span>
+                      </div>
+
+                      <!-- Companion Hunter Costs -->
+                      <template
+                        v-if="
+                          form.priceListId.selfItem?.companion_hunter_costs &&
+                          form.priceListId.selfItem.companion_hunter_costs.length > 0
+                        "
+                      >
+                        <div class="mt-2">
+                          <span class="text-xs text-gray-600">Companion Hunter:</span>
+                          <span class="ml-1 text-xs font-medium">
+                            {{ form.priceListId.selfItem?.price_list_type?.currency?.symbol || '$'
+                            }}{{ form.priceListId.selfItem.companion_hunter_costs[0].amount }} ({{
+                              form.priceListId.selfItem.companion_hunter_costs[0].days
+                            }}
+                            days)
+                          </span>
+                        </div>
+                      </template>
+
+                      <!-- Trophy Fees Table -->
+                      <template
+                        v-if="
+                          form.priceListId.selfItem?.trophy_fees && form.priceListId.selfItem.trophy_fees.length > 0
+                        "
+                      >
+                        <div class="mt-3 pt-3 border-t">
+                          <div class="text-xs font-semibold text-gray-700 mb-2">Trophy Fees:</div>
+                          <div class="va-table-responsive">
+                            <table class="va-table va-table--hoverable w-full text-sm">
+                              <thead>
+                                <tr>
+                                  <th class="text-left">Species</th>
+                                  <th class="text-center">Sequence</th>
+                                  <th class="text-right">Price</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr
+                                  v-for="(fee, index) in form.priceListId.selfItem.trophy_fees"
+                                  :key="`trophy-${fee.id}-${index}`"
+                                >
+                                  <td class="font-medium">{{ fee.species?.name || 'Unknown' }}</td>
+                                  <td class="text-center">
+                                    <VaBadge
+                                      :text="getSequenceLabel(fee.sequence_order)"
+                                      color="primary"
+                                      size="small"
+                                    />
+                                  </td>
+                                  <td class="text-right font-semibold">
+                                    {{ form.priceListId.selfItem?.price_list_type?.currency?.symbol || '$'
+                                    }}{{ fee.amount }}
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </template>
+
+                      <!-- Upgrade Fees -->
+                      <template
+                        v-if="
+                          form.priceListId.selfItem?.upgrade_fees && form.priceListId.selfItem.upgrade_fees.length > 0
+                        "
+                      >
+                        <div class="mt-3 pt-3 border-t">
+                          <div class="text-xs font-semibold text-gray-700 mb-2">Upgrade Fees:</div>
+                          <div class="flex flex-wrap gap-1">
+                            <VaBadge
+                              v-for="fee in form.priceListId.selfItem.upgrade_fees"
+                              :key="fee.id"
+                              :text="`${fee.species_name} (${fee.currency_symbol || '$'}${fee.amount})`"
+                              color="warning"
+                              size="small"
+                            />
+                          </div>
+                        </div>
+                      </template>
+                    </VaCardContent>
+                  </VaCard>
+                </div>
+
+                <!-- Species Selection Section -->
+                <h3 class="font-bold text-lg mb-2 mt-4">
+                  <VaIcon name="pets" size="small" class="mr-1" />
+                  Preferred Species
+                </h3>
+                <VaCard outlined class="mb-4">
+                  <VaCardContent>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <VaSelect
+                        v-model="form.species"
+                        label="Species"
+                        :options="speciesOptions"
+                        placeholder="Select Species"
+                        searchable
+                        highlight-matched-text
+                      />
+
+                      <VaCounter v-model="form.quantity" label="Quantity" manual-input :min="1" :max="100" />
+
+                      <div class="flex items-end">
+                        <VaButton color="primary" icon="add" @click="addNewSpeciesItemToStorage()">
+                          Add Species
+                        </VaButton>
+                      </div>
+                    </div>
+
+                    <VaDivider class="my-4" />
+
+                    <div class="mt-4">
+                      <div class="text-sm font-semibold mb-3">Selected Species</div>
+                      <VaList v-if="speciesObjects.length > 0" class="space-y-2">
+                        <VaListItem
+                          v-for="(s, index) in speciesObjects"
+                          :key="index"
+                          class="border rounded-lg p-3 hover:shadow-md transition-shadow"
+                        >
+                          <VaListItemSection>
+                            <VaListItemLabel class="flex justify-between items-center">
+                              <div class="flex items-center gap-2">
+                                <span class="font-semibold">{{ s.name }}</span>
+                                <VaBadge v-if="s.fromPackage" color="info" size="small" text="from Price List" />
+                              </div>
+                              <div class="flex items-center gap-2">
+                                <VaButton
+                                  preset="plain"
+                                  icon="remove"
+                                  color="primary"
+                                  size="small"
+                                  :disabled="s.quantity <= 1"
+                                  @click="decrementQuantity(index)"
+                                />
+                                <span class="text-sm font-medium min-w-[30px] text-center">{{ s.quantity }}</span>
+                                <VaButton
+                                  preset="plain"
+                                  icon="add"
+                                  color="primary"
+                                  size="small"
+                                  @click="incrementQuantity(index)"
+                                />
+                                <VaButton
+                                  preset="plain"
+                                  icon="delete"
+                                  color="danger"
+                                  size="small"
+                                  class="ml-2"
+                                  @click="deleteFromStorage(index)"
+                                />
+                              </div>
+                            </VaListItemLabel>
+                          </VaListItemSection>
+                        </VaListItem>
+                      </VaList>
+                      <VaAlert v-else color="secondary" border="left" class="mb-0">
+                        No species selected yet. Add species using the form above or select a reference package.
+                      </VaAlert>
+                    </div>
                   </VaCardContent>
                 </VaCard>
-              </div>
 
-              <!-- Species Selection Section -->
-              <h3 class="font-bold text-lg mb-2 mt-4">
-                <VaIcon name="pets" size="small" class="mr-1" />
-                Preferred Species
-              </h3>
-              <VaCard outlined class="mb-4">
-                <VaCardContent>
-                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <VaSelect
-                      v-model="form.species"
-                      label="Species"
-                      :options="speciesOptions"
-                      placeholder="Select Species"
-                      searchable
-                      highlight-matched-text
-                    />
-
-                    <VaCounter v-model="form.quantity" label="Quantity" manual-input :min="1" :max="100" />
-
-                    <div class="flex items-end">
-                      <VaButton color="primary" icon="add" @click="addNewSpeciesItemToStorage()">
-                        Add Species
-                      </VaButton>
-                    </div>
-                  </div>
-
-                  <VaDivider class="my-4" />
-
-                  <div class="mt-4">
-                    <div class="text-sm font-semibold mb-3">Selected Species</div>
-                    <VaList v-if="speciesObjects.length > 0" class="space-y-2">
-                      <VaListItem
-                        v-for="(s, index) in speciesObjects"
-                        :key="index"
-                        class="border rounded-lg p-3 hover:shadow-md transition-shadow"
-                      >
-                        <VaListItemSection>
-                          <VaListItemLabel class="flex justify-between items-center">
-                            <div class="flex items-center gap-2">
-                              <span class="font-semibold">{{ s.name }}</span>
-                              <VaBadge v-if="s.fromPackage" color="info" size="small" text="from Price List" />
-                            </div>
-                            <div class="flex items-center gap-2">
-                              <VaButton
-                                preset="plain"
-                                icon="remove"
-                                color="primary"
-                                size="small"
-                                :disabled="s.quantity <= 1"
-                                @click="decrementQuantity(index)"
-                              />
-                              <span class="text-sm font-medium min-w-[30px] text-center">{{ s.quantity }}</span>
-                              <VaButton
-                                preset="plain"
-                                icon="add"
-                                color="primary"
-                                size="small"
-                                @click="incrementQuantity(index)"
-                              />
-                              <VaButton
-                                preset="plain"
-                                icon="delete"
-                                color="danger"
-                                size="small"
-                                class="ml-2"
-                                @click="deleteFromStorage(index)"
-                              />
-                            </div>
-                          </VaListItemLabel>
-                        </VaListItemSection>
-                      </VaListItem>
-                    </VaList>
-                    <VaAlert v-else color="secondary" border="left" class="mb-0">
-                      No species selected yet. Add species using the form above or select a reference package.
-                    </VaAlert>
-                  </div>
-                </VaCardContent>
-              </VaCard>
-
-              <!-- Safari Extras from Reference Package -->
-              <template
-                v-if="form.priceListId?.selfItem?.safari_extras && form.priceListId.selfItem.safari_extras.length > 0"
-              >
-                <h3 class="font-bold text-lg mb-2 mt-4">Safari Extras (from Price List)</h3>
-                <VaCard outlined class="mb-4 bg-gray-50">
-                  <VaCardContent>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      <div
-                        v-for="extra in form.priceListId.selfItem.safari_extras"
-                        :key="extra.id"
-                        class="p-3 border rounded-lg bg-white"
-                      >
-                        <div class="flex justify-between items-start">
-                          <div class="flex-1">
-                            <div class="font-semibold text-base capitalize">{{ extra.name }}</div>
-                            <div class="text-xs text-gray-600 mt-1">{{ extra.description }}</div>
-                            <div class="mt-2 flex items-center gap-2">
-                              <VaBadge color="primary" size="small">
-                                {{ extra.currency?.symbol }}{{ extra.amount }}
-                              </VaBadge>
-                              <span class="text-xs text-gray-500">{{ formatChargesPer(extra.charges_per) }}</span>
+                <!-- Safari Extras from Reference Package -->
+                <template
+                  v-if="form.priceListId?.selfItem?.safari_extras && form.priceListId.selfItem.safari_extras.length > 0"
+                >
+                  <h3 class="font-bold text-lg mb-2 mt-4">Safari Extras (from Price List)</h3>
+                  <VaCard outlined class="mb-4 bg-gray-50">
+                    <VaCardContent>
+                      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div
+                          v-for="extra in form.priceListId.selfItem.safari_extras"
+                          :key="extra.id"
+                          class="p-3 border rounded-lg bg-white"
+                        >
+                          <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                              <div class="font-semibold text-base capitalize">{{ extra.name }}</div>
+                              <div class="text-xs text-gray-600 mt-1">{{ extra.description }}</div>
+                              <div class="mt-2 flex items-center gap-2">
+                                <VaBadge color="primary" size="small">
+                                  {{ extra.currency?.symbol }}{{ extra.amount }}
+                                </VaBadge>
+                                <span class="text-xs text-gray-500">{{ formatChargesPer(extra.charges_per) }}</span>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </VaCardContent>
-                </VaCard>
-              </template>
+                    </VaCardContent>
+                  </VaCard>
+                </template>
 
-              <!-- Companion and Observer Rates from Reference Package -->
-              <template
-                v-if="
-                  (form.priceListId?.selfItem?.componions_hunter &&
-                    form.priceListId.selfItem.componions_hunter.length > 0) ||
-                  (form.priceListId?.selfItem?.observer && form.priceListId.selfItem.observer.length > 0)
-                "
-              >
-                <h3 class="font-bold text-lg mb-2 mt-4">Additional Rates (from Price List)</h3>
-                <VaCard outlined class="mb-4 bg-gray-50">
+                <!-- Companion and Observer Rates from Reference Package -->
+                <template
+                  v-if="
+                    (form.priceListId?.selfItem?.componions_hunter &&
+                      form.priceListId.selfItem.componions_hunter.length > 0) ||
+                    (form.priceListId?.selfItem?.observer && form.priceListId.selfItem.observer.length > 0)
+                  "
+                >
+                  <h3 class="font-bold text-lg mb-2 mt-4">Additional Rates (from Price List)</h3>
+                  <VaCard outlined class="mb-4 bg-gray-50">
+                    <VaCardContent>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <template
+                          v-if="
+                            form.priceListId.selfItem.componions_hunter &&
+                            form.priceListId.selfItem.componions_hunter.length > 0
+                          "
+                        >
+                          <div class="p-4 bg-blue-50 rounded-lg">
+                            <div class="flex items-center gap-2 mb-2">
+                              <VaIcon name="group" size="small" color="primary" />
+                              <span class="font-semibold text-base">Companion Hunter</span>
+                            </div>
+                            <div class="text-2xl font-bold text-primary">
+                              ${{ form.priceListId.selfItem.componions_hunter[0].amount }}
+                            </div>
+                            <div class="text-xs text-gray-600 mt-1">per companion</div>
+                          </div>
+                        </template>
+                        <template
+                          v-if="form.priceListId.selfItem.observer && form.priceListId.selfItem.observer.length > 0"
+                        >
+                          <div class="p-4 bg-green-50 rounded-lg">
+                            <div class="flex items-center gap-2 mb-2">
+                              <VaIcon name="visibility" size="small" color="success" />
+                              <span class="font-semibold text-base">Observer</span>
+                            </div>
+                            <div class="text-2xl font-bold text-success">
+                              ${{ form.priceListId.selfItem.observer[0].amount }}
+                            </div>
+                            <div class="text-xs text-gray-600 mt-1">per observer</div>
+                          </div>
+                        </template>
+                      </div>
+                    </VaCardContent>
+                  </VaCard>
+                </template>
+              </div>
+            </div>
+            <!-- End of Step 2 -->
+
+            <!-- Step 3: Hunt Details -->
+            <div v-show="currentStep === 2" class="animate-fade-in">
+              <!-- Participants and Hunting Days Section -->
+              <div class="mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                  <VaIcon name="groups" color="primary" size="large" />
+                  <h3 class="text-xl font-bold text-gray-800">Participants and Hunting Days</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <VaInput
+                    v-model="form.no_of_observers"
+                    label="Number of Observers(Optional)"
+                    placeholder="Enter Number of Observers"
+                    type="number"
+                    required
+                  />
+                  <VaInput
+                    v-model="form.no_of_days"
+                    label="Number of Days"
+                    placeholder="Enter Number of Days"
+                    type="number"
+                    :rules="[(v: any) => v || 'Number of days is required']"
+                    required
+                  />
+                  <VaInput
+                    v-model="form.no_of_companions"
+                    label="Number of Companions(Optional)"
+                    placeholder="Enter Number of Companions"
+                    type="number"
+                    required
+                  />
+                  <VaSelect
+                    v-model="form.area"
+                    placeholder="Select Area"
+                    label="Hunting area"
+                    :rules="[(v: any) => v || 'Hunting area is required']"
+                    :options="areasOptions"
+                    searchable
+                    highlight-matched-text
+                  />
+                </div>
+              </div>
+            </div>
+            <!-- End of Step 3 -->
+
+            <!-- Step 4: Schedule -->
+            <div v-show="currentStep === 3" class="animate-fade-in">
+              <!-- Season and Tentative Date Section -->
+              <div class="mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                  <VaIcon name="event" color="primary" size="large" />
+                  <h3 class="text-xl font-bold text-gray-800">Season and Tentative Date</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <VaSelect
+                    v-model="form.season"
+                    placeholder="Select Season"
+                    label="Season"
+                    :rules="[(v: any) => v || 'Season is required']"
+                    :options="seasonsOptions"
+                    disabled
+                    readonly
+                  />
+                  <VaDateInput
+                    v-model="form.preferred_date"
+                    label="Preferred Date"
+                    placeholder="Select Preferred Date"
+                    :rules="[(v: any) => v || 'Preferred Date is required']"
+                    :allowed-days="checkDateAllowed"
+                    required
+                  />
+                  <VaDateInput
+                    v-model="form.start_date"
+                    label="Start Date"
+                    placeholder="Select Start Date"
+                    :rules="[(v: any) => v || 'Start Date is required']"
+                    :allowed-days="checkDateAllowed"
+                    required
+                  />
+                  <VaDateInput
+                    v-model="form.end_date"
+                    label="End Date"
+                    placeholder="Select End Date"
+                    :rules="[(v: any) => v || 'End Date is required']"
+                    :allowed-days="checkDateAllowed"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+            <!-- End of Step 4 -->
+
+            <!-- Step 5: Review & Submit -->
+            <div v-show="currentStep === 4" class="animate-fade-in">
+              <div class="mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                  <VaIcon name="fact_check" color="primary" size="large" />
+                  <h3 class="text-xl font-bold text-gray-800">Review Your Enquiry</h3>
+                </div>
+
+                <VaAlert color="info" class="mb-4" border="left">
+                  <template #title>Please Review</template>
+                  Review all the information below before submitting your enquiry.
+                </VaAlert>
+
+                <!-- Customer Summary -->
+                <VaCard outlined class="mb-4">
+                  <VaCardTitle class="flex items-center gap-2">
+                    <VaIcon name="person" size="small" color="primary" />
+                    Customer Information
+                  </VaCardTitle>
                   <VaCardContent>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <template
-                        v-if="
-                          form.priceListId.selfItem.componions_hunter &&
-                          form.priceListId.selfItem.componions_hunter.length > 0
-                        "
-                      >
-                        <div class="p-4 bg-blue-50 rounded-lg">
-                          <div class="flex items-center gap-2 mb-2">
-                            <VaIcon name="group" size="small" color="primary" />
-                            <span class="font-semibold text-base">Companion Hunter</span>
-                          </div>
-                          <div class="text-2xl font-bold text-primary">
-                            ${{ form.priceListId.selfItem.componions_hunter[0].amount }}
-                          </div>
-                          <div class="text-xs text-gray-600 mt-1">per companion</div>
-                        </div>
-                      </template>
-                      <template
-                        v-if="form.priceListId.selfItem.observer && form.priceListId.selfItem.observer.length > 0"
-                      >
-                        <div class="p-4 bg-green-50 rounded-lg">
-                          <div class="flex items-center gap-2 mb-2">
-                            <VaIcon name="visibility" size="small" color="success" />
-                            <span class="font-semibold text-base">Observer</span>
-                          </div>
-                          <div class="text-2xl font-bold text-success">
-                            ${{ form.priceListId.selfItem.observer[0].amount }}
-                          </div>
-                          <div class="text-xs text-gray-600 mt-1">per observer</div>
-                        </div>
-                      </template>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span class="text-gray-600">Full Name:</span>
+                        <span class="ml-2 font-medium">{{ form.full_name || 'N/A' }}</span>
+                      </div>
+                      <div>
+                        <span class="text-gray-600">Country:</span>
+                        <span class="ml-2 font-medium">{{ form.country?.text || 'N/A' }}</span>
+                      </div>
+                      <div>
+                        <span class="text-gray-600">Nationality:</span>
+                        <span class="ml-2 font-medium">{{ form.nationality?.text || 'N/A' }}</span>
+                      </div>
+                      <div>
+                        <span class="text-gray-600">Email:</span>
+                        <span class="ml-2 font-medium">{{ form.email || 'N/A' }}</span>
+                      </div>
+                      <div>
+                        <span class="text-gray-600">Phone:</span>
+                        <span class="ml-2 font-medium">{{ form.phone || 'N/A' }}</span>
+                      </div>
+                      <div>
+                        <span class="text-gray-600">Address:</span>
+                        <span class="ml-2 font-medium">{{ form.address || 'N/A' }}</span>
+                      </div>
                     </div>
                   </VaCardContent>
                 </VaCard>
-              </template>
-            </div>
 
-            <!-- Basic Information Section -->
-            <div class="mb-6">
-              <div class="flex items-center gap-2 mb-4">
-                <VaIcon name="person" color="primary" size="large" />
-                <h3 class="text-xl font-bold text-gray-800">Basic Information</h3>
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <VaInput
-                  v-model="form.full_name"
-                  type="text"
-                  placeholder="Enter your Full name"
-                  :rules="[(value: any) => (value && value.length > 0) || 'Full name is required']"
-                  label="Full name"
-                />
-                <VaSelect
-                  v-model="form.country"
-                  placeholder="Select Country"
-                  label="Country"
-                  :rules="[(v: any) => v || 'Country is required']"
-                  :options="countries"
-                  searchable
-                  highlight-matched-text
-                />
-                <VaSelect
-                  v-model="form.nationality"
-                  placeholder="Select Client nationality"
-                  label="Client Nationality"
-                  :rules="[(v: any) => v || 'Nationality is required']"
-                  :options="nationality"
-                  searchable
-                  highlight-matched-text
-                />
-              </div>
-            </div>
+                <!-- Species Summary -->
+                <VaCard outlined class="mb-4">
+                  <VaCardTitle class="flex items-center gap-2">
+                    <VaIcon name="pets" size="small" color="primary" />
+                    Selected Species ({{ speciesObjects.length }})
+                  </VaCardTitle>
+                  <VaCardContent>
+                    <div v-if="speciesObjects.length > 0" class="flex flex-wrap gap-2">
+                      <VaBadge
+                        v-for="(s, index) in speciesObjects"
+                        :key="index"
+                        :text="`${s.name} (x${s.quantity})`"
+                        color="primary"
+                      />
+                    </div>
+                    <span v-else class="text-gray-500">No species selected</span>
+                  </VaCardContent>
+                </VaCard>
 
-            <!-- Contact Information Section -->
-            <div class="mb-6">
-              <div class="flex items-center gap-2 mb-4">
-                <VaIcon name="contact_mail" color="primary" size="large" />
-                <h3 class="text-xl font-bold text-gray-800">Contact Information</h3>
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <VaInput
-                  v-model="form.email"
-                  type="email"
-                  placeholder="Enter your email"
-                  :rules="[validators.required, validators.email]"
-                  label="Email"
-                />
+                <!-- Hunt Details Summary -->
+                <VaCard outlined class="mb-4">
+                  <VaCardTitle class="flex items-center gap-2">
+                    <VaIcon name="groups" size="small" color="primary" />
+                    Hunt Details
+                  </VaCardTitle>
+                  <VaCardContent>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <span class="text-gray-600">Hunting Area:</span>
+                        <span class="ml-2 font-medium">{{ form.area?.text || 'N/A' }}</span>
+                      </div>
+                      <div>
+                        <span class="text-gray-600">Number of Days:</span>
+                        <span class="ml-2 font-medium">{{ form.no_of_days || 'N/A' }}</span>
+                      </div>
+                      <div>
+                        <span class="text-gray-600">Observers:</span>
+                        <span class="ml-2 font-medium">{{ form.no_of_observers || 0 }}</span>
+                      </div>
+                      <div>
+                        <span class="text-gray-600">Companions:</span>
+                        <span class="ml-2 font-medium">{{ form.no_of_companions || 0 }}</span>
+                      </div>
+                    </div>
+                  </VaCardContent>
+                </VaCard>
 
-                <VaInput
-                  v-model="form.phone"
-                  type="text"
-                  placeholder="eg: +971501234567"
-                  :rules="[validators.required, validators.tell]"
-                  label="Phone"
-                />
-                <!-- <vue-tel-input v-model="form.phone" mode="international" required></vue-tel-input> -->
+                <!-- Schedule Summary -->
+                <VaCard outlined class="mb-4">
+                  <VaCardTitle class="flex items-center gap-2">
+                    <VaIcon name="event" size="small" color="primary" />
+                    Schedule
+                  </VaCardTitle>
+                  <VaCardContent>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <span class="text-gray-600">Season:</span>
+                        <span class="ml-2 font-medium">{{ form.season?.text || 'N/A' }}</span>
+                      </div>
+                      <div>
+                        <span class="text-gray-600">Preferred Date:</span>
+                        <span class="ml-2 font-medium">{{ formatReviewDate(form.preferred_date) }}</span>
+                      </div>
+                      <div>
+                        <span class="text-gray-600">Start Date:</span>
+                        <span class="ml-2 font-medium">{{ formatReviewDate(form.start_date) }}</span>
+                      </div>
+                      <div>
+                        <span class="text-gray-600">End Date:</span>
+                        <span class="ml-2 font-medium">{{ formatReviewDate(form.end_date) }}</span>
+                      </div>
+                    </div>
+                  </VaCardContent>
+                </VaCard>
 
-                <VaInput
-                  v-model="form.address"
-                  type="text"
-                  :max-length="30"
-                  placeholder="Enter your address"
-                  :rules="[(value: any) => (value && value.length > 0) || 'Address is required']"
-                  label="Address"
-                />
-              </div>
-            </div>
-
-            <!-- Participants and Hunting Days Section -->
-            <div class="mb-6">
-              <div class="flex items-center gap-2 mb-4">
-                <VaIcon name="groups" color="primary" size="large" />
-                <h3 class="text-xl font-bold text-gray-800">Participants and Hunting Days</h3>
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <!-- <VaInput
-                v-model="form.no_of_hunters"
-                label="Number of Hunters"
-                placeholder="Enter Number of Hunters"
-                default-value="1"
-                type="number"
-                required
-              /> -->
-                <VaInput
-                  v-model="form.no_of_observers"
-                  label="Number of Observers(Optional)"
-                  placeholder="Enter Number of Observers"
-                  type="number"
-                  required
-                />
-                <VaInput
-                  v-model="form.no_of_days"
-                  label="Number of Days"
-                  placeholder="Enter Number of Days"
-                  type="number"
-                  :rules="[(v: any) => v || 'Number of days is required']"
-                  required
-                />
-                <VaInput
-                  v-model="form.no_of_companions"
-                  label="Number of Companions(Optional)"
-                  placeholder="Enter Number of Companions"
-                  type="number"
-                  required
-                />
-                <VaSelect
-                  v-model="form.area"
-                  placeholder="Select Area"
-                  label="Hunting area"
-                  :rules="[(v: any) => v || 'Hunting area is required']"
-                  :options="areasOptions"
-                  searchable
-                  highlight-matched-text
-                />
+                <!-- Package Reference if selected -->
+                <VaCard v-if="form.priceListId" outlined class="mb-4 bg-blue-50">
+                  <VaCardTitle class="flex items-center gap-2">
+                    <VaIcon name="inventory_2" size="small" color="info" />
+                    Reference Package
+                  </VaCardTitle>
+                  <VaCardContent>
+                    <span class="font-medium">{{ form.priceListId?.text || 'N/A' }}</span>
+                  </VaCardContent>
+                </VaCard>
               </div>
             </div>
-
-            <!-- Season and Tentative Date Section -->
-            <div class="mb-6">
-              <div class="flex items-center gap-2 mb-4">
-                <VaIcon name="event" color="primary" size="large" />
-                <h3 class="text-xl font-bold text-gray-800">Season and Tentative Date</h3>
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <VaSelect
-                  v-model="form.season"
-                  placeholder="Select Season"
-                  label="Season"
-                  :rules="[(v: any) => v || 'Season is required']"
-                  :options="seasonsOptions"
-                  disabled
-                  readonly
-                />
-                <!-- <VaInput
-              v-model="form.preferred_date"
-              type="date"
-              placeholder="Select Preferred Date"
-              :rules="[(v: any) => v || 'Preferred Date is required']"
-              label="Preferred Date"
-            /> -->
-                <VaDateInput
-                  v-model="form.preferred_date"
-                  label="Preferred Date"
-                  placeholder="Select Preferred Date"
-                  :rules="[(v: any) => v || 'Preferred Date is required']"
-                  :allowed-days="checkDateAllowed"
-                  required
-                />
-                <VaDateInput
-                  v-model="form.start_date"
-                  label="Start Date"
-                  placeholder="Select Start Date"
-                  :rules="[(v: any) => v || 'Start Date is required']"
-                  :allowed-days="checkDateAllowed"
-                  required
-                />
-                <VaDateInput
-                  v-model="form.end_date"
-                  label="End Date"
-                  placeholder="Select End Date"
-                  :rules="[(v: any) => v || 'End Date is required']"
-                  :allowed-days="checkDateAllowed"
-                  required
-                />
-              </div>
-            </div>
-          </div>
+            <!-- End of Step 5 -->
+          </VaForm>
 
           <VaDivider class="my-6" />
 
-          <div class="flex justify-end gap-3 p-4">
-            <VaButton preset="secondary" @click="handleGoBack"> Cancel </VaButton>
-            <VaButton :loading="saving" icon="save" :disabled="!isValidForm" @click="validateForm() && submit()">
-              {{ isEditMode ? 'Update Enquiry' : 'Submit Enquiry' }}
-            </VaButton>
+          <!-- Wizard Navigation Buttons -->
+          <div class="flex justify-between gap-3 p-4">
+            <div>
+              <VaButton v-if="currentStep > 0" preset="secondary" icon="arrow_back" @click="previousStep">
+                Previous
+              </VaButton>
+            </div>
+            <div class="flex gap-3">
+              <VaButton preset="secondary" @click="handleGoBack"> Cancel </VaButton>
+              <VaButton
+                v-if="currentStep < wizardSteps.length - 1"
+                color="primary"
+                icon-right="arrow_forward"
+                :disabled="!canProceedToNextStep"
+                @click="nextStep"
+              >
+                Next
+              </VaButton>
+              <VaButton
+                v-else
+                :loading="saving"
+                icon="save"
+                color="success"
+                :disabled="!isValidForm"
+                @click="validateForm() && submit()"
+              >
+                {{ isEditMode ? 'Update Enquiry' : 'Submit Enquiry' }}
+              </VaButton>
+            </div>
           </div>
-        </VaForm>
-
-        <!-- </template> -->
-        <!-- </VaStepper> -->
+        </div>
       </template>
     </VaCardContent>
   </VaCard>
@@ -827,10 +1054,52 @@ export default defineComponent({
       // Edit mode
       isEditMode: false,
       editingInquiryId: null as number | null,
+
+      // Customer selection
+      customerType: 'new' as 'new' | 'existing',
+      selectedExistingCustomer: null as any,
+      existingCustomersOptions: [] as any,
+      loadingCustomers: false,
+
+      // Wizard steps
+      currentStep: 0,
+      wizardSteps: [
+        { label: 'Customer Info' },
+        { label: 'Package & Species' },
+        { label: 'Hunt Details' },
+        { label: 'Schedule' },
+        { label: 'Review' },
+      ],
     }
   },
   computed: {
     ...mapState(useSettingsStore, ['logo', 'salesPackagesSpecies']),
+
+    // Validation for each wizard step
+    canProceedToNextStep(): boolean {
+      switch (this.currentStep) {
+        case 0: // Customer Info
+          return !!(
+            this.form.full_name &&
+            this.form.country &&
+            this.form.nationality &&
+            this.form.email &&
+            this.form.phone &&
+            this.form.address
+          )
+        case 1: // Package & Species
+          return this.speciesObjects.length > 0
+        case 2: // Hunt Details
+          return !!(this.form.area && this.form.no_of_days && this.form.no_of_days > 0)
+        case 3: // Schedule
+          return !!(this.form.season && this.form.preferred_date && this.form.start_date && this.form.end_date)
+        case 4: // Review
+          return true
+        default:
+          return false
+      }
+    },
+
     speciesList() {
       return this.salesPackagesSpecies
     },
@@ -855,14 +1124,113 @@ export default defineComponent({
     this.getAreas()
     this.getSeasonList()
     this.getPL()
+    this.getExistingCustomers()
   },
   methods: {
     ...mapActions(useQuotaStore, ['getSpeciesList']),
     ...mapActions(useQuotaStore, ['getAreaList']),
     ...mapActions(useQuotaStore, ['getAllSpeciesPerQuotaPerArea']),
-    ...mapActions(useSalesInquiriesStore, ['createSalesInquiry', 'updateSalesInquiry']),
+    ...mapActions(useSalesInquiriesStore, ['createSalesInquiry', 'updateSalesInquiry', 'getSalesInquiries']),
     ...mapActions(useSettingsStore, ['getSeasons', 'getSalespackagesSpecies']),
     ...mapActions(usePriceListStore, ['getPriceList', 'getPriceListById']),
+
+    async getExistingCustomers() {
+      this.loadingCustomers = true
+      try {
+        // Fetch all sales inquiries to get unique customers
+        const response: any = await this.getSalesInquiries('', '')
+        if (response.status === 200) {
+          const dataArray = Array.isArray(response.data) ? response.data : response.data.data || []
+
+          // Create a map to store unique customers by entity ID
+          const customersMap = new Map()
+
+          dataArray.forEach((item: any) => {
+            const entity = item.entity
+            if (entity && entity.id && !customersMap.has(entity.id)) {
+              // Get contact info
+              let email = ''
+              let phone = ''
+              let address = ''
+
+              if (entity.contacts && Array.isArray(entity.contacts)) {
+                entity.contacts.forEach((contact: any) => {
+                  if (contact.contact_type?.name === 'email' || contact.contact_type_id === 1) {
+                    email = contact.contact || ''
+                  } else if (contact.contact_type?.name === 'phone_number' || contact.contact_type_id === 2) {
+                    phone = contact.contact || ''
+                  } else if (contact.contact_type?.name === 'address' || contact.contact_type_id === 3) {
+                    address = contact.contact || ''
+                  }
+                })
+              }
+
+              customersMap.set(entity.id, {
+                value: entity.id,
+                text: entity.full_name,
+                selfItem: {
+                  id: entity.id,
+                  full_name: entity.full_name,
+                  country: entity.country?.name || entity.country_name || '',
+                  country_id: entity.country?.id || entity.country_id,
+                  nationality: entity.nationality?.name || entity.nationality_name || '',
+                  nationality_id: entity.nationality?.id || entity.nationality_id,
+                  email: email,
+                  phone: phone,
+                  address: address,
+                },
+              })
+            }
+          })
+
+          this.existingCustomersOptions = Array.from(customersMap.values())
+        }
+      } catch (error) {
+        console.error('Error fetching existing customers:', error)
+      } finally {
+        this.loadingCustomers = false
+      }
+    },
+
+    populateFormFromCustomer(selectedCustomer: any) {
+      if (!selectedCustomer || !selectedCustomer.selfItem) {
+        // Clear form if no customer selected
+        return
+      }
+
+      const customer = selectedCustomer.selfItem
+
+      // Populate basic information
+      this.form.full_name = customer.full_name || ''
+
+      // Find and set country
+      if (customer.country_id) {
+        const countryOption = this.countries.find((c: any) => c.value === customer.country_id)
+        if (countryOption) this.form.country = countryOption
+      } else if (customer.country) {
+        const countryOption = this.countries.find((c: any) => c.text === customer.country)
+        if (countryOption) this.form.country = countryOption
+      }
+
+      // Find and set nationality
+      if (customer.nationality_id) {
+        const nationalityOption = this.nationality.find((n: any) => n.value === customer.nationality_id)
+        if (nationalityOption) this.form.nationality = nationalityOption
+      } else if (customer.nationality) {
+        const nationalityOption = this.nationality.find((n: any) => n.text === customer.nationality)
+        if (nationalityOption) this.form.nationality = nationalityOption
+      }
+
+      // Populate contact information
+      this.form.email = customer.email || ''
+      this.form.phone = customer.phone || ''
+      this.form.address = customer.address || ''
+
+      this.init({
+        message: `Customer "${customer.full_name}" information loaded successfully`,
+        color: 'success',
+      })
+    },
 
     async submit() {
       this.saving = true
@@ -990,6 +1358,9 @@ export default defineComponent({
             this.speciesObjects = []
             this.isEditMode = false
             this.editingInquiryId = null
+            this.customerType = 'new'
+            this.selectedExistingCustomer = null
+            this.currentStep = 0
             this.showAddSalesInquiriesForm = false
           }
         } else {
@@ -1002,6 +1373,9 @@ export default defineComponent({
             this.resetForm()
             this.resetValidationContactForm()
             this.speciesObjects = []
+            this.customerType = 'new'
+            this.selectedExistingCustomer = null
+            this.currentStep = 0
           }
         }
       } catch (error: any) {
@@ -1040,11 +1414,65 @@ export default defineComponent({
       this.isEditMode = false
       this.editingInquiryId = null
       this.speciesObjects = []
+      this.customerType = 'new'
+      this.selectedExistingCustomer = null
+      this.currentStep = 0
     },
 
     handleGoBack() {
       this.resetEditMode()
+      this.currentStep = 0
       this.gotBack()
+    },
+
+    // Wizard navigation methods
+    nextStep() {
+      if (this.currentStep < this.wizardSteps.length - 1 && this.canProceedToNextStep) {
+        this.currentStep++
+      } else if (!this.canProceedToNextStep) {
+        this.showStepValidationError()
+      }
+    },
+
+    previousStep() {
+      if (this.currentStep > 0) {
+        this.currentStep--
+      }
+    },
+
+    goToStep(stepIndex: number) {
+      // Only allow going to previous steps or current step
+      if (stepIndex <= this.currentStep) {
+        this.currentStep = stepIndex
+      }
+    },
+
+    showStepValidationError() {
+      const stepMessages: { [key: number]: string } = {
+        0: 'Please fill in all customer information fields (Name, Country, Nationality, Email, Phone, Address).',
+        1: 'Please add at least one species.',
+        2: 'Please select a hunting area and enter the number of days.',
+        3: 'Please select a season and all required dates.',
+      }
+      this.init({
+        message: stepMessages[this.currentStep] || 'Please complete all required fields.',
+        color: 'warning',
+      })
+    },
+
+    formatReviewDate(date: any): string {
+      if (!date) return 'N/A'
+      try {
+        const d = new Date(date)
+        if (isNaN(d.getTime())) return 'N/A'
+        return d.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })
+      } catch {
+        return 'N/A'
+      }
     },
 
     getSpeciesNameById(speciesId: number): string | null {

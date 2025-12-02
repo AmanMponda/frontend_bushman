@@ -15,10 +15,11 @@
               {{ item?.season?.name }}
             </VaChip>
           </div>
-          <p class="text-secondary">
+          <p class="text-secondary mb-3">
             <VaIcon name="event" size="small" />
             Created: {{ formatDate(item?.create_date) }}
           </p>
+          <VaButton color="secondary" round icon="download" @click="downloadInquiryPdf"> Download PDF </VaButton>
         </div>
       </VaCardContent>
     </VaCard>
@@ -384,6 +385,7 @@
 import { defineComponent } from 'vue'
 import { useSalesInquiriesStore } from '../../../../stores/sales-store'
 import { mapState, mapActions } from 'pinia'
+import { useToast } from 'vuestic-ui'
 
 export default defineComponent({
   name: 'SalesInquiryDetails',
@@ -392,6 +394,11 @@ export default defineComponent({
       type: Object,
       required: true,
     },
+  },
+
+  setup() {
+    const { init: notify } = useToast()
+    return { notify }
   },
 
   computed: {
@@ -420,6 +427,55 @@ export default defineComponent({
       'getAccommodation',
       'getChartersPrice',
     ]),
+
+    async downloadInquiryPdf() {
+      const inquiryId = this.item?.id
+      if (!inquiryId) return
+
+      try {
+        const response = await fetch(`${import.meta.env.VITE_APP_BASE_URL}sales/sales-inquiries/${inquiryId}/pdf`, {
+          headers: { 'Content-Type': 'application/json' },
+        })
+        const data = await response.json()
+
+        if (data.success && data.pdf) {
+          // Decode base64 PDF and download
+          const byteCharacters = atob(data.pdf)
+          const byteNumbers = new Array(byteCharacters.length)
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i)
+          }
+          const byteArray = new Uint8Array(byteNumbers)
+          const blob = new Blob([byteArray], { type: 'application/pdf' })
+
+          // Create download link
+          const url = window.URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          link.href = url
+          link.download = `inquiry-${this.item?.code || inquiryId}.pdf`
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          window.URL.revokeObjectURL(url)
+
+          this.notify({
+            message: 'PDF downloaded successfully',
+            color: 'success',
+          })
+        } else {
+          this.notify({
+            message: 'Failed to generate PDF',
+            color: 'danger',
+          })
+        }
+      } catch (error) {
+        console.error('Error downloading PDF:', error)
+        this.notify({
+          message: 'Error downloading PDF',
+          color: 'danger',
+        })
+      }
+    },
 
     formatDate(dateString: string | number | Date) {
       return dateString ? new Date(dateString).toLocaleDateString() : 'Not provided'

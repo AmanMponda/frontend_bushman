@@ -120,7 +120,7 @@ export default defineComponent({
         { key: 'season', label: 'Season', sortable: true },
         { key: 'species_count', label: 'Species', width: 80 },
         { key: 'status', label: 'Status', width: 100 },
-        { key: 'actions', label: 'Actions', width: 120 },
+        { key: 'actions', label: 'Actions', width: 150 },
       ] as any,
       salesInquiryItems: [],
       perPage: 10,
@@ -254,6 +254,53 @@ export default defineComponent({
       const inquiryId = rowData.id
       const pdfUrl = `${import.meta.env.VITE_APP_BASE_URL}sales/sales-inquiries-pdf/${inquiryId}`
       window.open(pdfUrl, '_blank')
+    },
+
+    async downloadInquiryPdf(rowData: any) {
+      const inquiryId = rowData.id
+      try {
+        const response = await fetch(`${import.meta.env.VITE_APP_BASE_URL}sales/sales-inquiries/${inquiryId}/pdf`, {
+          headers: { 'Content-Type': 'application/json' },
+        })
+        const data = await response.json()
+
+        if (data.success && data.pdf) {
+          // Decode base64 PDF and download
+          const byteCharacters = atob(data.pdf)
+          const byteNumbers = new Array(byteCharacters.length)
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i)
+          }
+          const byteArray = new Uint8Array(byteNumbers)
+          const blob = new Blob([byteArray], { type: 'application/pdf' })
+
+          // Create download link
+          const url = window.URL.createObjectURL(blob)
+          const link = document.createElement('a')
+          link.href = url
+          link.download = `inquiry-${rowData.code || inquiryId}.pdf`
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          window.URL.revokeObjectURL(url)
+
+          this.notify({
+            message: 'PDF downloaded successfully',
+            color: 'success',
+          })
+        } else {
+          this.notify({
+            message: 'Failed to generate PDF',
+            color: 'danger',
+          })
+        }
+      } catch (error) {
+        console.error('Error downloading PDF:', error)
+        this.notify({
+          message: 'Error downloading PDF',
+          color: 'danger',
+        })
+      }
     },
 
     btnViewClicked(rowData: any) {
