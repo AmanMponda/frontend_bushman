@@ -8,10 +8,7 @@
             class="px-6"
             icon="arrow_back"
             size="large"
-            @click="
-              resetEditMode()
-              gotBack()
-            "
+            @click="handleGoBack"
           >
             Go Back
           </VaButton>
@@ -548,15 +545,7 @@
           <VaDivider class="my-6" />
 
           <div class="flex justify-end gap-3 p-4">
-            <VaButton
-              preset="secondary"
-              @click="
-                resetEditMode()
-                gotBack()
-              "
-            >
-              Cancel
-            </VaButton>
+            <VaButton preset="secondary" @click="handleGoBack"> Cancel </VaButton>
             <VaButton :loading="saving" icon="save" :disabled="!isValidForm" @click="validateForm() && submit()">
               {{ isEditMode ? 'Update Enquiry' : 'Submit Enquiry' }}
             </VaButton>
@@ -1051,6 +1040,11 @@ export default defineComponent({
       this.isEditMode = false
       this.editingInquiryId = null
       this.speciesObjects = []
+    },
+
+    handleGoBack() {
+      this.resetEditMode()
+      this.gotBack()
     },
 
     getSpeciesNameById(speciesId: number): string | null {
