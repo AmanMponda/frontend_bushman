@@ -71,6 +71,39 @@ export const useSalesInquiriesStore = defineStore('sales_inquiries', {
       return response
     },
 
+    async updateSalesInquiry(id: number, payload: any) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_SALES_INQUIRIES_URL + id + '/'
+
+      const config = {
+        method: 'put',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        data: JSON.stringify(payload),
+      }
+
+      const response = await axios.request(config)
+      return response
+    },
+
+    async deleteSalesInquiry(id: number) {
+      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_SALES_INQUIRIES_URL + id + '/'
+
+      const config = {
+        method: 'delete',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+
+      const response = await axios.request(config)
+      return response
+    },
+
     async getallSalesConfirmation() {
       this.loadingresults = true
       const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_SALES_CONFIRMATION_VSET_URL

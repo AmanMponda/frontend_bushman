@@ -6,16 +6,8 @@
       placeholder="Filter By Season"
       @update:modelValue="getSalesInquiryList"
     />
-    <!-- <Date
-      v-model="dateValue"
-      :options="aOptions"
-      placeholder="Filter By Area"
-      @update:modelValue="getPriceLists"
-    /> -->
     <VaDateInput v-model="dateValue" placeholder="Filter By Date" clearable @update:modelValue="getSalesInquiryList" />
     <VaInput v-model="filter" placeholder="Search" clearable @update:modelValue="getSalesInquiryList" />
-
-    <!-- </div> -->
   </div>
   <VaDataTable
     striped
@@ -27,14 +19,53 @@
     :filter="filter"
     @filtered="filtered = $event.items"
   >
-    <template #cell(actions)="{ rowData }">
-      <VaButton preset="plain" icon="visibility" class="mr-2" @click="btnViewClicked(rowData)"> </VaButton>
-
-      <VaButton preset="plain" icon="download" @click="btnDownloadClicked(rowData)"></VaButton>
+    <template #cell(name)="{ rowData }">
+      <span class="font-semibold text-gray-900">{{ (rowData as any).name }}</span>
     </template>
+
+    <template #cell(area)="{ rowData }">
+      <div class="flex items-center gap-1">
+        <VaIcon name="location_on" size="small" color="primary" />
+        <span>{{ (rowData as any).area }}</span>
+      </div>
+    </template>
+
+    <template #cell(start_date)="{ rowData }">
+      <span class="text-gray-700">{{ formatDate((rowData as any).start_date) }}</span>
+    </template>
+
+    <template #cell(end_date)="{ rowData }">
+      <span class="text-gray-700">{{ formatDate((rowData as any).end_date) }}</span>
+    </template>
+
+    <template #cell(season)="{ rowData }">
+      <span class="text-gray-700">{{ (rowData as any).season }}</span>
+    </template>
+
+    <template #cell(species_count)="{ rowData }">
+      <VaBadge :text="String((rowData as any).species_count)" color="success" />
+    </template>
+
+    <template #cell(status)="{ rowData }">
+      <VaBadge
+        :text="(rowData as any).status"
+        :color="
+          (rowData as any).status === 'ACTIVE' ? 'success' : (rowData as any).status === 'PENDING' ? 'warning' : 'info'
+        "
+      />
+    </template>
+
+    <template #cell(actions)="{ rowData }">
+      <div class="flex items-center gap-1">
+        <VaButton preset="plain" icon="visibility" size="small" @click="btnViewClicked(rowData)" />
+        <VaButton preset="plain" icon="edit" size="small" color="warning" @click="btnEditClicked(rowData)" />
+        <VaButton preset="plain" icon="delete" size="small" color="danger" @click="showDeleteConfirm(rowData)" />
+      </div>
+    </template>
+
     <template #bodyAppend>
       <tr>
-        <td colspan="6">
+        <td colspan="9">
           <div class="flex justify-center mt-4">
             <VaPagination v-model="currentPage" :pages="pages" />
           </div>
@@ -42,6 +73,21 @@
       </tr>
     </template>
   </VaDataTable>
+
+  <!-- Delete Confirmation Modal -->
+  <VaModal v-model="showDeleteModal" title="Delete Inquiry" size="small" @ok="confirmDelete" @cancel="cancelDelete">
+    <p>
+      Are you sure you want to delete the inquiry for "<strong>{{ deleteItemName }}</strong
+      >"?
+    </p>
+    <p class="text-sm text-gray-500 mt-2">This action cannot be undone.</p>
+    <template #footer>
+      <div class="flex gap-2 justify-end">
+        <VaButton preset="secondary" @click="cancelDelete">Cancel</VaButton>
+        <VaButton color="danger" :loading="deleting" @click="confirmDelete">Delete</VaButton>
+      </div>
+    </template>
+  </VaModal>
 </template>
 
 <script lang="ts">
@@ -49,26 +95,33 @@ import { mapActions } from 'pinia'
 import { defineComponent, ref } from 'vue'
 import { useSalesInquiriesStore } from '../../../../stores/sales-store'
 import { useSettingsStore } from '../../../../stores/settings-store'
+import { useToast } from 'vuestic-ui'
 
 export default defineComponent({
   name: 'SalesInquiriesList',
-  emits: ['download-btn-pressed', 'view-btn-pressed'],
+  emits: ['download-btn-pressed', 'view-btn-pressed', 'edit-btn-pressed', 'delete-btn-pressed'],
+  setup() {
+    const { init: notify } = useToast()
+    return { notify }
+  },
   data() {
     return {
       loading: ref(false),
+      deleting: false,
+      showDeleteModal: false,
+      deleteItemId: null as number | null,
+      deleteItemName: '',
       columns: [
-        { key: 'id', label: 'ID', width: 80 },
-        { key: 'name' },
-        { key: 'country' },
-        { key: 'nationality' },
-
-        { key: 'preference.preferred_date', label: 'Preferred date', width: 80 },
-
-        { key: 'preference.start_date', label: 'Start date', width: 80 },
-        { key: 'preference.end_date', label: 'End date', width: 80 },
-
-        { key: 'actions', width: 80 },
-      ],
+        { key: 'name', label: 'Client Name', sortable: true },
+        { key: 'area', label: 'Area', sortable: true },
+        { key: 'hunting_type', label: 'Hunting Type', sortable: true },
+        { key: 'start_date', label: 'Start Date', sortable: true },
+        { key: 'end_date', label: 'End Date', sortable: true },
+        { key: 'season', label: 'Season', sortable: true },
+        { key: 'species_count', label: 'Species', width: 80 },
+        { key: 'status', label: 'Status', width: 100 },
+        { key: 'actions', label: 'Actions', width: 120 },
+      ] as any,
       salesInquiryItems: [],
       perPage: 10,
       currentPage: 1,
@@ -92,8 +145,19 @@ export default defineComponent({
 
   methods: {
     // getSalesInquiries()
-    ...mapActions(useSalesInquiriesStore, ['getSalesInquiries']),
+    ...mapActions(useSalesInquiriesStore, ['getSalesInquiries', 'deleteSalesInquiry']),
     ...mapActions(useSettingsStore, ['getSeasons']),
+
+    formatDate(dateString: string): string {
+      if (!dateString || dateString === 'N/A') return 'N/A'
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return 'N/A'
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    },
 
     async getSalesInquiryList() {
       this.loading = true
@@ -109,21 +173,40 @@ export default defineComponent({
           // Handle paginated response - data is inside response.data.data
           const dataArray = Array.isArray(response.data) ? response.data : response.data.data || []
           this.salesInquiryItems = dataArray.map((item: any) => {
+            // Get species count from inquiry_species or species array
+            const speciesCount = item?.inquiry_species?.length || item?.species?.length || 0
+
+            // Get reference price list data
+            const refPriceList = item?.reference_price_list
+            const priceListData = item?.price_lists?.[0]?.price_list?.price_list_type
+
+            // Get price and currency
+            const amount = refPriceList?.amount || priceListData?.amount || '0.00'
+            const currencySymbol = priceListData?.currency?.symbol || '$'
+
+            // Get area name
+            const areaName =
+              refPriceList?.area_name || item?.inquiry_areas?.[0]?.area_name || item?.areas?.[0]?.area?.name || 'N/A'
+
+            // Get hunting type
+            const huntingType = refPriceList?.hunting_type_name || priceListData?.hunting_type?.name || 'N/A'
+
             return {
               id: item.id,
               selfitem: item,
               code: item?.code || '',
-              inquiry_type: item?.inquiry_type || '',
               name: item?.entity?.full_name || 'N/A',
-              country: item?.entity?.country?.name || 'N/A',
-              nationality: item?.entity?.nationality?.name || 'N/A',
-              contacts:
-                item?.entity?.contacts?.map((contact: any) => ({
-                  id: contact.id,
-                  name: contact?.contact,
-                  contactable: contact?.contactable,
-                  type: contact?.contact_type?.name || '',
-                })) || [],
+              area: areaName,
+              hunting_type: huntingType,
+              price: `${currencySymbol}${parseFloat(amount).toFixed(2)}`,
+              start_date: item?.formatted_preferences?.start_date || 'N/A',
+              end_date: item?.formatted_preferences?.end_date || 'N/A',
+              season: item?.season?.name || 'N/A',
+              species_count: speciesCount,
+              status: item?.status || 'PENDING',
+              country: item?.entity?.country?.name || item?.entity?.country_name || 'N/A',
+              nationality: item?.entity?.nationality?.name || item?.entity?.nationality_name || 'N/A',
+              contacts: item?.entity?.contacts || [],
               preference: {
                 no_of_hunters: item?.formatted_preferences?.no_of_hunters || 0,
                 no_of_observers: item?.formatted_preferences?.no_of_observers || 0,
@@ -135,12 +218,9 @@ export default defineComponent({
                 budget_estimation: item?.formatted_preferences?.budget_estimation || '',
                 preferred_date: item?.formatted_preferences?.preferred_date || '',
               },
-              // For standard packages
-              package_details: item?.package_details || null,
-              // For custom packages
-              custom_details: item?.custom_details || null,
-              // Season info
-              season: item?.season?.name || 'N/A',
+              reference_price_list: refPriceList,
+              inquiry_species: item?.inquiry_species || [],
+              inquiry_areas: item?.inquiry_areas || [],
             }
           })
 
@@ -169,9 +249,60 @@ export default defineComponent({
       console.log(rowData)
       this.$emit('download-btn-pressed', rowData)
     },
+
+    downloadPdf(rowData: any) {
+      const inquiryId = rowData.id
+      const pdfUrl = `${import.meta.env.VITE_APP_BASE_URL}sales/sales-inquiries-pdf/${inquiryId}`
+      window.open(pdfUrl, '_blank')
+    },
+
     btnViewClicked(rowData: any) {
       console.log(rowData)
       this.$emit('view-btn-pressed', rowData)
+    },
+    btnEditClicked(rowData: any) {
+      console.log(rowData)
+      this.$emit('edit-btn-pressed', rowData)
+    },
+
+    showDeleteConfirm(rowData: any) {
+      this.deleteItemId = rowData.id
+      this.deleteItemName = rowData.name
+      this.showDeleteModal = true
+    },
+
+    cancelDelete() {
+      this.showDeleteModal = false
+      this.deleteItemId = null
+      this.deleteItemName = ''
+    },
+
+    async confirmDelete() {
+      if (!this.deleteItemId) return
+
+      this.deleting = true
+      try {
+        const response: any = await this.deleteSalesInquiry(this.deleteItemId)
+        if (response.status === 200 || response.status === 204) {
+          this.notify({
+            message: 'Inquiry deleted successfully',
+            color: 'success',
+          })
+          // Refresh the list
+          this.getSalesInquiryList()
+        }
+      } catch (error: any) {
+        console.error('Error deleting inquiry:', error)
+        this.notify({
+          message: error.response?.data?.message || 'Failed to delete inquiry',
+          color: 'danger',
+        })
+      } finally {
+        this.deleting = false
+        this.showDeleteModal = false
+        this.deleteItemId = null
+        this.deleteItemName = ''
+      }
     },
   },
 })
