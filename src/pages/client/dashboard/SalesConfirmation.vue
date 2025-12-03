@@ -190,7 +190,7 @@ export default defineComponent({
   },
   computed: {
     ...mapState(useSalesInquiriesStore, ['results', 'loadingresults']),
-    
+
     filteredResults(): SalesConfirmation[] {
       if (!this.searchText) return this.results as SalesConfirmation[]
 

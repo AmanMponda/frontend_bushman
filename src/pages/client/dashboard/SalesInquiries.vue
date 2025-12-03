@@ -1,37 +1,5 @@
 <template>
-<<<<<<< HEAD
   <VaCard class="w-full">
-=======
-  <VaCard class="w-full pt-2">
-    <div class="flex flex-col md:flex-row gap-2 mb-2 justify-between px-4 mt-2">
-      <div class="flex flex-col md:flex-row gap-2 justify-start">
-        <VaButton
-          v-if="showAddSalesInquiriesForm || showDetailsPage"
-          class="px-2"
-          icon="arrow_back"
-          size="small"
-          @click="gotBack()"
-        >
-          Go Back
-        </VaButton>
-      </div>
-      <VaButtonGroup v-if="!showAddSalesInquiriesForm && !showDetailsPage">
-        <VaButton
-          class="px-2"
-          color="primary"
-          label="Add New Quota"
-          round
-          present="secondary"
-          border-color="primary"
-          icon="add"
-          size="small"
-          @click="toggleAddSalesInquiriesForm()"
-          >Create Enquiry</VaButton
-        >
-      </VaButtonGroup>
-    </div>
-
->>>>>>> 4c9b42523ada15d46522a8f3f2c76622fded06ce
     <VaCardContent>
       <div class="flex flex-col md:flex-row gap-3 mb-6 justify-between items-center py-4 px-2 bg-gray-50 rounded-lg">
         <div class="flex flex-col md:flex-row gap-3 justify-start">
