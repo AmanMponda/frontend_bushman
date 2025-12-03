@@ -1,6 +1,5 @@
 <template>
-  <!-- fiter elemenets  and download btn slot -->
-  <!-- create a slot for filter elements -->
+  <!-- filter elements and download btn slot -->
   <slot name="filter-elements-and-download-btn"> </slot>
   <VaDataTable
     v-model:sort-by="sortBy"
@@ -13,9 +12,23 @@
   >
     <template #cell(actions)="{ rowData }">
       <div class="flex gap-1">
-        <VaButton v-if="showEdit" preset="plain" icon="edit" color="primary" @click="clickedEdit(rowData)" />
-        <VaButton preset="plain" :icon="btnViewicon" @click="clickedView(rowData)" />
-        <VaButton v-if="showDelete" preset="plain" icon="delete" color="danger" @click="clickedDelete(rowData)" />
+        <VaButton
+          v-if="showEdit"
+          preset="plain"
+          icon="edit"
+          color="warning"
+          size="small"
+          @click="clickedEdit(rowData)"
+        />
+        <VaButton preset="plain" :icon="btnViewicon" size="small" @click="clickedView(rowData)" />
+        <VaButton
+          v-if="showDelete"
+          preset="plain"
+          icon="delete"
+          color="danger"
+          size="small"
+          @click="clickedDelete(rowData)"
+        />
       </div>
     </template>
   </VaDataTable>
@@ -25,7 +38,7 @@
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: 'List',
+  name: 'ModuleTable',
 
   props: {
     items: {
@@ -53,23 +66,16 @@ export default defineComponent({
       default: true,
     },
   },
-  emits: ['on-view', 'onView', 'onEdit', 'onDelete'],
+  emits: ['onView', 'onEdit', 'onDelete'],
   data() {
-    const sortingOrderOptions = [
-      { text: 'asc', value: 'asc' },
-      { text: 'desc', value: 'desc' },
-      { text: 'no sorting', value: null },
-    ]
     return {
-      sortBy: 'username',
-      sortingOrder: 'asc',
-      sortingOrderOptions,
+      sortBy: 'id',
+      sortingOrder: 'desc',
     }
   },
 
   mounted() {
-    console.log('mounted')
-    console.log(this.items)
+    console.log('ModuleTable mounted with items:', this.items)
   },
 
   methods: {
@@ -78,20 +84,17 @@ export default defineComponent({
     },
 
     clickedView(rowData) {
-      // Emit the expected structure
-      this.$emit('on-view', {
-        item: rowData,
-        id: rowData.id,
-      })
+      console.log('ModuleTable: View clicked for:', rowData)
       this.$emit('onView', rowData)
     },
 
     clickedEdit(rowData) {
+      console.log('ModuleTable: Edit clicked for:', rowData)
       this.$emit('onEdit', rowData)
-      this.$emit('onView', rowData)
     },
 
     clickedDelete(rowData) {
+      console.log('ModuleTable: Delete clicked for:', rowData)
       this.$emit('onDelete', rowData)
     },
   },

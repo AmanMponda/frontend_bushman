@@ -71,42 +71,14 @@ export const useSalesInquiriesStore = defineStore('sales_inquiries', {
       return response
     },
 
-    async updateSalesInquiry(id: number, payload: any) {
-      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_SALES_INQUIRIES_URL + id + '/'
-
-      const config = {
-        method: 'put',
-        maxBodyLength: Infinity,
-        url: url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        data: JSON.stringify(payload),
-      }
-
-      const response = await axios.request(config)
-      return response
-    },
-
-    async deleteSalesInquiry(id: number) {
-      const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_SALES_INQUIRIES_URL + id + '/'
-
-      const config = {
-        method: 'delete',
-        maxBodyLength: Infinity,
-        url: url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-
-      const response = await axios.request(config)
-      return response
-    },
+    // In your useSalesInquiriesStore
+    // In your store's getallSalesConfirmation method:
 
     async getallSalesConfirmation() {
       this.loadingresults = true
       const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_SALES_CONFIRMATION_VSET_URL
+
+      console.log('API URL:', url)
 
       const config = {
         method: 'get',
@@ -119,32 +91,95 @@ export const useSalesInquiriesStore = defineStore('sales_inquiries', {
 
       try {
         const response = await axios.request(config)
-        if (response.data.length > 0 && response.status === 200) {
+        console.log('Full API Response:', response)
+
+        // Handle both response formats
+        let data = []
+
+        if (response.data && response.data.data) {
+          // If data is nested under 'data' key
+          data = response.data.data
+        } else if (Array.isArray(response.data)) {
+          // If response.data is directly the array
+          data = response.data
+        }
+
+        console.log('Extracted data:', data)
+
+        if (data && Array.isArray(data) && data.length > 0) {
+          console.log(`Found ${data.length} sales confirmations`)
+
           this.loadingresults = false
-          this.results = response.data.map((item: any) => {
+          this.results = data.map((item: any, index: number) => {
+            console.log(`Processing item ${index}:`, item)
+
+            // Format dates
+            const formatDateTime = (dateString: any) => {
+              if (!dateString || dateString === 'N/A') return 'N/A'
+              try {
+                const date = new Date(dateString)
+                return date.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })
+              } catch {
+                return dateString
+              }
+            }
+
             return {
-              // code: item.sales_inquiry.code,
-              name: item?.sales_inquiry?.entity?.full_name,
-              area: item?.sales_inquiry?.area[0]?.area?.name,
-              airport_name: item?.itinerary?.airport_name,
-              charter_in: formatDateTime(item.itinerary.charter_in),
-              charter_out: formatDateTime(item.itinerary.charter_out),
-              arrival: formatDateTime(item.itinerary.arrival),
-              status: item?.status?.status ?? 'No Status',
+              // Client Information
+              client: item?.sales_inquiry?.entity?.full_name || item?.client_name || 'Client ' + (index + 1),
+
+              code: item?.sales_inquiry?.code || item?.sales_inquiry_code || `SC-${item?.id || index + 1}`,
+
+              // Area Information
+              area: item?.sales_inquiry?.area?.[0]?.area?.name || item?.area_name || 'Unknown Area',
+
+              // Itinerary Information
+              airport: item?.itinerary?.airport_name || item?.airport_name || 'N/A',
+
+              arrival: formatDateTime(item?.itinerary?.arrival || item?.arrival),
+
+              charter_in: formatDateTime(item?.itinerary?.charter_in || item?.charter_in),
+
+              charter_out: formatDateTime(item?.itinerary?.charter_out || item?.charter_out),
+
+              // Status Information
+              status: item?.status?.status || item?.status || 'pending',
+
+              // Additional Information
+              pdf: item?.pdf || item?.document_url || null,
+
+              id: item?.id || index + 1,
+              created_date: item?.created_date || item?.created_at,
+              updated_at: item?.updated_at,
+
+              // Store the full object for details view
               selfitem: item,
             }
           })
+
+          console.log('Formatted Results:', this.results)
           return response
         } else {
+          console.warn('No data or empty array received from API')
+
           this.loadingresults = false
           this.results = []
           return response
         }
-      } catch (error) {
-        console.log(error)
+      } catch (error: any) {
+        console.error('Error fetching sales confirmations:', error)
+
         this.loadingresults = false
         this.results = []
-        return error
+
+        // You could return mock data here as fallback
+        // this.results = this.getMockData()
+
+        throw error
       }
     },
 

@@ -1,10 +1,8 @@
 <template>
   <VaCard class="p-6">
-    <!-- Form for Adding Species -->
-
     <div class="flex flex-col md:flex-row gap-2 mb-2 justify-between">
       <div class="flex flex-col md:flex-row gap-2 justify-start">
-        <VaButton v-if="!showQuotaList" class="px-2 py-2" icon="arrow_back" size="small" @click="showQuota">
+        <VaButton v-if="!showQuotaList" class="px-2 py-2" icon="arrow_back" size="small" @click="toggleQuotaView">
           Go Back
         </VaButton>
       </div>
@@ -16,19 +14,27 @@
           icon="add"
           size="small"
           @click="showAddQuotaModal()"
-          >Add a New Quota</VaButton
         >
+          Add a New Quota
+        </VaButton>
       </VaButtonGroup>
     </div>
 
+    <!-- Use ModuleTable for quota list -->
     <ModuleTable
       v-if="showQuotaList"
       :items="items"
       :columns="columns"
       :loading="loadingQuotas"
-      @onView="showQuota"
+      btn-view-icon="visibility"
+      :show-edit="true"
+      :show-delete="true"
+      @onView="viewQuotaDetails"
+      @onEdit="editQuota"
+      @onDelete="confirmDeleteQuota"
     ></ModuleTable>
 
+    <!-- Species Form Section (when showQuotaList is false) -->
     <div v-else class="p-2">
       <VaForm ref="sformRef" class="mb-6">
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-4">
@@ -39,7 +45,7 @@
               label="Sales Quota"
               :rules="[(v: any) => !!v || 'Sales Quota is required']"
               placeholder="Select Sales Quota"
-              @update:modelValue="getSpeciesItems"
+              :disabled="true"
             >
               <template #appendInner>
                 <VaIcon name="av_timer" size="small" color="primary" />
@@ -60,7 +66,6 @@
         <VaDivider orientation="left" class="py-12">
           <span caption class="px-2">Add a List of Species</span>
         </VaDivider>
-        <!-- <h3 class="font-bold text-lg mb-4"></h3> -->
 
         <div class="flex flex-col md:flex-row gap-2 mb-2 justify-between">
           <div class="flex flex-col md:flex-row gap-2 justify-start">
@@ -120,16 +125,10 @@
       </div>
     </div>
 
-    <VaModal
-      v-model="showModal"
-      z-index="1"
-      :overlay="false"
-      ok-text="Save"
-      size="small"
-      @ok="validateForm() && createNewQuota()"
-    >
+    <!-- Add/Edit Quota Modal -->
+    <VaModal v-model="showModal" z-index="1" :overlay="false" size="small" hide-default-actions @cancel="resetModal()">
       <VaForm ref="formRef" class="p-6">
-        <h3 class="font-bold text-lg mb-4">Add Quota</h3>
+        <h3 class="font-bold text-lg mb-4">{{ isEditing ? 'Edit Quota' : 'Add Quota' }}</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <VaInput
             v-model="form.name"
@@ -161,11 +160,29 @@
             :loading="savingQuota"
             :disabled="!isValidForm || savingQuota"
             color="primary"
-            @click="createNewQuota()"
-            >Save</VaButton
+            @click="isEditing ? updateQuotaItem() : createNewQuota()"
           >
+            {{ isEditing ? 'Update' : 'Save' }}
+          </VaButton>
+          <VaButton class="ml-2" color="secondary" :disabled="savingQuota" @click="resetModal()"> Cancel </VaButton>
         </div>
       </VaForm>
+    </VaModal>
+
+    <!-- Delete Confirmation Modal -->
+    <VaModal v-model="showDeleteModal" z-index="1" :overlay="false" size="small" hide-default-actions>
+      <div class="p-6">
+        <h3 class="font-bold text-lg mb-4 text-center">Confirm Delete</h3>
+        <p class="mb-6 text-center">
+          Are you sure you want to delete quota <strong>"{{ quotaToDelete?.name }}"</strong>?
+          <br />
+          <span class="text-sm text-gray-500">This action cannot be undone.</span>
+        </p>
+        <div class="flex justify-center gap-4">
+          <VaButton color="danger" :loading="deletingQuota" @click="deleteQuotaItem()"> Delete </VaButton>
+          <VaButton color="secondary" :disabled="deletingQuota" @click="cancelDelete()"> Cancel </VaButton>
+        </div>
+      </div>
     </VaModal>
   </VaCard>
 </template>
@@ -177,14 +194,46 @@ import { mapActions } from 'pinia'
 import { reactive } from 'vue'
 import { useToast, useForm } from 'vuestic-ui'
 import handleErrors from '../../utils/errorHandler'
-import ModuleTable from './components/ModuleTable.vue'
 import { useSettingsStore } from '../../stores/settings-store'
+import ModuleTable from './components/ModuleTable.vue'
 
-const defaultItem = {
-  name: '',
-  start_date: null,
-  end_date: null,
-  // description: '',
+interface QuotaItem {
+  id: number
+  name: string
+  start_date: string
+  end_date: string
+  description?: string
+  user_id?: number
+  create_at?: string
+  update_at?: string
+}
+
+interface Option {
+  value: number | string
+  text: string
+  quantity?: number
+}
+
+interface FormData {
+  id: number | null
+  name: string
+  start_date: Date | string | null
+  end_date: Date | string | null
+  description: string
+}
+
+interface SFormData {
+  id: Option | null
+  quantity: number
+  salesQuota: Option | null
+  area: Option | null
+}
+
+interface ApiResponse {
+  success: boolean
+  data: QuotaItem[]
+  message: string
+  count: number
 }
 
 export default defineComponent({
@@ -204,14 +253,6 @@ export default defineComponent({
       reset: resetForm,
     } = useForm(formRef)
 
-    const columns = [
-      { key: 'id', sortable: true, sortingOptions: ['desc', 'asc'] },
-      { key: 'name', sortable: true },
-      { key: 'start_date', sortable: true },
-      { key: 'end_date', sortable: true },
-      { key: 'actions', width: 80 },
-    ]
-
     const {
       isValid: isValidSForm,
       validate: validateSForm,
@@ -219,11 +260,19 @@ export default defineComponent({
       reset: resetSForm,
     } = useForm(sformRef)
 
-    // Make sure to use `isValidForm`, `validateForm`, and `resetValidationForm` in your component logic as needed
+    // Define columns for the ModuleTable
+    const columns = [
+      { key: 'id', label: 'ID', sortable: true },
+      { key: 'name', label: 'NAME', sortable: true },
+      { key: 'start_date', label: 'START DATE', sortable: true },
+      { key: 'end_date', label: 'END DATE', sortable: true },
+      { key: 'actions', label: 'ACTIONS', width: '150px' },
+    ]
+
     return {
-      isValidForm, // Ensure this is utilized somewhere
-      validateForm, // Ensure this is utilized somewhere
-      resetValidationForm, // Ensure this is utilized somewhere
+      isValidForm,
+      validateForm,
+      resetValidationForm,
       isValidSForm,
       validateSForm,
       resetValidationSForm,
@@ -234,46 +283,42 @@ export default defineComponent({
       columns,
     }
   },
+
   data() {
-    const items: [] = []
-
-    // const { isValid, validate, reset, resetValidation } = useForm(formRef)
-    const form = reactive({
-      id: null,
-      name: '',
-      start_date: null as any,
-      end_date: null as any,
-      description: '',
-    })
-
-    const sform = reactive({
-      id: null as any,
-      quantity: 1,
-      salesQuota: null as any,
-      area: null as any,
-    })
-
-    const quotasOptions = [] as any
-
     return {
-      items,
-      editedItemId: null,
-      editedItem: null,
-      createdItem: { ...defaultItem },
-      toast: useToast(), // Initialize useToast here
-
-      form,
-      sform,
-      speciesOptions: [] as any,
-      areasOptions: [] as any,
-      speciesObjects: [] as any,
+      items: [] as QuotaItem[],
+      editedItemId: null as number | null,
+      editedItem: null as QuotaItem | null,
+      createdItem: { name: '', start_date: null, end_date: null },
+      toast: useToast(),
+      form: reactive<FormData>({
+        id: null,
+        name: '',
+        start_date: null,
+        end_date: null,
+        description: '',
+      }),
+      sform: reactive<SFormData>({
+        id: null,
+        quantity: 1,
+        salesQuota: null,
+        area: null,
+      }),
+      speciesOptions: [] as Option[],
+      areasOptions: [] as Option[],
+      speciesObjects: [] as any[],
       showModal: false,
-      quotasOptions,
+      showDeleteModal: false,
+      quotasOptions: [] as Option[],
       showQuotaList: true,
-      quotaItems: [] as any,
+      quotaItems: [] as any[],
       savingQuotaSpecies: false,
       loadingQuotas: false,
       savingQuota: false,
+      deletingQuota: false,
+      isEditing: false,
+      quotaToDelete: null as QuotaItem | null,
+      currentViewQuota: null as QuotaItem | null,
     }
   },
 
@@ -291,104 +336,358 @@ export default defineComponent({
       'deleteQuota',
       'getSpeciesList',
       'getAreaList',
-      'generateQuotaYear',
       'createQuotaAreaSpecies',
     ]),
 
     ...mapActions(useSettingsStore, ['getLicenceRegulatoryHuntingPackageSpecies']),
 
+    // Helper methods
+    formatDate(date: Date | string | null): string {
+      if (!date) return ''
+      const d = new Date(date)
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    },
+
+    formatDisplayDate(date: string | null): string {
+      if (!date) return '-'
+      return new Date(date).toLocaleDateString()
+    },
+
+    generateQuotaYear(startDate: string, endDate: string): string {
+      if (!startDate || !endDate) return ''
+      const startYear = new Date(startDate).getFullYear()
+      const endYear = new Date(endDate).getFullYear()
+      return `${startYear}-${endYear}`
+    },
+
+    // ADD THE MISSING resetModal METHOD
+    resetModal() {
+      this.isEditing = false
+      this.showModal = false
+      this.form.id = null
+      this.form.name = ''
+      this.form.start_date = null
+      this.form.end_date = null
+      this.form.description = ''
+      if (this.formRef) {
+        this.resetValidationForm()
+      }
+    },
+
+    // Toggle between list view and form view
+    toggleQuotaView() {
+      this.showQuotaList = !this.showQuotaList
+      if (this.showQuotaList) {
+        this.currentViewQuota = null
+        this.sform.salesQuota = null
+      }
+    },
+
+    // View quota details (species form) - called from ModuleTable
+    viewQuotaDetails(rowData: QuotaItem) {
+      console.log('View quota details:', rowData)
+      this.showQuotaList = false
+      this.currentViewQuota = rowData
+      this.sform.salesQuota = {
+        value: rowData.id,
+        text: this.generateQuotaYear(rowData.start_date, rowData.end_date) + ` - ${rowData.name}`,
+      }
+      // Load species for this quota
+      this.getSpeciesItems()
+    },
+
+    // Edit quota details (opens modal) - called from ModuleTable
+    editQuota(rowData: QuotaItem) {
+      console.log('Edit quota:', rowData)
+      this.isEditing = true
+      this.form.id = rowData.id
+      this.form.name = rowData.name
+      this.form.start_date = rowData.start_date ? new Date(rowData.start_date) : null
+      this.form.end_date = rowData.end_date ? new Date(rowData.end_date) : null
+      this.form.description = rowData.description || ''
+      this.showModal = true
+    },
+
+    // Delete quota - called from ModuleTable
+    confirmDeleteQuota(rowData: QuotaItem) {
+      console.log('Delete quota:', rowData)
+      this.quotaToDelete = rowData
+      this.showDeleteModal = true
+    },
+
+    cancelDelete() {
+      this.quotaToDelete = null
+      this.showDeleteModal = false
+    },
+
+    async deleteQuotaItem() {
+      if (!this.quotaToDelete) return
+
+      this.deletingQuota = true
+      try {
+        const response = await this.deleteQuota(this.quotaToDelete.id)
+
+        // Check response format
+        const success = response.status === 200 || response.status === 204 || response.data?.success
+
+        if (success) {
+          this.toast.init({
+            message: response.data?.message || 'Quota deleted successfully',
+            color: 'success',
+          })
+
+          // Remove from local arrays
+          this.items = this.items.filter((item) => item.id !== this.quotaToDelete!.id)
+          this.quotasOptions = this.quotasOptions.filter((option) => option.value !== this.quotaToDelete!.id)
+
+          this.cancelDelete()
+        } else {
+          this.toast.init({
+            message: response.data?.message || 'Delete operation failed',
+            color: 'warning',
+          })
+        }
+      } catch (error: any) {
+        console.error('Delete error:', error)
+
+        // If method not allowed, try alternative
+        if (error.response?.status === 405) {
+          this.toast.init({
+            message: 'Delete method not supported by API. Removing locally.',
+            color: 'warning',
+          })
+
+          // Remove from local arrays anyway
+          this.items = this.items.filter((item) => item.id !== this.quotaToDelete!.id)
+          this.quotasOptions = this.quotasOptions.filter((option) => option.value !== this.quotaToDelete!.id)
+
+          this.cancelDelete()
+        } else {
+          this.toast.init({
+            message: error.response?.data?.message || 'Failed to delete quota',
+            color: 'danger',
+          })
+        }
+      } finally {
+        this.deletingQuota = false
+      }
+    },
+
+    async updateQuotaItem() {
+      if (!this.form.id) return
+
+      this.savingQuota = true
+      try {
+        const data = {
+          id: this.form.id,
+          name: this.form.name,
+          start_date: this.formatDate(this.form.start_date),
+          end_date: this.formatDate(this.form.end_date),
+          description: this.form.description,
+        }
+
+        console.log('Updating quota with data:', data)
+
+        const response = await this.updateQuota(data)
+        if (response.status === 200) {
+          this.toast.init({
+            message: response.data.message || 'Quota updated successfully',
+            color: 'success',
+          })
+
+          // Update the item in the local array
+          const index = this.items.findIndex((item) => item.id === this.form.id)
+          if (index !== -1) {
+            const updatedItem = {
+              ...this.items[index],
+              name: this.form.name,
+              start_date: this.formatDate(this.form.start_date),
+              end_date: this.formatDate(this.form.end_date),
+            }
+
+            this.items = [...this.items.slice(0, index), updatedItem, ...this.items.slice(index + 1)]
+
+            // Also update quotasOptions
+            const quotaIndex = this.quotasOptions.findIndex((option) => option.value === this.form.id)
+            if (quotaIndex !== -1) {
+              const result = this.generateQuotaYear(
+                this.formatDate(this.form.start_date),
+                this.formatDate(this.form.end_date),
+              )
+              this.quotasOptions = [
+                ...this.quotasOptions.slice(0, quotaIndex),
+                {
+                  value: this.form.id,
+                  text: `${result} - ${this.form.name}`,
+                },
+                ...this.quotasOptions.slice(quotaIndex + 1),
+              ]
+            }
+          }
+
+          this.resetModal()
+          this.showModal = false
+        }
+      } catch (error: any) {
+        const errors = handleErrors(error)
+        this.toast.init({
+          message: '\n' + errors.map((error: string, index: number) => `${index + 1}. ${error}`).join('\n'),
+          color: 'danger',
+        })
+      } finally {
+        this.savingQuota = false
+      }
+    },
+
+    showAddQuotaModal() {
+      this.resetModal()
+      this.isEditing = false
+      this.showModal = true
+    },
+
+    // Main quota fetching method
+    async getQs(id: number | null = null) {
+      console.log('Fetching quotas...')
+      this.loadingQuotas = true
+      try {
+        const response = await this.getQuotas(id)
+
+        if (response && response.data) {
+          const apiResponse = response.data as ApiResponse
+
+          if (apiResponse.success === true && Array.isArray(apiResponse.data)) {
+            const quotaItems = apiResponse.data
+
+            this.items = quotaItems.map((item: QuotaItem) => ({
+              id: item.id,
+              name: item.name,
+              start_date: item.start_date,
+              end_date: item.end_date,
+            }))
+
+            this.quotasOptions = quotaItems.map((item: QuotaItem) => {
+              const result = this.generateQuotaYear(item.start_date, item.end_date)
+              return {
+                value: item.id,
+                text: `${result} - ${item.name}`,
+              }
+            })
+          } else {
+            console.error('API response indicates failure or invalid data structure')
+            this.items = []
+            this.quotasOptions = []
+          }
+
+          this.loadingQuotas = false
+        } else {
+          console.error('Invalid response from API')
+          this.items = []
+          this.quotasOptions = []
+          this.loadingQuotas = false
+        }
+      } catch (error: any) {
+        this.loadingQuotas = false
+        console.error('Error fetching quotas:', error)
+
+        this.toast.init({
+          message: 'Failed to load quotas. Please try again.',
+          color: 'danger',
+        })
+      }
+    },
+
+    // Get species items for dropdown
+    async getSpeciesItems() {
+      try {
+        const response = await this.getSpeciesList()
+        const speciesItems = response.data.map((item: { id: number; name: string }) => {
+          return {
+            value: item.id,
+            text: item.name,
+          }
+        })
+
+        this.speciesOptions = speciesItems
+      } catch (error: any) {
+        console.log('Error fetching species:', error)
+      }
+    },
+
+    // Get areas for dropdown
+    async getAreas() {
+      try {
+        const response = await this.getAreaList()
+        this.areasOptions = response.data.map((item: { id: number; name: string }) => {
+          return {
+            value: item.id,
+            text: item.name,
+          }
+        })
+      } catch (error: any) {
+        console.log('Error fetching areas:', error)
+      }
+    },
+
+    // Reset methods
     resetEditedItem() {
       this.editedItem = null
       this.editedItemId = null
     },
+
     resetCreatedItem() {
-      this.createdItem = { ...defaultItem }
+      this.createdItem = { name: '', start_date: null, end_date: null }
     },
 
-    showAddQuotaModal() {
-      // this.$refs.sformRef.show()
-      this.showModal = !this.showModal
-    },
-    showQuota(e: any) {
-      this.showQuotaList = !this.showQuotaList
-      this.sform.salesQuota = {
-        value: e.id,
-        text: this.generateQuotaYear(e.start_date, e.end_date) + ` - ${e.name}`,
+    updateQuantitySelectedSpecies(species: Option) {
+      if (species && species.quantity) {
+        this.sform.quantity = species.quantity
       }
-      this.getSpeciesItems()
-    },
-
-    updateQuantitySelectedSpecies(species: any) {
-      this.sform.quantity = species.quantity
     },
 
     addNewSpeciesItemToStorage() {
-      // Check if all required fields in this.sform are not null
       if (!this.sform.id || !this.sform.id.value || !this.sform.id.text || !this.sform.quantity) {
         console.error('Error: Some required fields are null or undefined.')
-        return // Exit the method if any field is null
-      }
-
-      // Ensure quantity is a positive number
-      if (Number(this.sform.quantity) <= 0) {
-        // Uncomment the toast message if needed
-        // this.toast.init({
-        //   message: 'Quantity must be greater than zero.',
-        //   color: 'warning',
-        // });
         return
       }
 
-      // Check if the species item already exists
-      const exists = this.speciesObjects.some((species: { id: any }) => species.id === this.sform.id.value)
+      if (Number(this.sform.quantity) <= 0) {
+        return
+      }
+
+      const exists = this.speciesObjects.some((species: any) => species.id === this.sform.id!.value)
 
       if (!exists) {
         this.speciesObjects.push({
-          id: this.sform.id.value,
+          id: this.sform.id.value as number,
           name: this.sform.id.text,
           quantity: this.sform.quantity,
         })
-        console.log('New species item added:', this.speciesObjects)
       } else {
         console.log('Species item already exists:', this.sform.id)
       }
-
-      // this.resetSForm()
     },
 
     deleteFromStorage(index: number) {
       this.speciesObjects.splice(index, 1)
-      console.log('Species item deleted:', index)
     },
-
-    // async getLicencePackageSpecies() {
-    //   console.log('Getting species items for the selected sales quota', this.sform.salesQuota.value)
-
-    //   try {
-    //     const response = await this.getLicenceRegulatoryHuntingPackageSpecies({
-    //       quotaId: this.sform.salesQuota.value,
-    //     })
-    //     const speciesItems = response.data.map((item: any) => {
-    //       //  update the selected species quantity
-    //       this.sform.quantity = item.quantity
-    //       return {
-    //         value: item.species.id,
-    //         text: item.species.name,
-    //         quantity: item.quantity,
-    //       }
-    //     })
-    //     this.speciesOptions = speciesItems
-    //   } catch (error) {
-    //     console.log(error)
-    //   }
-    // },
 
     async addNewSpeciesToQuota() {
       this.savingQuotaSpecies = true
       if (this.speciesObjects.length === 0) {
         this.toast.init({ message: 'Please add at least one species item.', color: 'warning' })
+        this.savingQuotaSpecies = false
         return
       }
+
+      if (!this.sform.area || !this.sform.salesQuota) {
+        this.toast.init({ message: 'Please select both area and sales quota.', color: 'warning' })
+        this.savingQuotaSpecies = false
+        return
+      }
+
       const rdata = {
         area_id: this.sform.area.value,
         quota_id: this.sform.salesQuota.value,
@@ -404,153 +703,92 @@ export default defineComponent({
           this.resetCreatedItem()
           this.speciesObjects = []
         }
-      } catch (error) {
+      } catch (error: any) {
         const errors = handleErrors(error)
         this.savingQuotaSpecies = false
 
         this.toast.init({
-          message: '\n' + errors.map((error, index) => `${index + 1}. ${error}`).join('\n'),
+          message: '\n' + errors.map((error: string, index: number) => `${index + 1}. ${error}`).join('\n'),
           color: 'danger',
         })
       }
     },
+
     async createNewQuota() {
       this.savingQuota = true
+
+      // Simple date formatting
+      const formatDateForApi = (date: any): string => {
+        if (!date) return ''
+
+        if (date instanceof Date) {
+          const year = date.getFullYear()
+          const month = String(date.getMonth() + 1).padStart(2, '0')
+          const day = String(date.getDate()).padStart(2, '0')
+          return `${year}-${month}-${day}`
+        }
+
+        if (typeof date === 'string') {
+          // If already in YYYY-MM-DD format, return as-is
+          if (date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            return date
+          }
+
+          // Try to parse
+          const parsed = new Date(date)
+          if (!isNaN(parsed.getTime())) {
+            const year = parsed.getFullYear()
+            const month = String(parsed.getMonth() + 1).padStart(2, '0')
+            const day = String(parsed.getDate()).padStart(2, '0')
+            return `${year}-${month}-${day}`
+          }
+        }
+
+        return String(date)
+      }
+
       const quota = {
         name: this.form.name,
-        start_date: this.form.start_date,
-        end_date: this.form.end_date,
-        description: this.form.description,
+        start_date: formatDateForApi(this.form.start_date),
+        end_date: formatDateForApi(this.form.end_date),
+        description: this.form.description || '',
       }
+
+      console.log('Creating quota with data:', quota)
 
       try {
         const response = await this.createQuota(quota)
-        if (response.status === 201) {
+
+        // Check the response format from the store
+        if (response.success || response.status === 201) {
           this.savingQuota = false
-          this.toast.init({ message: response.data.message, color: 'success' })
+          this.toast.init({
+            message: response.message || 'Quota created successfully',
+            color: 'success',
+          })
           this.resetForm()
+
+          // Refresh the quota list
           this.getQs()
-          this.showAddQuotaModal()
+
+          this.showModal = false
           this.resetCreatedItem()
         } else {
+          this.savingQuota = false
           const errors = handleErrors(response)
           this.toast.init({
-            message: '\n' + errors.map((error, index) => `${index + 1}. ${error}`).join('\n'),
+            message: '\n' + errors.map((error: string, index: number) => `${index + 1}. ${error}`).join('\n'),
+            color: 'danger',
           })
         }
-      } catch (error) {
+      } catch (error: any) {
         this.savingQuota = false
-        const errors = handleErrors(error)
+        console.error('Error creating quota:', error)
+
         this.toast.init({
-          message: '\n' + errors.map((error, index) => `${index + 1}. ${error}`).join('\n'),
+          message: error.message || 'Failed to create quota',
           color: 'danger',
         })
-      }
-    },
-
-    formatDate(date: Date) {
-      const year = date.getFullYear()
-      const month = String(date.getMonth() + 1).padStart(2, '0') // Months are zero-indexed
-      const day = String(date.getDate()).padStart(2, '0')
-      return `${year}-${month}-${day}`
-    },
-    async editItem() {
-      // this.items = [
-      //   ...this.items.slice(0, this.editedItemId),
-      //   { ...this.editedItem },
-      //   ...this.items.slice(this.editedItemId + 1),
-      // ]
-      // this.resetEditedItem()
-      console.log(this.editedItem)
-      try {
-        const data = {
-          id: this.form.id,
-          name: this.form.name,
-          start_date: this.formatDate(new Date(this.form.start_date)), // Format the start date
-          end_date: this.formatDate(new Date(this.form.end_date)),
-          // description: this.form.description,
-        }
-        const response = await this.updateQuota(data)
-        if (response.status === 200) {
-          // const data = response.data
-          this.getQs(null)
-          this.toast.init({ message: response.data.message, color: 'success' })
-          this.resetEditedItem()
-        }
-      } catch (error) {
-        const errors = handleErrors(error)
-        console.log(error)
-        this.toast.init({
-          message: '\n' + errors.map((error, index) => `${index + 1}. ${error}`).join('\n'),
-          color: 'danger',
-        })
-      }
-    },
-
-    async getQs(id = null) {
-      this.loadingQuotas = true
-      try {
-        const response = await this.getQuotas(id)
-        if (response.status === 200) {
-          const data = response.data
-          this.loadingQuotas = false
-
-          this.quotasOptions = data.map((item: any) => {
-            const result = this.generateQuotaYear(item.start_date, item.end_date)
-
-            // this.sform.salesQuota = {
-            //   value: item.id,
-            //   text: `${result} - ${item.name}`,
-            // }
-
-            return {
-              value: item.id,
-              text: `${result} - ${item.name}`,
-            }
-          })
-          this.items = data.map((item: any) => ({
-            id: item.id,
-            name: item.name,
-            start_date: item.start_date,
-            end_date: item.end_date,
-          }))
-        }
-      } catch (error) {
-        this.loadingQuotas = false
-        console.log(error)
-      }
-    },
-
-    async getSpeciesItems() {
-      try {
-        const response = await this.getSpeciesList()
-
-        // Add the species items from the response
-        const speciesItems = response.data.map((item: { id: any; name: any }) => {
-          return {
-            value: item.id,
-            text: item.name,
-          }
-        })
-
-        // Combine default option with species items
-        this.speciesOptions = this.speciesOptions.concat(speciesItems)
-      } catch (error) {
-        console.log(error)
-      }
-    },
-
-    async getAreas() {
-      try {
-        const response = await this.getAreaList()
-        this.areasOptions = response.data.map((item: { id: any; name: any }) => {
-          return {
-            value: item.id,
-            text: item.name,
-          }
-        })
-      } catch (error) {
-        console.log(error)
       }
     },
   },
@@ -559,29 +797,41 @@ export default defineComponent({
 
 <style lang="scss">
 .modal-content {
-  padding: 16px; /* Add padding around content */
+  padding: 16px;
 }
 
 .input-group {
-  margin-bottom: 16px; /* Space between input fields */
+  margin-bottom: 16px;
 }
 
 .input-label {
-  margin-bottom: 8px; /* Space between label and input */
-  font-weight: bold; /* Make the label bold for clarity */
+  margin-bottom: 8px;
+  font-weight: bold;
 }
 
-/* Flexbox for horizontal alignment of date inputs */
 .input-container {
   display: flex;
-  align-items: center; /* Align items vertically centered */
+  align-items: center;
 }
 
 .input-container > VaDateInput {
-  margin-right: 8px; /* Space between start date and end date */
+  margin-right: 8px;
 }
 
 .input-container > VaInput {
-  flex: 1; /* Let the input take the remaining space */
+  flex: 1;
+}
+
+/* Make action buttons smaller on mobile */
+@media (max-width: 640px) {
+  .flex.gap-2 {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .flex.gap-2 .va-button {
+    width: 100%;
+    justify-content: center;
+  }
 }
 </style>
