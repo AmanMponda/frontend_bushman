@@ -66,7 +66,7 @@ export default defineComponent({
       default: true,
     },
   },
-  emits: ['onView', 'onEdit', 'onDelete'],
+  emits: ['onView', 'onEdit', 'onDelete','on-download'],
   data() {
     return {
       sortBy: 'id',
@@ -96,6 +96,14 @@ export default defineComponent({
     clickedDelete(rowData) {
       console.log('ModuleTable: Delete clicked for:', rowData)
       this.$emit('onDelete', rowData)
+    },
+
+    clickedDownload(rowData) {
+      // Emit the download event with the same structure
+      this.$emit('on-download', {
+        item: rowData,
+        id: rowData.id,
+      })
     },
   },
 })

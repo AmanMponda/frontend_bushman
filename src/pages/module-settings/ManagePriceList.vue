@@ -244,6 +244,7 @@ import { useQuotaStore } from '../../stores/quota-store'
 import { useSettingsStore } from '../../stores/settings-store'
 import downloadPdf from '../../utils/pdfDownloader'
 import handleErrors from '../../utils/errorHandler'
+import { jsPDF } from 'jspdf'
 
 export default defineComponent({
   name: 'ManagePriceList',
@@ -376,6 +377,289 @@ export default defineComponent({
       } catch (error) {
         console.error('Error fetching price list detail:', error)
       }
+    },
+
+    async onDownloadSinglePriceList(rowData: any) {
+      // eslint-disable-next-line no-console
+      console.log('=== Download button clicked ===')
+      // eslint-disable-next-line no-console
+      console.log('Row data for download:', rowData)
+
+      const priceListId = rowData?.id
+      if (!priceListId) {
+        // eslint-disable-next-line no-console
+        console.error('No price list ID found in row data')
+        return
+      }
+
+      try {
+        // eslint-disable-next-line no-console
+        console.log('Fetching price list detail for ID:', priceListId)
+        const response = await this.getPriceListById(priceListId)
+
+        // Backend returns { success: true, data: {...}, message: "..." }
+        const priceListData = response.data.data || response.data
+
+        // eslint-disable-next-line no-console
+        console.log('Fetched price list data for PDF generation:', priceListData)
+
+        // Generate PDF from the individual price list data
+        await this.generateIndividualPdf(priceListData, priceListId)
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Error downloading price list:', error)
+        this.toast?.init({ message: 'Failed to download price list', color: 'danger' })
+      }
+    },
+
+    // ... existing code ...
+
+    async generateIndividualPdf(priceListData: any, priceListId: string) {
+      try {
+        // Create a new PDF document
+        const doc = new jsPDF()
+
+        // Set document properties
+        doc.setProperties({
+          title: `Price List ${priceListId}`,
+          subject: 'Price List Details',
+          author: 'Bushman System',
+          creator: 'Bushman',
+        })
+
+        // Add content to PDF
+        let yPosition = 20
+        const lineHeight = 7
+        const margin = 20
+        const pageWidth = doc.internal.pageSize.width
+
+        // Title
+        doc.setFontSize(16)
+        doc.setFont('helvetica', 'bold')
+        doc.text('INDIVIDUAL PRICE LIST DETAILS', pageWidth / 2, yPosition, { align: 'center' })
+        yPosition += 20
+
+        // Price List Information
+        doc.setFontSize(12)
+        doc.setFont('helvetica', 'bold')
+        doc.text('PRICE LIST INFORMATION:', margin, yPosition)
+        yPosition += lineHeight
+
+        doc.setFont('helvetica', 'normal')
+        doc.text(`ID: ${priceListData.id || 'N/A'}`, margin, yPosition)
+        yPosition += lineHeight
+        doc.text(`Package Name: ${priceListData.sales_package?.name || 'N/A'}`, margin, yPosition)
+        yPosition += lineHeight
+        doc.text(`Area: ${priceListData.sales_package?.area?.name || 'N/A'}`, margin, yPosition)
+        yPosition += lineHeight
+        doc.text(`Hunting Type: ${priceListData.price_list_type?.hunting_type?.name || 'N/A'}`, margin, yPosition)
+        yPosition += lineHeight
+        doc.text(
+          `Amount: ${priceListData.price_list_type?.currency?.symbol || ''}${
+            priceListData.price_list_type?.amount || 'N/A'
+          }`,
+          margin,
+          yPosition,
+        )
+        yPosition += lineHeight
+        doc.text(`Duration: ${priceListData.price_list_type?.duration || 'N/A'} days`, margin, yPosition)
+        yPosition += lineHeight
+        doc.text(`Status: ${priceListData.price_list_type?.is_active ? 'Active' : 'Inactive'}`, margin, yPosition)
+        yPosition += 15
+
+        // Check if we need a new page
+        if (yPosition > 250) {
+          doc.addPage()
+          yPosition = 20
+        }
+
+        // Validity Period
+        doc.setFont('helvetica', 'bold')
+        doc.text('VALIDITY PERIOD:', margin, yPosition)
+        yPosition += lineHeight
+
+        doc.setFont('helvetica', 'normal')
+        doc.text(`Start Date: ${priceListData.price_list_type?.price_list?.start_date || 'N/A'}`, margin, yPosition)
+        yPosition += lineHeight
+        doc.text(`End Date: ${priceListData.price_list_type?.price_list?.end_date || 'N/A'}`, margin, yPosition)
+        yPosition += 15
+
+        // Regulatory Package
+        if (priceListData.sales_package?.regulatory_package) {
+          doc.setFont('helvetica', 'bold')
+          doc.text('REGULATORY PACKAGE:', margin, yPosition)
+          yPosition += lineHeight
+
+          doc.setFont('helvetica', 'normal')
+          doc.text(`Name: ${priceListData.sales_package.regulatory_package.name || 'N/A'}`, margin, yPosition)
+          yPosition += lineHeight
+          doc.text(
+            `Duration: ${priceListData.sales_package.regulatory_package.duration || 'N/A'} days`,
+            margin,
+            yPosition,
+          )
+          yPosition += 15
+        }
+
+        // Included Species
+        if (priceListData.sales_package?.species?.length > 0) {
+          doc.setFont('helvetica', 'bold')
+          doc.text('INCLUDED SPECIES:', margin, yPosition)
+          yPosition += lineHeight
+
+          doc.setFont('helvetica', 'normal')
+          priceListData.sales_package.species.forEach((sp: any) => {
+            const speciesInfo = sp.species || {}
+            const text = `• ${speciesInfo.name} (${speciesInfo.scientific_name || 'No scientific name'}) - Quantity: ${
+              sp.quantity || 1
+            }`
+
+            // Split long text into multiple lines if needed
+            const lines = doc.splitTextToSize(text, pageWidth - margin * 2)
+            lines.forEach((line: string) => {
+              if (yPosition > 280) {
+                doc.addPage()
+                yPosition = 20
+              }
+              doc.text(line, margin, yPosition)
+              yPosition += lineHeight
+            })
+          })
+          yPosition += 10
+        }
+
+        // Footer
+        doc.setFontSize(10)
+        doc.setTextColor(128, 128, 128)
+        doc.text(`Document generated on: ${new Date().toLocaleString()}`, margin, 285)
+        doc.text('This is an auto-generated individual price list document.', margin, 292)
+
+        // Save the PDF
+        doc.save(`price-list-${priceListId}-${Date.now()}.pdf`)
+
+        this.toast?.init({ message: 'Price list downloaded successfully', color: 'success' })
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Error generating individual PDF:', error)
+        this.toast?.init({
+          message: 'Failed to generate PDF. Please try the main Download button.',
+          color: 'warning',
+        })
+      }
+    },
+    createIndividualPdfContent(priceListData: any): string {
+      const currentDate = new Date().toLocaleString()
+      const priceListType = priceListData.price_list_type || {}
+      const salesPackage = priceListData.sales_package || {}
+      const area = salesPackage.area || {}
+      const regulatoryPackage = salesPackage.regulatory_package || {}
+
+      return `
+INDIVIDUAL PRICE LIST DETAILS
+==============================
+
+PRICE LIST INFORMATION:
+-----------------------
+ID: ${priceListData.id || 'N/A'}
+Package Name: ${salesPackage.name || 'N/A'}
+Area: ${area.name || 'N/A'}
+Area Description: ${area.description || 'N/A'}
+Hunting Type: ${priceListType.hunting_type?.name || 'N/A'}
+Amount: ${priceListType.currency?.symbol || ''}${priceListType.amount || 'N/A'}
+Duration: ${priceListType.duration || 'N/A'} days
+Status: ${priceListType.is_active ? 'Active' : 'Inactive'}
+
+VALIDITY PERIOD:
+----------------
+Start Date: ${priceListType.price_list?.start_date || 'N/A'}
+End Date: ${priceListType.price_list?.end_date || 'N/A'}
+
+REGULATORY PACKAGE:
+-------------------
+Name: ${regulatoryPackage.name || 'N/A'}
+Duration: ${regulatoryPackage.duration || 'N/A'} days
+
+INCLUDED SPECIES:
+-----------------
+${this.formatIncludedSpecies(salesPackage.species || [])}
+
+SAFARI EXTRAS:
+--------------
+${this.formatSafariExtras(priceListData.safari_extras || [])}
+
+TROPHY FEES:
+------------
+${this.formatTrophyFees(priceListData.trophy_fees || [])}
+
+COMPANION & OBSERVER COSTS:
+---------------------------
+${this.formatCompanionObserver(priceListData.componions_hunter, priceListData.observer)}
+
+CURRENCY INFORMATION:
+---------------------
+Currency: ${priceListType.currency?.name || 'N/A'}
+Symbol: ${priceListType.currency?.symbol || 'N/A'}
+
+Document generated on: ${currentDate}
+This is an auto-generated individual price list document.
+  `.trim()
+    },
+
+    formatIncludedSpecies(species: any[]): string {
+      if (!species.length) return 'No species included'
+
+      return species
+        .map((sp) => {
+          const speciesInfo = sp.species || {}
+          return `• ${speciesInfo.name} (${speciesInfo.scientific_name || 'No scientific name'}) - Quantity: ${
+            sp.quantity || 1
+          }`
+        })
+        .join('\n')
+    },
+
+    formatSafariExtras(extras: any[]): string {
+      if (!extras.length) return 'No safari extras available'
+
+      return extras
+        .map((extra) => {
+          const currency = extra.currency || {}
+          return `• ${extra.name}: ${currency.symbol || ''}${extra.amount} ${extra.charges_per || ''}`
+        })
+        .join('\n')
+    },
+
+    formatTrophyFees(fees: any[]): string {
+      if (!fees.length) return 'No trophy fees available'
+
+      return fees
+        .map((fee) => {
+          const species = fee.species || {}
+          return `• ${species.name} (${species.scientific_name || 'No scientific name'}): $${fee.price_usd || 'N/A'}`
+        })
+        .join('\n')
+    },
+
+    formatCompanionObserver(companion: any, observer: any): string {
+      let result = ''
+
+      if (companion && companion.length > 0) {
+        companion.forEach((comp: any) => {
+          result += `Companion: ${comp.days || 0} days - ${comp.currency?.symbol || ''}${comp.amount || 0}\n`
+        })
+      } else {
+        result += 'Companion: Not available\n'
+      }
+
+      if (observer && observer.length > 0) {
+        observer.forEach((obs: any) => {
+          result += `Observer: ${obs.days || 0} days - ${obs.currency?.symbol || ''}${obs.amount || 0}`
+        })
+      } else {
+        result += 'Observer: Not available'
+      }
+
+      return result
     },
 
     async onDownloadPdf() {
