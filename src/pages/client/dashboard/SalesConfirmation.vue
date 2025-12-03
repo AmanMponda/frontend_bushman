@@ -16,7 +16,7 @@
 
     <VaCardContent>
       <template v-if="viewDetails">
-        <SalesConfirmationClientDetails :sales-data="item"> </SalesConfirmationClientDetails>
+        <SalesConfirmationClientDetails v-if="selectedItem" :sales-data="selectedItem" />
       </template>
 
       <template v-else>
@@ -70,7 +70,7 @@
           <template #cell(client)="{ value, row }">
             <div class="client-cell">
               <div class="client-name">{{ value || 'N/A' }}</div>
-              <div v-if="row.code" class="client-code">Code: {{ row.code }}</div>
+              <div v-if="rowData(row).code" class="client-code">Code: {{ rowData(row).code }}</div>
             </div>
           </template>
 
@@ -106,18 +106,18 @@
                 plain
                 color="primary"
                 size="small"
-                :icon="getActionIcon(row.status)"
-                @click.stop="onRowClick(row)"
+                :icon="getActionIcon(rowData(row).status)"
+                @click.stop="onRowClick(rowData(row))"
               >
-                {{ getbuttonTextBasedOnStatus(row.status) }}
+                {{ getButtonTextBasedOnStatus(rowData(row).status) }}
               </VaButton>
               <VaButton
-                v-if="row.pdf"
+                v-if="rowData(row).pdf"
                 plain
                 icon="download"
                 size="small"
                 title="Download PDF"
-                @click.stop="downloadPdf(row.pdf)"
+                @click.stop="handleDownloadPdf(rowData(row).pdf as string)"
               />
             </div>
           </template>
@@ -128,13 +128,45 @@
 </template>
 
 <script lang="ts">
-import { useSalesInquiriesStore } from '../../../stores/sales-store'
-import { mapActions, mapState } from 'pinia'
-import SalesConfirmationClientDetails from './components/SalesConfirmationClientDetails.vue'
-import downloadPdf from '../../../utils/pdfDownloader'
+import { defineComponent } from 'vue'
 import { format } from 'date-fns'
+import { mapActions, mapState } from 'pinia'
+import { useSalesInquiriesStore } from '../../../stores/sales-store'
+import SalesConfirmationClientDetails from './components/SalesConfirmationClientDetails.vue'
 
-export default {
+// Import the pdf downloader function
+import downloadPdf from '../../../utils/pdfDownloader'
+
+interface SalesConfirmation {
+  id?: string | number
+  code?: string
+  name?: string
+  client?: string
+  area?: string
+  airport?: string
+  arrival?: string
+  charter_in?: string
+  charter_out?: string
+  status?: string
+  pdf?: string
+  [key: string]: any
+}
+
+interface Column {
+  key: string
+  label: string
+  width: number
+  sortable: boolean
+}
+
+// Type for DataTableRow based on Vuestic UI
+interface DataTableRow<T> {
+  source: T
+  [key: string]: any
+}
+
+export default defineComponent({
+  name: 'SalesConfirmationList',
   components: {
     SalesConfirmationClientDetails,
   },
@@ -150,20 +182,20 @@ export default {
         { key: 'charter_out', label: 'CHARTER OUT', width: 140, sortable: true },
         { key: 'status', label: 'STATUS', width: 120, sortable: true },
         { key: 'actions', label: 'ACTIONS', width: 140 },
-      ],
+      ] as Column[],
       viewDetails: false,
-      item: null as any,
-      buttondisables: true,
-      downloadPdf,
+      selectedItem: {} as Record<string, any>,
+      buttonDisabled: false,
     }
   },
   computed: {
     ...mapState(useSalesInquiriesStore, ['results', 'loadingresults']),
-    filteredResults() {
-      if (!this.searchText) return this.results
+    
+    filteredResults(): SalesConfirmation[] {
+      if (!this.searchText) return this.results as SalesConfirmation[]
 
       const searchLower = this.searchText.toLowerCase()
-      return this.results.filter((item) => {
+      return (this.results as SalesConfirmation[]).filter((item: SalesConfirmation) => {
         return (
           item.name?.toLowerCase().includes(searchLower) ||
           item.area?.toLowerCase().includes(searchLower) ||
@@ -180,25 +212,37 @@ export default {
   methods: {
     ...mapActions(useSalesInquiriesStore, ['getallSalesConfirmation']),
 
+    // Helper to extract data from DataTableRow
+    rowData(row: SalesConfirmation | DataTableRow<SalesConfirmation>): SalesConfirmation {
+      // If row is a DataTableRow object, extract the source item
+      // Otherwise, assume it's already the data object
+      if ('source' in row) {
+        return row.source
+      }
+      return row
+    },
+
     async getSalesConfirmations() {
       try {
         await this.getallSalesConfirmation()
       } catch (error) {
         console.error('Error fetching sales confirmations:', error)
-        this.$vaToast.init({
+        this.$vaToast?.init({
           message: 'Failed to load sales confirmations',
           color: 'danger',
         })
       }
     },
 
-    onRowClick(row: any) {
-      this.item = row.selfitem || row
+    onRowClick(row: SalesConfirmation | DataTableRow<SalesConfirmation>) {
+      const data = this.rowData(row)
+      this.selectedItem = { ...data } as Record<string, any>
       this.viewDetails = true
     },
 
     gotBack() {
       this.viewDetails = false
+      this.selectedItem = {}
       this.getSalesConfirmations()
     },
 
@@ -207,7 +251,7 @@ export default {
       return status.replace(/_/g, ' ').toUpperCase()
     },
 
-    formatDate(dateString: any): string {
+    formatDate(dateString: string | null | undefined): string {
       if (!dateString || dateString === 'N/A') return 'N/A'
       try {
         return format(new Date(dateString), 'MMM dd, yyyy')
@@ -216,7 +260,7 @@ export default {
       }
     },
 
-    getStatusColor(status: any) {
+    getStatusColor(status: string | undefined): string {
       const statusLower = status?.toLowerCase() || ''
       switch (statusLower) {
         case 'pending':
@@ -236,7 +280,7 @@ export default {
       }
     },
 
-    getActionIcon(status: any) {
+    getActionIcon(status: string | undefined): string {
       const statusLower = status?.toLowerCase() || ''
       switch (statusLower) {
         case 'pending':
@@ -252,7 +296,7 @@ export default {
       }
     },
 
-    getbuttonTextBasedOnStatus(status: any) {
+    getButtonTextBasedOnStatus(status: string | undefined): string {
       const statusLower = status?.toLowerCase() || ''
       switch (statusLower) {
         case 'pending':
@@ -271,11 +315,24 @@ export default {
       }
     },
 
+    async handleDownloadPdf(pdfUrl: string) {
+      try {
+        // Call the imported downloadPdf function
+        await downloadPdf(pdfUrl, 'sales-confirmation.pdf')
+      } catch (error) {
+        console.error('Error downloading PDF:', error)
+        this.$vaToast?.init({
+          message: 'Failed to download PDF',
+          color: 'danger',
+        })
+      }
+    },
+
     filterResults() {
       // Search is handled by computed property
     },
   },
-}
+})
 </script>
 
 <style scoped>

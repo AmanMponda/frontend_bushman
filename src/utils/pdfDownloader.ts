@@ -63,7 +63,7 @@ const downloadPdf = async (base64OrUrl: string, filename = 'price-list-report.pd
       byteArrays.push(byteArray)
     }
 
-    const blob = new Blob(byteArrays, { type: 'application/pdf' })
+    const blob = new Blob(byteArrays as BlobPart[], { type: 'application/pdf' })
     const objectUrl = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = objectUrl
