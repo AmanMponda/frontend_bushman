@@ -36,9 +36,16 @@
         >
         </Salesinquirieslist>
         <!-- Form Wizard -->
-        <div v-else class="p-6 bg-white rounded-lg">
+        <div v-else class="p-6 bg-white rounded-lg sales-inquiry-wizard">
           <!-- Stepper Header -->
-          <VaStepper v-model="currentStep" :steps="wizardSteps" color="primary" class="mb-6">
+          <VaStepper
+            v-model="currentStep"
+            :steps="wizardSteps"
+            color="primary"
+            class="mb-6"
+            navigation-disabled
+            controls-hidden
+          >
             <template #step-button-0>
               <VaIcon name="person" />
             </template>
@@ -764,6 +771,8 @@
                 color="primary"
                 icon-right="arrow_forward"
                 :disabled="!canProceedToNextStep"
+                :aria-disabled="!canProceedToNextStep"
+                :class="{ 'opacity-60 pointer-events-none': !canProceedToNextStep }"
                 @click="nextStep"
               >
                 Next
@@ -1077,22 +1086,35 @@ export default defineComponent({
 
     // Validation for each wizard step
     canProceedToNextStep(): boolean {
+      const hasInput = (value: any) => {
+        if (typeof value === 'string') {
+          return value.trim().length > 0
+        }
+        return !!value
+      }
+
       switch (this.currentStep) {
         case 0: // Customer Info
-          return !!(
-            this.form.full_name &&
-            this.form.country &&
-            this.form.nationality &&
-            this.form.email &&
-            this.form.phone &&
-            this.form.address
+          return (
+            hasInput(this.form.full_name) &&
+            hasInput(this.form.country) &&
+            hasInput(this.form.nationality) &&
+            hasInput(this.form.email) &&
+            hasInput(this.form.phone) &&
+            hasInput(this.form.address) &&
+            (this.customerType === 'existing' ? hasInput(this.selectedExistingCustomer) : true)
           )
         case 1: // Package & Species
           return this.speciesObjects.length > 0
         case 2: // Hunt Details
-          return !!(this.form.area && this.form.no_of_days && this.form.no_of_days > 0)
+          return hasInput(this.form.area) && !!(this.form.no_of_days && this.form.no_of_days > 0)
         case 3: // Schedule
-          return !!(this.form.season && this.form.preferred_date && this.form.start_date && this.form.end_date)
+          return (
+            hasInput(this.form.season) &&
+            hasInput(this.form.preferred_date) &&
+            hasInput(this.form.start_date) &&
+            hasInput(this.form.end_date)
+          )
         case 4: // Review
           return true
         default:
@@ -1116,6 +1138,23 @@ export default defineComponent({
         return this.seasonMinDate.getFullYear()
       }
       return new Date().getFullYear()
+    },
+  },
+
+  watch: {
+    customerType(newType: 'new' | 'existing') {
+      if (newType === 'new') {
+        this.selectedExistingCustomer = null
+        this.clearCustomerInformation()
+      } else if (newType === 'existing') {
+        this.selectedExistingCustomer = null
+        this.clearCustomerInformation()
+      }
+    },
+    selectedExistingCustomer(newValue: any) {
+      if (!newValue && this.customerType === 'existing') {
+        this.clearCustomerInformation()
+      }
     },
   },
 
@@ -1193,8 +1232,13 @@ export default defineComponent({
     },
 
     populateFormFromCustomer(selectedCustomer: any) {
+      if (this.customerType !== 'existing') {
+        return
+      }
+
       if (!selectedCustomer || !selectedCustomer.selfItem) {
         // Clear form if no customer selected
+        this.clearCustomerInformation()
         return
       }
 
@@ -1230,6 +1274,15 @@ export default defineComponent({
         message: `Customer "${customer.full_name}" information loaded successfully`,
         color: 'success',
       })
+    },
+
+    clearCustomerInformation() {
+      this.form.full_name = ''
+      this.form.country = null
+      this.form.nationality = null
+      this.form.email = ''
+      this.form.phone = ''
+      this.form.address = ''
     },
 
     async submit() {
@@ -2031,3 +2084,43 @@ export default defineComponent({
   },
 })
 </script>
+
+<style scoped>
+.sales-inquiry-wizard :deep(.va-input-wrapper__inner),
+.sales-inquiry-wizard :deep(.va-select__anchor),
+.sales-inquiry-wizard :deep(.va-date-input__anchor) {
+  border: 1px solid var(--va-backgroundBorder, #d1d5db);
+  border-radius: 10px;
+  background-color: #fff;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.sales-inquiry-wizard :deep(.va-input-wrapper:focus-within .va-input-wrapper__inner),
+.sales-inquiry-wizard :deep(.va-select:focus-within .va-select__anchor),
+.sales-inquiry-wizard :deep(.va-date-input:focus-within .va-date-input__anchor) {
+  border-color: var(--va-primary);
+  box-shadow: 0 0 0 2px rgba(64, 122, 214, 0.12);
+}
+
+.sales-inquiry-wizard :deep(.va-input-wrapper__inner:hover),
+.sales-inquiry-wizard :deep(.va-select__anchor:hover),
+.sales-inquiry-wizard :deep(.va-date-input__anchor:hover) {
+  border-color: var(--va-primary);
+}
+
+.sales-inquiry-wizard :deep(.va-select__anchor),
+.sales-inquiry-wizard :deep(.va-date-input__anchor) {
+  min-height: 48px;
+}
+
+.sales-inquiry-wizard :deep(.va-counter__input) {
+  border: 1px solid transparent;
+}
+
+.sales-inquiry-wizard :deep(.va-counter:focus-within .va-counter__input) {
+  border-color: var(--va-primary);
+  box-shadow: 0 0 0 2px rgba(64, 122, 214, 0.12);
+}
+</style>

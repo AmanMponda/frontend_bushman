@@ -8,6 +8,39 @@
   width: 100%;
 }
 
+/* Global input border styling */
+.va-input-wrapper__field,
+.va-select .va-input-wrapper__field,
+.va-date-input .va-input-wrapper__field {
+  border: 1px solid #d1d5db !important;
+  border-radius: 8px !important;
+  background-color: #fff !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.va-input-wrapper:focus-within .va-input-wrapper__field,
+.va-select:focus-within .va-input-wrapper__field,
+.va-date-input:focus-within .va-input-wrapper__field {
+  border-color: var(--va-primary) !important;
+  box-shadow: 0 0 0 3px rgba(64, 122, 214, 0.15) !important;
+}
+
+.va-input-wrapper__field:hover,
+.va-select .va-input-wrapper__field:hover,
+.va-date-input .va-input-wrapper__field:hover {
+  border-color: #9ca3af !important;
+}
+
+.va-counter .va-input-wrapper__field {
+  border: 1px solid #d1d5db !important;
+  border-radius: 8px !important;
+}
+
+.va-counter:focus-within .va-input-wrapper__field {
+  border-color: var(--va-primary) !important;
+  box-shadow: 0 0 0 3px rgba(64, 122, 214, 0.15) !important;
+}
+
 :root {
   --va-modal-padding-top: 1rem;
   --va-modal-padding-right: 1rem;
