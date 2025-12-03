@@ -571,7 +571,7 @@ export default defineComponent({
 
         this.init({ message: 'Simple PDF downloaded!', color: 'success' })
       } catch (error: any) {
-        throw error
+        // throw error
       }
     },
     async getAllSpeces() {
