@@ -66,7 +66,7 @@ export default defineComponent({
       default: true,
     },
   },
-  emits: ['onView', 'onEdit', 'onDelete','on-download'],
+  emits: ['onView', 'onEdit', 'onDelete', 'on-download'],
   data() {
     return {
       sortBy: 'id',

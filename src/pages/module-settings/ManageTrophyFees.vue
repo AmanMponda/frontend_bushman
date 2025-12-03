@@ -338,11 +338,8 @@ export default defineComponent({
     this.getTrophyFees()
     this.loadSpecies()
     this.loadAreas()
-<<<<<<< HEAD
     this.loadSeasons()
     this.loadCurrencies()
-=======
->>>>>>> 4c9b42523ada15d46522a8f3f2c76622fded06ce
   },
 
   methods: {

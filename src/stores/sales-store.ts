@@ -93,6 +93,27 @@ export const useSalesInquiriesStore = defineStore('sales_inquiries', {
       }
     },
 
+    async deleteSalesInquiry(id: number) {
+      const url = `${import.meta.env.VITE_APP_BASE_URL}${import.meta.env.VITE_APP_SALES_INQUIRIES_URL}${id}/`
+
+      const config = {
+        method: 'delete',
+        maxBodyLength: Infinity,
+        url: url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+
+      try {
+        const response = await axios.request(config)
+        return response
+      } catch (error) {
+        console.error('Error deleting sales inquiry:', error)
+        throw error
+      }
+    },
+
     // In your useSalesInquiriesStore
     // In your store's getallSalesConfirmation method:
 

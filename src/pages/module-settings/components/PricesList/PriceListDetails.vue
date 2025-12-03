@@ -141,7 +141,6 @@
           </div>
         </div>
         <VaAlert v-else color="info" border="top"> No trophy fees available for this package </VaAlert>
-<<<<<<< HEAD
       </VaCardContent>
     </VaCard>
 
@@ -175,8 +174,6 @@
             </tbody>
           </table>
         </div>
-=======
->>>>>>> 4c9b42523ada15d46522a8f3f2c76622fded06ce
       </VaCardContent>
     </VaCard>
 
