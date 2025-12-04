@@ -365,6 +365,29 @@ export default defineComponent({
       }
     },
 
+    getEarliestEventDate(events: CalendarEvent[]): string | null {
+      if (!events || events.length === 0) return null
+
+      let earliestDate: Date | null = null
+
+      for (const event of events) {
+        if (event.start) {
+          const eventDate = new Date(event.start as string)
+          if (!isNaN(eventDate.getTime())) {
+            if (!earliestDate || eventDate < earliestDate) {
+              earliestDate = eventDate
+            }
+          }
+        }
+      }
+
+      if (earliestDate) {
+        return earliestDate.toISOString().split('T')[0]
+      }
+
+      return null
+    },
+
     handleEventClick(clickInfo: any) {
       console.log('Event clicked:', clickInfo.event)
       this.selectedEvent = {
@@ -418,6 +441,16 @@ export default defineComponent({
 
             this.calendarOptions.events = apiEvents
             this.calendarEvents = apiEvents
+
+            // Set calendar to start at the earliest booked date
+            if (apiEvents.length > 0) {
+              const earliestDate = this.getEarliestEventDate(apiEvents)
+              if (earliestDate) {
+                this.calendarOptions.initialDate = earliestDate
+                console.log('Setting calendar initial date to earliest booking:', earliestDate)
+              }
+            }
+
             this.calendarKey++
 
             console.log(`Loaded ${apiEvents.length} events successfully`)
