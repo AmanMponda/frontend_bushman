@@ -50,13 +50,13 @@
               <VaIcon name="person" />
             </template>
             <template #step-button-1>
-              <VaIcon name="inventory_2" />
+              <VaIcon name="event" />
             </template>
             <template #step-button-2>
-              <VaIcon name="groups" />
+              <VaIcon name="inventory_2" />
             </template>
             <template #step-button-3>
-              <VaIcon name="event" />
+              <VaIcon name="groups" />
             </template>
             <template #step-button-4>
               <VaIcon name="fact_check" />
@@ -178,8 +178,99 @@
               </div>
             </div>
 
-            <!-- Step 2: Package & Species -->
+            <!-- Step 2: Dates & Season -->
             <div v-show="currentStep === 1" class="animate-fade-in">
+              <!-- Season and Tentative Date Section -->
+              <div class="mb-6">
+                <div class="flex items-center gap-2 mb-4">
+                  <VaIcon name="event" color="primary" size="large" />
+                  <h3 class="text-xl font-bold text-gray-800">Season and Dates</h3>
+                </div>
+
+                <VaAlert color="info" class="mb-4" border="left">
+                  <template #title>Select Season First</template>
+                  Choose your preferred season. This will filter available packages and validate your date selections.
+                </VaAlert>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <VaSelect
+                    v-model="form.season"
+                    placeholder="Select Season"
+                    label="Season"
+                    :rules="[(v: any) => v || 'Season is required']"
+                    :options="seasonsOptions"
+                    searchable
+                    highlight-matched-text
+                    @update:modelValue="onSeasonSelected"
+                  />
+                  <VaDateInput
+                    v-model="form.preferred_date"
+                    label="Preferred Date"
+                    placeholder="Select Preferred Date"
+                    :rules="[(v: any) => v || 'Preferred Date is required']"
+                    :allowed-days="checkDateAllowed"
+                    :disabled="!form.season"
+                    required
+                    @update:modelValue="checkBookedDateConflict"
+                  />
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <VaDateInput
+                    v-model="form.start_date"
+                    label="Start Date"
+                    placeholder="Select Start Date"
+                    :rules="[(v: any) => v || 'Start Date is required']"
+                    :allowed-days="checkDateAllowed"
+                    :disabled="!form.season"
+                    required
+                    @update:modelValue="checkBookedDateConflict"
+                  />
+                  <VaDateInput
+                    v-model="form.end_date"
+                    label="End Date"
+                    placeholder="Select End Date"
+                    :rules="[(v: any) => v || 'End Date is required']"
+                    :allowed-days="checkDateAllowed"
+                    :disabled="!form.season"
+                    required
+                    @update:modelValue="checkBookedDateConflict"
+                  />
+                </div>
+
+                <!-- Booked Dates Warning -->
+                <VaAlert v-if="dateConflictWarning" color="warning" class="mt-4" border="left">
+                  <template #title>
+                    <VaIcon name="warning" class="mr-1" />
+                    Date Conflict Detected
+                  </template>
+                  {{ dateConflictWarning }}
+                </VaAlert>
+
+                <!-- Show booked dates for reference -->
+                <div v-if="bookedDatesForSelectedSeason.length > 0" class="mt-4">
+                  <div class="text-sm font-semibold text-gray-700 mb-2">
+                    <VaIcon name="event_busy" size="small" class="mr-1" />
+                    Already Booked Dates in This Season:
+                  </div>
+                  <div class="flex flex-wrap gap-2">
+                    <VaChip
+                      v-for="(booking, index) in bookedDatesForSelectedSeason"
+                      :key="index"
+                      color="danger"
+                      size="small"
+                      outline
+                    >
+                      {{ formatBookingDateRange(booking) }} - {{ booking.client_name }}
+                    </VaChip>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- End of Step 2 -->
+
+            <!-- Step 3: Package & Species -->
+            <div v-show="currentStep === 2" class="animate-fade-in">
               <!-- Package Reference Section -->
               <div class="mb-6">
                 <div class="flex items-center gap-2 mb-4">
@@ -187,10 +278,15 @@
                   <h3 class="text-xl font-bold text-gray-800">Package Reference</h3>
                 </div>
 
-                <VaAlert color="info" class="mb-4" border="left">
+                <VaAlert v-if="filteredPackagesOptions.length === 0" color="warning" class="mb-4" border="left">
+                  <template #title>No Packages Available</template>
+                  No packages found for the selected season. You can still add species manually below.
+                </VaAlert>
+
+                <VaAlert v-else color="info" class="mb-4" border="left">
                   <template #title>Select a Package as Reference</template>
-                  Select a package to auto-fill the form with its details. You can then customize all fields to tailor
-                  the inquiry to your client's specific needs.
+                  Showing {{ filteredPackagesOptions.length }} package(s) available for the selected season. Select a
+                  package to auto-fill the form with its details.
                 </VaAlert>
 
                 <div class="grid grid-cols-1 gap-4 mb-4">
@@ -198,10 +294,11 @@
                     v-model="form.priceListId"
                     placeholder="Select a Package for Reference (Optional)"
                     label="Reference Package"
-                    :options="packagesOptions"
+                    :options="filteredPackagesOptions"
                     searchable
                     highlight-matched-text
                     clearable
+                    :disabled="filteredPackagesOptions.length === 0"
                     @update:modelValue="populateFormFromPackage"
                   >
                     <template #content="{ value }">
@@ -443,17 +540,21 @@
                 </VaCard>
 
                 <!-- Safari Extras from Reference Package -->
-                <template
-                  v-if="form.priceListId?.selfItem?.safari_extras && form.priceListId.selfItem.safari_extras.length > 0"
-                >
-                  <h3 class="font-bold text-lg mb-2 mt-4">Safari Extras (from Price List)</h3>
+                <template v-if="selectedSafariExtras.length > 0">
+                  <h3 class="font-bold text-lg mb-2 mt-4">
+                    Safari Extras ({{ selectedSafariExtras.length }} selected)
+                  </h3>
+                  <VaAlert color="info" class="mb-4" border="left">
+                    <template #title>Customize Safari Extras</template>
+                    Remove any safari extras that your client does not require by clicking the delete button.
+                  </VaAlert>
                   <VaCard outlined class="mb-4 bg-gray-50">
                     <VaCardContent>
                       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         <div
-                          v-for="extra in form.priceListId.selfItem.safari_extras"
+                          v-for="(extra, index) in selectedSafariExtras"
                           :key="extra.id"
-                          class="p-3 border rounded-lg bg-white"
+                          class="p-3 border rounded-lg bg-white relative group"
                         >
                           <div class="flex justify-between items-start">
                             <div class="flex-1">
@@ -461,11 +562,20 @@
                               <div class="text-xs text-gray-600 mt-1">{{ extra.description }}</div>
                               <div class="mt-2 flex items-center gap-2">
                                 <VaBadge color="primary" size="small">
-                                  {{ extra.currency?.symbol }}{{ extra.amount }}
+                                  {{ extra.currency?.symbol || '$' }}{{ extra.amount }}
                                 </VaBadge>
                                 <span class="text-xs text-gray-500">{{ formatChargesPer(extra.charges_per) }}</span>
                               </div>
                             </div>
+                            <VaButton
+                              preset="plain"
+                              color="danger"
+                              size="small"
+                              icon="close"
+                              class="ml-2"
+                              title="Remove this safari extra"
+                              @click="removeSafariExtra(index)"
+                            />
                           </div>
                         </div>
                       </div>
@@ -476,8 +586,8 @@
                 <!-- Companion and Observer Rates from Reference Package -->
                 <template
                   v-if="
-                    (form.priceListId?.selfItem?.componions_hunter &&
-                      form.priceListId.selfItem.componions_hunter.length > 0) ||
+                    (form.priceListId?.selfItem?.companion_hunter_costs &&
+                      form.priceListId.selfItem.companion_hunter_costs.length > 0) ||
                     (form.priceListId?.selfItem?.observer && form.priceListId.selfItem.observer.length > 0)
                   "
                 >
@@ -487,8 +597,8 @@
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <template
                           v-if="
-                            form.priceListId.selfItem.componions_hunter &&
-                            form.priceListId.selfItem.componions_hunter.length > 0
+                            form.priceListId.selfItem.companion_hunter_costs &&
+                            form.priceListId.selfItem.companion_hunter_costs.length > 0
                           "
                         >
                           <div class="p-4 bg-blue-50 rounded-lg">
@@ -497,7 +607,7 @@
                               <span class="font-semibold text-base">Companion Hunter</span>
                             </div>
                             <div class="text-2xl font-bold text-primary">
-                              ${{ form.priceListId.selfItem.componions_hunter[0].amount }}
+                              ${{ form.priceListId.selfItem.companion_hunter_costs[0].amount }}
                             </div>
                             <div class="text-xs text-gray-600 mt-1">per companion</div>
                           </div>
@@ -522,96 +632,101 @@
                 </template>
               </div>
             </div>
-            <!-- End of Step 2 -->
+            <!-- End of Step 3 -->
 
-            <!-- Step 3: Hunt Details -->
-            <div v-show="currentStep === 2" class="animate-fade-in">
+            <!-- Step 4: Hunt Party Details -->
+            <div v-show="currentStep === 3" class="animate-fade-in">
               <!-- Participants and Hunting Days Section -->
               <div class="mb-6">
                 <div class="flex items-center gap-2 mb-4">
                   <VaIcon name="groups" color="primary" size="large" />
-                  <h3 class="text-xl font-bold text-gray-800">Participants and Hunting Days</h3>
+                  <h3 class="text-xl font-bold text-gray-800">Hunt Party Details</h3>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <VaInput
-                    v-model="form.no_of_observers"
-                    label="Number of Observers(Optional)"
-                    placeholder="Enter Number of Observers"
-                    type="number"
-                    required
-                  />
+
+                <VaAlert color="info" class="mb-4" border="left">
+                  <template #title>Party Composition</template>
+                  Specify the number of participants and hunting details for this safari.
+                </VaAlert>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <VaInput
                     v-model="form.no_of_days"
-                    label="Number of Days"
+                    label="Number of Hunting Days"
                     placeholder="Enter Number of Days"
                     type="number"
                     :rules="[(v: any) => v || 'Number of days is required']"
                     required
                   />
-                  <VaInput
-                    v-model="form.no_of_companions"
-                    label="Number of Companions(Optional)"
-                    placeholder="Enter Number of Companions"
-                    type="number"
-                    required
-                  />
                   <VaSelect
                     v-model="form.area"
                     placeholder="Select Area"
-                    label="Hunting area"
+                    label="Hunting Area"
                     :rules="[(v: any) => v || 'Hunting area is required']"
                     :options="areasOptions"
                     searchable
                     highlight-matched-text
                   />
                 </div>
-              </div>
-            </div>
-            <!-- End of Step 3 -->
 
-            <!-- Step 4: Schedule -->
-            <div v-show="currentStep === 3" class="animate-fade-in">
-              <!-- Season and Tentative Date Section -->
-              <div class="mb-6">
-                <div class="flex items-center gap-2 mb-4">
-                  <VaIcon name="event" color="primary" size="large" />
-                  <h3 class="text-xl font-bold text-gray-800">Season and Tentative Date</h3>
+                <!-- Companion and Observer Cost Cards -->
+                <div v-if="form.priceListId?.selfItem" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <!-- Companion Hunter Cost -->
+                  <VaCard
+                    v-if="form.priceListId.selfItem.companion_hunter_costs?.length > 0"
+                    outlined
+                    class="bg-blue-50"
+                  >
+                    <VaCardContent class="p-4">
+                      <div class="flex items-center gap-2 mb-2">
+                        <VaIcon name="group" color="primary" />
+                        <span class="font-semibold">Companion Hunter Rate</span>
+                      </div>
+                      <div class="text-2xl font-bold text-primary">
+                        {{ form.priceListId.selfItem.price_list_type?.currency?.symbol || '$'
+                        }}{{ form.priceListId.selfItem.companion_hunter_costs[0].amount }}
+                      </div>
+                      <div class="text-sm text-gray-600 mt-1">per companion hunter</div>
+                    </VaCardContent>
+                  </VaCard>
+
+                  <!-- Observer Cost -->
+                  <VaCard v-if="form.priceListId.selfItem.observer?.length > 0" outlined class="bg-green-50">
+                    <VaCardContent class="p-4">
+                      <div class="flex items-center gap-2 mb-2">
+                        <VaIcon name="visibility" color="success" />
+                        <span class="font-semibold">Observer Rate</span>
+                      </div>
+                      <div class="text-2xl font-bold text-success">
+                        {{ form.priceListId.selfItem.price_list_type?.currency?.symbol || '$'
+                        }}{{ form.priceListId.selfItem.observer[0].amount }}
+                      </div>
+                      <div class="text-sm text-gray-600 mt-1">per observer</div>
+                    </VaCardContent>
+                  </VaCard>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <VaSelect
-                    v-model="form.season"
-                    placeholder="Select Season"
-                    label="Season"
-                    :rules="[(v: any) => v || 'Season is required']"
-                    :options="seasonsOptions"
-                    disabled
-                    readonly
+
+                <!-- No package selected message -->
+                <VaAlert v-if="!form.priceListId?.selfItem" color="secondary" class="mb-4" border="left">
+                  <template #title>No Package Selected</template>
+                  Select a reference package in the previous step to see companion and observer rates.
+                </VaAlert>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <VaInput
+                    v-model="form.no_of_observers"
+                    label="Number of Observers (Optional)"
+                    placeholder="Enter Number of Observers"
+                    type="number"
                   />
-                  <VaDateInput
-                    v-model="form.preferred_date"
-                    label="Preferred Date"
-                    placeholder="Select Preferred Date"
-                    :rules="[(v: any) => v || 'Preferred Date is required']"
-                    :allowed-days="checkDateAllowed"
-                    required
-                  />
-                  <VaDateInput
-                    v-model="form.start_date"
-                    label="Start Date"
-                    placeholder="Select Start Date"
-                    :rules="[(v: any) => v || 'Start Date is required']"
-                    :allowed-days="checkDateAllowed"
-                    required
-                  />
-                  <VaDateInput
-                    v-model="form.end_date"
-                    label="End Date"
-                    placeholder="Select End Date"
-                    :rules="[(v: any) => v || 'End Date is required']"
-                    :allowed-days="checkDateAllowed"
-                    required
+                  <VaInput
+                    v-model="form.no_of_companions"
+                    label="Number of Companions (Optional)"
+                    placeholder="Enter Number of Companions"
+                    type="number"
                   />
                 </div>
+
+                <!-- Calculated Cost Summary -->
               </div>
             </div>
             <!-- End of Step 4 -->
@@ -748,6 +863,24 @@
                   </VaCardTitle>
                   <VaCardContent>
                     <span class="font-medium">{{ form.priceListId?.text || 'N/A' }}</span>
+                  </VaCardContent>
+                </VaCard>
+
+                <!-- Safari Extras Summary -->
+                <VaCard v-if="selectedSafariExtras.length > 0" outlined class="mb-4">
+                  <VaCardTitle class="flex items-center gap-2">
+                    <VaIcon name="hiking" size="small" color="primary" />
+                    Safari Extras ({{ selectedSafariExtras.length }})
+                  </VaCardTitle>
+                  <VaCardContent>
+                    <div class="flex flex-wrap gap-2">
+                      <VaBadge
+                        v-for="extra in selectedSafariExtras"
+                        :key="extra.id"
+                        :text="`${extra.name} - ${extra.currency?.symbol || '$'}${extra.amount}`"
+                        color="success"
+                      />
+                    </div>
                   </VaCardContent>
                 </VaCard>
               </div>
@@ -1074,15 +1207,28 @@ export default defineComponent({
       currentStep: 0,
       wizardSteps: [
         { label: 'Customer Info' },
-        { label: 'Package & Species' },
-        { label: 'Hunt Details' },
-        { label: 'Schedule' },
+        { label: 'Dates & Season' },
+        { label: 'Package Selection' },
+        { label: 'Hunt Party' },
         { label: 'Review' },
       ],
+
+      // Safari extras selected by the client
+      selectedSafariExtras: [] as any[],
+
+      // Booked dates (confirmed hunts)
+      bookedDates: [] as { start_date: string; end_date: string; client_name: string; area_id: number }[],
+      loadingBookedDates: false,
+      dateConflictWarning: '' as string,
     }
   },
   computed: {
     ...mapState(useSettingsStore, ['logo', 'salesPackagesSpecies']),
+
+    // Get booked dates for the currently selected season
+    bookedDatesForSelectedSeason(): { start_date: string; end_date: string; client_name: string; area_id: number }[] {
+      return this.bookedDates
+    },
 
     // Validation for each wizard step
     canProceedToNextStep(): boolean {
@@ -1104,22 +1250,36 @@ export default defineComponent({
             hasInput(this.form.address) &&
             (this.customerType === 'existing' ? hasInput(this.selectedExistingCustomer) : true)
           )
-        case 1: // Package & Species
-          return this.speciesObjects.length > 0
-        case 2: // Hunt Details
-          return hasInput(this.form.area) && !!(this.form.no_of_days && this.form.no_of_days > 0)
-        case 3: // Schedule
+        case 1: // Dates & Season
           return (
             hasInput(this.form.season) &&
             hasInput(this.form.preferred_date) &&
             hasInput(this.form.start_date) &&
             hasInput(this.form.end_date)
           )
+        case 2: // Package & Species
+          return this.speciesObjects.length > 0
+        case 3: // Hunt Party Details
+          return hasInput(this.form.area) && !!(this.form.no_of_days && this.form.no_of_days > 0)
         case 4: // Review
           return true
         default:
           return false
       }
+    },
+
+    // Filtered packages based on selected season
+    filteredPackagesOptions(): any[] {
+      if (!this.form.season?.value) {
+        return []
+      }
+
+      const selectedSeasonId = this.form.season.value
+      return this.packagesOptions.filter((pkg: any) => {
+        // Check if package belongs to the selected season
+        const pkgSeasonId = pkg.selfItem?.season_id || pkg.selfItem?.price_list_type?.price_list?.season_id
+        return pkgSeasonId === selectedSeasonId
+      })
     },
 
     speciesList() {
@@ -1387,6 +1547,11 @@ export default defineComponent({
         // Area and Season
         area_id: this.form.area?.value,
         season_id: this.form.season?.value,
+
+        // Safari extras selected by the client
+        safari_extras: this.selectedSafariExtras.map((extra: any) => ({
+          safari_extras_id: extra.safari_extras_id || extra.id,
+        })),
       }
 
       // Include reference price_list_id if a package was selected as reference
@@ -1409,6 +1574,7 @@ export default defineComponent({
             this.resetForm()
             this.resetValidationContactForm()
             this.speciesObjects = []
+            this.selectedSafariExtras = []
             this.isEditMode = false
             this.editingInquiryId = null
             this.customerType = 'new'
@@ -1426,6 +1592,7 @@ export default defineComponent({
             this.resetForm()
             this.resetValidationContactForm()
             this.speciesObjects = []
+            this.selectedSafariExtras = []
             this.customerType = 'new'
             this.selectedExistingCustomer = null
             this.currentStep = 0
@@ -1467,6 +1634,7 @@ export default defineComponent({
       this.isEditMode = false
       this.editingInquiryId = null
       this.speciesObjects = []
+      this.selectedSafariExtras = []
       this.customerType = 'new'
       this.selectedExistingCustomer = null
       this.currentStep = 0
@@ -1628,6 +1796,24 @@ export default defineComponent({
         })
       })
 
+      // Safari Extras - load from sales_confirmation_safary_extras
+      this.selectedSafariExtras = []
+      const safariExtrasArray = item.safari_extras || item.sales_confirmation_safari_extras || []
+      console.log('Safari extras from API:', JSON.stringify(safariExtrasArray, null, 2))
+      safariExtrasArray.forEach((extraItem: any) => {
+        // Handle both nested and flat structures
+        const extra = extraItem.safari_extra || extraItem.safary_extra || extraItem
+        this.selectedSafariExtras.push({
+          id: extra.id || extraItem.safari_extras_id || extraItem.safary_extras_id,
+          safari_extras_id: extra.id || extraItem.safari_extras_id || extraItem.safary_extras_id,
+          name: extra.name || 'Unknown',
+          description: extra.description || '',
+          amount: extra.amount || 0,
+          charges_per: extra.charges_per || '',
+          currency: extra.currency,
+        })
+      })
+
       this.init({
         message: 'Loaded inquiry data for editing',
         color: 'info',
@@ -1747,6 +1933,16 @@ export default defineComponent({
       console.log('Species item deleted:', index)
     },
 
+    removeSafariExtra(index: number) {
+      const removed = this.selectedSafariExtras.splice(index, 1)
+      if (removed.length > 0) {
+        this.init({
+          message: `Removed "${removed[0].name}" from safari extras`,
+          color: 'info',
+        })
+      }
+    },
+
     incrementQuantity(index: number) {
       if (this.speciesObjects[index]) {
         this.speciesObjects[index].quantity++
@@ -1799,6 +1995,166 @@ export default defineComponent({
       } catch (error) {
         console.log(error)
       }
+    },
+
+    // Called when user selects a season - sets date constraints and fetches booked dates
+    async onSeasonSelected(selectedSeason: any) {
+      // Reset date conflict warning
+      this.dateConflictWarning = ''
+
+      // Clear previously selected dates when season changes
+      this.form.preferred_date = null
+      this.form.start_date = null
+      this.form.end_date = null
+
+      if (!selectedSeason || !selectedSeason.selfItem) {
+        this.seasonMinDate = null
+        this.seasonMaxDate = null
+        this.bookedDates = []
+        return
+      }
+
+      const seasonData = selectedSeason.selfItem
+
+      // Set the date range constraints for the calendar from season dates
+      if (seasonData.start_date) {
+        this.seasonMinDate = new Date(seasonData.start_date)
+      }
+      if (seasonData.end_date) {
+        this.seasonMaxDate = new Date(seasonData.end_date)
+      }
+
+      // Fetch booked dates for this season
+      await this.fetchBookedDates(selectedSeason.value)
+    },
+
+    // Fetch confirmed/booked hunt dates for the selected season using the dedicated API
+    async fetchBookedDates(seasonId: number, areaId?: number) {
+      this.loadingBookedDates = true
+      this.bookedDates = []
+
+      try {
+        // Build query params
+        const params = new URLSearchParams()
+        if (seasonId) params.append('season_id', seasonId.toString())
+        if (areaId) params.append('area_id', areaId.toString())
+
+        const queryString = params.toString() ? `?${params.toString()}` : ''
+        const response = await axios.get(`/sales/booked-dates${queryString}`)
+
+        if (response.status === 200) {
+          const dataArray = Array.isArray(response.data) ? response.data : response.data.data || []
+
+          this.bookedDates = dataArray.map((item: any) => ({
+            start_date: item.start_date,
+            end_date: item.end_date,
+            client_name: item.client_name || item.entity?.full_name || 'Unknown Client',
+            area_id: item.area_id,
+          }))
+        }
+      } catch (error) {
+        console.error('Error fetching booked dates:', error)
+      } finally {
+        this.loadingBookedDates = false
+      }
+    },
+
+    // Check if selected date conflicts with booked dates
+    checkBookedDateConflict() {
+      this.dateConflictWarning = ''
+
+      const selectedStart = this.form.start_date ? new Date(this.form.start_date) : null
+      const selectedEnd = this.form.end_date ? new Date(this.form.end_date) : null
+      const preferredDate = this.form.preferred_date ? new Date(this.form.preferred_date) : null
+
+      if (!selectedStart && !selectedEnd && !preferredDate) {
+        return
+      }
+
+      // Check each booked date range for conflicts
+      for (const booking of this.bookedDates) {
+        const bookedStart = new Date(booking.start_date)
+        const bookedEnd = new Date(booking.end_date)
+
+        bookedStart.setHours(0, 0, 0, 0)
+        bookedEnd.setHours(23, 59, 59, 999)
+
+        // Check if any of the selected dates fall within a booked range
+        const checkDate = (date: Date | null) => {
+          if (!date) return false
+          const d = new Date(date)
+          d.setHours(12, 0, 0, 0)
+          return d >= bookedStart && d <= bookedEnd
+        }
+
+        // Check if date ranges overlap
+        const rangesOverlap = (start: Date | null, end: Date | null) => {
+          if (!start || !end) return false
+          const s = new Date(start)
+          const e = new Date(end)
+          s.setHours(0, 0, 0, 0)
+          e.setHours(23, 59, 59, 999)
+
+          // Ranges overlap if one starts before the other ends
+          return s <= bookedEnd && e >= bookedStart
+        }
+
+        if (
+          checkDate(preferredDate) ||
+          checkDate(selectedStart) ||
+          checkDate(selectedEnd) ||
+          rangesOverlap(selectedStart, selectedEnd)
+        ) {
+          const startStr = new Date(booking.start_date).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          })
+          const endStr = new Date(booking.end_date).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          })
+          this.dateConflictWarning = `The selected dates overlap with a confirmed hunt for "${booking.client_name}" (${startStr} - ${endStr}). Please inform the client that this time slot may not be available.`
+          return
+        }
+      }
+    },
+
+    // Format booking date range for display
+    formatBookingDateRange(booking: { start_date: string; end_date: string }) {
+      const start = new Date(booking.start_date)
+      const end = new Date(booking.end_date)
+      const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }
+
+      if (start.getFullYear() !== end.getFullYear()) {
+        return `${start.toLocaleDateString('en-US', { ...options, year: 'numeric' })} - ${end.toLocaleDateString(
+          'en-US',
+          { ...options, year: 'numeric' },
+        )}`
+      }
+
+      return `${start.toLocaleDateString('en-US', options)} - ${end.toLocaleDateString('en-US', options)}`
+    },
+
+    // Calculate additional cost for companions and observers
+    calculateAdditionalCost(): number {
+      let total = 0
+      const priceListData = this.form.priceListId?.selfItem
+
+      if (!priceListData) return 0
+
+      // Add companion hunter costs
+      if (this.form.no_of_companions > 0 && priceListData.companion_hunter_costs?.length > 0) {
+        total += this.form.no_of_companions * priceListData.companion_hunter_costs[0].amount
+      }
+
+      // Add observer costs
+      if (this.form.no_of_observers > 0 && priceListData.observer?.length > 0) {
+        total += this.form.no_of_observers * priceListData.observer[0].amount
+      }
+
+      return total
     },
 
     async getPL() {
@@ -1952,6 +2308,22 @@ export default defineComponent({
               color: 'warning',
               position: 'bottom-right',
             })
+          }
+
+          // Extract safari extras from the price list and add to selectedSafariExtras for editing
+          if (priceListData.safari_extras && Array.isArray(priceListData.safari_extras)) {
+            this.selectedSafariExtras = priceListData.safari_extras.map((extra: any) => ({
+              id: extra.id,
+              safari_extras_id: extra.id,
+              name: extra.name,
+              description: extra.description || '',
+              amount: extra.amount,
+              charges_per: extra.charges_per,
+              currency: extra.currency,
+            }))
+            console.log('Populated safari extras:', this.selectedSafariExtras)
+          } else {
+            this.selectedSafariExtras = []
           }
         }
       } catch (error) {

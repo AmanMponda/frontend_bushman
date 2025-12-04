@@ -15,7 +15,9 @@
   border: 1px solid #d1d5db !important;
   border-radius: 8px !important;
   background-color: #fff !important;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease !important;
 }
 
 .va-input-wrapper:focus-within .va-input-wrapper__field,

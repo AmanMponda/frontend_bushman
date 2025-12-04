@@ -49,12 +49,13 @@ const routes: Array<RouteRecordRaw> = [
             component: () => import('../pages/client/dashboard/SalesCalendar.vue'),
           },
 
-          // SalesConfirmation
+          // SalesConfirmation (Proposals)
           {
             name: 'sales-confirmation',
             path: 'sales-confirmation',
-            component: () => import('../pages/client/dashboard/SalesConfirmation.vue'),
+            component: () => import('../pages/client/dashboard/SalesConfirmationProposals.vue'),
           },
+
           // Contracts
           {
             name: 'sales-contracts',
