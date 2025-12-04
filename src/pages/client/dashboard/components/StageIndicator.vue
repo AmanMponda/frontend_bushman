@@ -12,7 +12,7 @@
           'is-cancelled': currentStage === 'cancelled',
         }"
       >
-        <div class="stage-dot" :style="{ backgroundColor: getStageColor(stage.value, index) }">
+        <div class="stage-dot" :style="{ backgroundColor: getStageColor(stage.value) }">
           <VaIcon v-if="isStageCompleted(stage.value)" name="check" size="small" color="white" />
           <VaIcon v-else-if="currentStage === 'cancelled'" name="close" size="small" color="white" />
           <span v-else class="stage-number">{{ index + 1 }}</span>
