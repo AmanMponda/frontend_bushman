@@ -1,79 +1,69 @@
 <template>
   <div class="calendar-page">
-    <!-- Statistics Summary Cards -->
-    <div class="summary-cards">
-      <VaCard class="summary-card">
-        <VaCardContent>
-          <div class="card-content">
-            <VaIcon name="calendar_today" size="large" color="primary" />
-            <div class="card-text">
-              <h3 class="card-title">{{ totalEvents }}</h3>
-              <p class="card-description">Total Bookings</p>
-            </div>
-          </div>
-        </VaCardContent>
-      </VaCard>
-
-      <VaCard class="summary-card">
-        <VaCardContent>
-          <div class="card-content">
-            <VaIcon name="check_circle" size="large" color="success" />
-            <div class="card-text">
-              <h3 class="card-title">{{ confirmedEvents }}</h3>
-              <p class="card-description">Confirmed</p>
-            </div>
-          </div>
-        </VaCardContent>
-      </VaCard>
-
-      <VaCard class="summary-card">
-        <VaCardContent>
-          <div class="card-content">
-            <VaIcon name="pending" size="large" color="warning" />
-            <div class="card-text">
-              <h3 class="card-title">{{ provisionEvents }}</h3>
-              <p class="card-description">Provision Sales</p>
-            </div>
-          </div>
-        </VaCardContent>
-      </VaCard>
-
-      <VaCard class="summary-card">
-        <VaCardContent>
-          <div class="card-content">
-            <VaIcon name="task_alt" size="large" color="primary" />
-            <div class="card-text">
-              <h3 class="card-title">{{ completedEvents }}</h3>
-              <p class="card-description">Completed</p>
-            </div>
-          </div>
-        </VaCardContent>
-      </VaCard>
+    <!-- Compact Header with Stats -->
+    <div class="calendar-header-bar">
+      <div class="header-left">
+        <h1 class="page-title">
+          <VaIcon name="calendar_month" color="primary" />
+          Hunting Schedule
+        </h1>
+      </div>
+      <div class="stats-row">
+        <div class="stat-chip total">
+          <VaIcon name="event" size="small" />
+          <span class="stat-value">{{ totalEvents }}</span>
+          <span class="stat-label">Total</span>
+        </div>
+        <div class="stat-chip confirmed">
+          <VaIcon name="check_circle" size="small" />
+          <span class="stat-value">{{ confirmedEvents }}</span>
+          <span class="stat-label">Confirmed</span>
+        </div>
+        <div class="stat-chip provision">
+          <VaIcon name="schedule" size="small" />
+          <span class="stat-value">{{ provisionEvents }}</span>
+          <span class="stat-label">Provision</span>
+        </div>
+        <div class="stat-chip completed">
+          <VaIcon name="task_alt" size="small" />
+          <span class="stat-value">{{ completedEvents }}</span>
+          <span class="stat-label">Completed</span>
+        </div>
+      </div>
     </div>
 
     <!-- Calendar Section -->
     <VaCard class="calendar-container">
-      <VaCardContent>
-        <div class="calendar-header">
-          <h2>Hunting Schedule Calendar</h2>
+      <VaCardContent class="calendar-content">
+        <div class="calendar-toolbar">
+          <!-- Jump to Date -->
+          <div class="jump-to-date">
+            <VaDateInput
+              v-model="jumpDate"
+              label="Jump to date"
+              class="date-picker"
+              :clearable="false"
+              @update:modelValue="handleJumpToDate"
+            />
+          </div>
           <div class="legend">
             <div class="legend-item">
-              <span class="legend-color confirmed"></span>
+              <span class="legend-dot confirmed"></span>
               <span>Confirmed</span>
             </div>
             <div class="legend-item">
-              <span class="legend-color provision"></span>
-              <span>Provision Sales</span>
+              <span class="legend-dot provision"></span>
+              <span>Provision</span>
             </div>
             <div class="legend-item">
-              <span class="legend-color completed"></span>
+              <span class="legend-dot completed"></span>
               <span>Completed</span>
             </div>
           </div>
         </div>
 
         <VaInnerLoading :loading="loadingData">
-          <FullCalendar :key="calendarKey" :options="calendarOptions" />
+          <FullCalendar ref="calendarRef" :key="calendarKey" :options="calendarOptions" />
         </VaInnerLoading>
       </VaCardContent>
     </VaCard>
@@ -261,7 +251,7 @@ export default defineComponent({
     return {
       calendarOptions: {
         plugins: [dayGridPlugin, interactionPlugin, multiMonthPlugin],
-        initialView: 'multiMonthYear',
+        initialView: 'dayGridMonth',
         eventClick: (info: any) => this.handleEventClick(info),
         events: [] as EventInput[],
         selectable: false,
@@ -273,27 +263,32 @@ export default defineComponent({
           center: 'title',
           right: 'dayGridMonth,multiMonthYear',
         },
-        // Configure for ALL months display
-        initialDate: '2024-01-01', // Start at January 2024
+        // Start at earliest booked date (set dynamically)
+        initialDate: new Date().toISOString().split('T')[0],
         views: {
           multiMonthYear: {
-            type: 'multiMonthYear',
-            duration: { years: 1 },
-            multiMonthMaxColumns: 4, // Show 4 months per row
+            type: 'multiMonth',
+            duration: { months: 12 },
+            multiMonthMaxColumns: 3,
+            multiMonthMinWidth: 280,
+            fixedWeekCount: false,
+          },
+          dayGridMonth: {
             fixedWeekCount: false,
           },
         },
         height: 'auto',
-        contentHeight: 1000, // Increased height for scrolling
-        // Show more months in view
-        multiMonthMinWidth: 300,
-        dayMaxEventRows: 3, // Show up to 3 events per day
+        contentHeight: 'auto',
+        dayMaxEventRows: 2,
+        moreLinkClick: 'popover',
       } as CalendarOptions,
       showModal: false,
       selectedEvent: null as CalendarEvent | null,
       loadingData: false,
       calendarKey: 0,
       calendarEvents: [] as CalendarEvent[],
+      jumpDate: new Date() as Date,
+      calendarApi: null as any,
     }
   },
 
@@ -422,6 +417,20 @@ export default defineComponent({
         completed: 'primary',
       }
       return colorMap[status?.toLowerCase()] || 'default'
+    },
+
+    handleJumpToDate(date: Date | null) {
+      if (!date) return
+
+      // Get the calendar API from the ref
+      const calendarRef = this.$refs.calendarRef as any
+      if (calendarRef) {
+        const calendarApi = calendarRef.getApi()
+        if (calendarApi) {
+          calendarApi.gotoDate(date)
+          console.log('Jumped to date:', date)
+        }
+      }
     },
 
     async loadCalendarEvents() {
@@ -698,204 +707,338 @@ export default defineComponent({
 
 <style scoped>
 .calendar-page {
-  padding: 20px;
-  background-color: #f5f7fa;
-  min-height: 100vh;
-  overflow-y: auto;
+  padding: 16px;
+  background-color: #f8fafc;
+  min-height: 100%;
 }
 
-.summary-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.summary-card {
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.summary-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-.card-content {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.card-text {
-  flex: 1;
-}
-
-.card-title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0;
-  color: #2c3e50;
-}
-
-.card-description {
-  margin: 5px 0 0;
-  color: #7f8c8d;
-  font-size: 0.9rem;
-}
-
-.calendar-container {
-  margin-top: 20px;
-  height: 70vh;
-  overflow-y: auto;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.calendar-header {
+.calendar-header-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding: 0 10px;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.calendar-header h2 {
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
-  color: #2c3e50;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.stats-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  background: #f1f5f9;
+  color: #475569;
+  transition: transform 0.15s ease;
+}
+
+.stat-chip:hover {
+  transform: scale(1.02);
+}
+
+.stat-chip .stat-value {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.stat-chip .stat-label {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.stat-chip.total {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.stat-chip.confirmed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.stat-chip.provision {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.stat-chip.completed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.calendar-container {
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.calendar-content {
+  padding: 12px !important;
+}
+
+.calendar-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.jump-to-date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jump-to-date .date-picker {
+  width: 180px;
+}
+
+.jump-to-date :deep(.va-input-wrapper) {
+  margin-bottom: 0;
 }
 
 .legend {
   display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
-  color: #666;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #64748b;
 }
 
-.legend-color {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
 }
 
-.legend-color.confirmed {
-  background-color: #4caf50;
+.legend-dot.confirmed {
+  background-color: #22c55e;
 }
 
-.legend-color.provision {
-  background-color: #ff9800;
+.legend-dot.provision {
+  background-color: #f59e0b;
 }
 
-.legend-color.completed {
-  background-color: #2196f3;
+.legend-dot.completed {
+  background-color: #3b82f6;
 }
 
 /* FullCalendar Custom Styles */
 :deep(.fc) {
   font-family: inherit;
-  height: auto !important;
-  min-height: 2000px;
+  font-size: 0.85rem;
+}
+
+:deep(.fc-toolbar) {
+  padding: 8px 0;
+  margin-bottom: 8px !important;
+}
+
+:deep(.fc-toolbar-title) {
+  font-size: 1.1rem !important;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+:deep(.fc-button) {
+  padding: 4px 10px !important;
+  font-size: 0.8rem !important;
+  border-radius: 6px !important;
 }
 
 :deep(.fc-event) {
   cursor: pointer;
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 0.85rem;
-  transition: all 0.2s ease;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
   border: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin: 2px;
-  white-space: normal;
-  word-break: break-word;
+  margin: 1px 2px;
 }
 
 :deep(.fc-event:hover) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: scale(1.02);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 :deep(.fc-day-today) {
-  background-color: rgba(52, 152, 219, 0.1) !important;
+  background-color: rgba(59, 130, 246, 0.08) !important;
 }
 
 :deep(.fc-daygrid-day-frame) {
-  min-height: 100px;
+  min-height: 70px;
+}
+
+:deep(.fc-daygrid-day-number) {
+  font-size: 0.8rem;
+  padding: 4px 6px;
+  color: #475569;
 }
 
 :deep(.fc-col-header-cell) {
-  background-color: #f8f9fa;
-  padding: 10px 0;
-  border-bottom: 2px solid #dee2e6;
+  background-color: #f8fafc;
+  padding: 6px 0;
   font-weight: 600;
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* 2x2 Month Layout */
 :deep(.fc-view) {
   background: white;
   border-radius: 8px;
-  overflow: visible !important;
-  height: auto !important;
-  min-height: 2000px;
+  border: 1px solid #e2e8f0;
 }
 
-:deep(.fc-view-harness) {
-  height: auto !important;
-  min-height: 2000px !important;
+:deep(.fc-scrollgrid) {
+  border: none !important;
 }
 
-:deep(.fc-scroller) {
-  overflow: visible !important;
-  height: auto !important;
+:deep(.fc-scrollgrid td, .fc-scrollgrid th) {
+  border-color: #e2e8f0 !important;
 }
 
-:deep(.fc-multimonth-sync) {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  justify-content: center !important;
-  gap: 20px !important;
-  padding: 20px !important;
-  height: auto !important;
-  min-height: 2000px !important;
+/* Multi-month compact layout */
+:deep(.fc-multimonth) {
+  border: none !important;
+  background: transparent !important;
+}
+
+:deep(.fc-multimonth-singlecol) {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 12px !important;
 }
 
 :deep(.fc-multimonth-month) {
-  border: 1px solid #e0e0e0;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  margin: 0 10px 20px 10px !important;
-  background: #fafafa;
-  min-height: 380px;
-  min-width: 45% !important;
-  max-width: 48% !important;
-  flex: 1 1 45% !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 0 !important;
+  background: white;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+:deep(.fc-multimonth-header) {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  padding: 0;
 }
 
 :deep(.fc-multimonth-title) {
-  background-color: #2c3e50;
+  background: transparent;
   color: white;
   font-weight: 600;
-  padding: 12px;
-  border-radius: 8px 8px 0 0;
-  font-size: 1.2rem;
-  margin-bottom: 10px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+:deep(.fc-multimonth-daygrid) {
+  padding: 4px;
+}
+
+:deep(.fc-multimonth-daygrid-table) {
+  font-size: 0.7rem;
+}
+
+:deep(.fc-multimonth .fc-daygrid-day-frame) {
+  min-height: 32px;
+  padding: 2px;
+}
+
+:deep(.fc-multimonth .fc-daygrid-day-number) {
+  font-size: 0.7rem;
+  padding: 2px 4px;
+}
+
+:deep(.fc-multimonth .fc-daygrid-day-events) {
+  margin-top: 0;
+}
+
+:deep(.fc-multimonth .fc-event) {
+  font-size: 0.6rem;
+  padding: 1px 3px;
+  margin: 0 1px 1px 1px;
+}
+
+:deep(.fc-multimonth .fc-col-header-cell) {
+  font-size: 0.65rem;
+  padding: 4px 0;
+}
+
+:deep(.fc-more-link) {
+  font-size: 0.65rem;
+  color: #3b82f6;
+  font-weight: 600;
 }
 
 @media (max-width: 1200px) {
-  :deep(.fc-multimonth-month) {
-    min-width: 100% !important;
-    max-width: 100% !important;
-    flex: 1 1 100% !important;
+  :deep(.fc-multimonth-singlecol) {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  :deep(.fc-multimonth-singlecol) {
+    grid-template-columns: 1fr !important;
+  }
+
+  .calendar-header-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .calendar-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .jump-to-date .date-picker {
+    width: 100%;
+  }
+
+  .stats-row {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .stat-chip .stat-label {
+    display: none;
   }
 }
 
