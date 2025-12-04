@@ -41,10 +41,10 @@
       <VaCard class="summary-card">
         <VaCardContent>
           <div class="card-content">
-            <VaIcon name="upcoming" size="large" color="info" />
+            <VaIcon name="task_alt" size="large" color="primary" />
             <div class="card-text">
-              <h3 class="card-title">{{ upcomingEvents }}</h3>
-              <p class="card-description">Upcoming</p>
+              <h3 class="card-title">{{ completedEvents }}</h3>
+              <p class="card-description">Completed</p>
             </div>
           </div>
         </VaCardContent>
@@ -66,8 +66,8 @@
               <span>Provision Sales</span>
             </div>
             <div class="legend-item">
-              <span class="legend-color pending"></span>
-              <span>Pending</span>
+              <span class="legend-color completed"></span>
+              <span>Completed</span>
             </div>
           </div>
         </div>
@@ -310,13 +310,8 @@ export default defineComponent({
       return this.calendarEvents.filter((event) => event.extendedProps?.status === 'provision_sales').length
     },
 
-    upcomingEvents(): number {
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      return this.calendarEvents.filter((event) => {
-        const startDate = new Date(event.start as string)
-        return startDate >= today
-      }).length
+    completedEvents(): number {
+      return this.calendarEvents.filter((event) => event.extendedProps?.status === 'completed').length
     },
 
     selectedEventStatus(): string {
@@ -768,8 +763,8 @@ export default defineComponent({
   background-color: #ff9800;
 }
 
-.legend-color.pending {
-  background-color: #ffc107;
+.legend-color.completed {
+  background-color: #2196f3;
 }
 
 /* FullCalendar Custom Styles */

@@ -275,7 +275,7 @@ export const useCalendarStore = defineStore('calendar_store', {
         const url =
           import.meta.env.VITE_APP_BASE_URL +
           'sales-confirmation/calendar-stats-vset' +
-          '?status_list=confirmed,provision_sales'
+          '?status_list=confirmed,provision_sales,completed'
 
         console.log('Fetching calendar data from:', url)
 
