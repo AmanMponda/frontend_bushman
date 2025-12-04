@@ -20,14 +20,14 @@
           v-for="installment in installments"
           :key="installment.id"
           class="payment-row"
-          :class="{ 'is-paid': installment.is_paid }"
+          :class="{
+            'is-paid': installment.is_paid || installment.payment_status === 'paid',
+            'is-partial': installment.payment_status === 'partial',
+          }"
         >
           <!-- Status Icon -->
           <div class="status-icon">
-            <VaIcon
-              :name="installment.is_paid ? 'check_circle' : 'radio_button_unchecked'"
-              :color="installment.is_paid ? 'success' : 'secondary'"
-            />
+            <VaIcon :name="getStatusIcon(installment)" :color="getStatusIconColor(installment)" />
           </div>
 
           <!-- Installment Details -->
@@ -35,6 +35,17 @@
             <div class="narration">{{ installment.narration }}</div>
             <div v-if="installment.triggers_stage" class="triggers-badge">
               <VaChip size="small" color="info" flat> → {{ formatStageName(installment.triggers_stage) }} </VaChip>
+            </div>
+            <!-- Show partial payment info -->
+            <div v-if="installment.payment_status === 'partial'" class="partial-info">
+              <span class="text-xs text-orange-600">
+                Paid: {{ formatCurrency(installment.amount_paid || 0) }} / Remaining:
+                {{ formatCurrency(installment.remaining_balance || 0) }}
+              </span>
+            </div>
+            <!-- Show payment count if multiple payments -->
+            <div v-if="installment.payments && installment.payments.length > 1" class="payments-count">
+              <VaChip size="small" color="secondary" flat> {{ installment.payments.length }} payments </VaChip>
             </div>
           </div>
 
@@ -45,7 +56,7 @@
 
           <!-- Payment Info / Action -->
           <div class="action-section">
-            <template v-if="installment.is_paid">
+            <template v-if="installment.is_paid || installment.payment_status === 'paid'">
               <div class="paid-info">
                 <span class="paid-badge">PAID</span>
                 <span v-if="installment.paid_at" class="paid-date">
@@ -57,7 +68,24 @@
                   size="small"
                   color="secondary"
                   icon="undo"
-                  title="Reverse Payment"
+                  title="Reverse All Payments"
+                  @click="$emit('unpay', installment)"
+                />
+              </div>
+            </template>
+            <template v-else-if="installment.payment_status === 'partial'">
+              <div class="partial-actions">
+                <span class="partial-badge">PARTIAL</span>
+                <VaButton size="small" color="warning" @click="$emit('record-payment', installment)">
+                  Add Payment
+                </VaButton>
+                <VaButton
+                  v-if="allowUnpay"
+                  preset="plain"
+                  size="small"
+                  color="secondary"
+                  icon="undo"
+                  title="Reverse All Payments"
                   @click="$emit('unpay', installment)"
                 />
               </div>
@@ -84,7 +112,10 @@
         </div>
         <div class="summary-divider">|</div>
         <div class="summary-item count">
-          <span>{{ summary.paid_count }}/{{ summary.paid_count + summary.unpaid_count }} Installments</span>
+          <span>
+            {{ summary.fully_paid_count || summary.paid_count }}/{{ totalInstallmentCount }} Fully Paid
+            <template v-if="summary.partial_paid_count"> ({{ summary.partial_paid_count }} partial) </template>
+          </span>
         </div>
       </div>
 
@@ -103,6 +134,14 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
 
+interface Payment {
+  id: number
+  amount: number
+  payment_reference?: string
+  payment_method?: string
+  paid_at: string
+}
+
 interface Installment {
   id: number
   narration: string
@@ -110,18 +149,23 @@ interface Installment {
   installment_type?: string
   triggers_stage?: string | null
   is_paid: boolean
+  payment_status?: 'paid' | 'partial' | 'unpaid'
   paid_at?: string | null
   amount_paid?: number | null
+  remaining_balance?: number | null
   payment_reference?: string | null
   paid_by?: string | null
+  payments?: Payment[]
 }
 
 interface PaymentSummary {
   total_due: number
   total_paid: number
   total_unpaid: number
-  paid_count: number
-  unpaid_count: number
+  paid_count?: number
+  unpaid_count?: number
+  fully_paid_count?: number
+  partial_paid_count?: number
 }
 
 export default defineComponent({
@@ -154,8 +198,36 @@ export default defineComponent({
       if (!this.summary || this.summary.total_due === 0) return 0
       return Math.round((this.summary.total_paid / this.summary.total_due) * 100)
     },
+    totalInstallmentCount(): number {
+      if (!this.summary) return this.installments.length
+      return (
+        (this.summary.fully_paid_count || this.summary.paid_count || 0) +
+        (this.summary.partial_paid_count || 0) +
+        (this.summary.unpaid_count || 0)
+      )
+    },
   },
   methods: {
+    getStatusIcon(installment: Installment): string {
+      if (installment.is_paid || installment.payment_status === 'paid') {
+        return 'check_circle'
+      }
+      if (installment.payment_status === 'partial') {
+        return 'hourglass_top'
+      }
+      return 'radio_button_unchecked'
+    },
+
+    getStatusIconColor(installment: Installment): string {
+      if (installment.is_paid || installment.payment_status === 'paid') {
+        return 'success'
+      }
+      if (installment.payment_status === 'partial') {
+        return 'warning'
+      }
+      return 'secondary'
+    },
+
     formatCurrency(amount: number): string {
       return new Intl.NumberFormat('en-US', {
         style: 'currency',

@@ -60,20 +60,31 @@ interface PipelineCounts {
 }
 
 // Payment installment interface
+interface PaymentTransaction {
+  id: number
+  amount: number
+  payment_reference: string | null
+  paid_at: string
+  paid_by?: string | null
+}
+
 interface Installment {
   id: number
   narration: string
   amount_due: number
+  amount_paid: number
+  remaining_balance: number
+  payment_status: 'paid' | 'partial' | 'unpaid'
   installment_type?: string
   triggers_stage?: string | null
   is_paid: boolean
   paid_at: string | null
-  amount_paid: number | null
   payment_reference: string | null
   paid_by?: string | null
   due_days?: number | null
   amount_due_type?: string | null
   due_days_type?: string | null
+  payments: PaymentTransaction[]
 }
 
 // Payment status response interface
@@ -85,8 +96,10 @@ interface PaymentStatus {
     total_due: number
     total_paid: number
     total_unpaid: number
-    paid_count: number
+    fully_paid_count: number
+    partial_paid_count: number
     unpaid_count: number
+    paid_count?: number // deprecated, use fully_paid_count
   }
 }
 
@@ -99,9 +112,12 @@ interface PaymentResponse {
     narration: string
     amount_due: number
     amount_paid: number
+    remaining_balance: number
+    payment_status: 'paid' | 'partial' | 'unpaid'
     paid_at: string
     payment_reference: string
     proposal_id: number
+    payments: PaymentTransaction[]
   }
   stage_changed: boolean
   old_stage?: string
@@ -516,6 +532,34 @@ export const useProposalStore = defineStore('proposals', {
       } catch (error: any) {
         this.error = error.message || 'Failed to reverse payment'
         console.error('Error reversing payment:', error)
+        throw error
+      } finally {
+        this.saving = false
+      }
+    },
+
+    async deletePayment(paymentId: number): Promise<{ success: boolean; message: string }> {
+      this.saving = true
+      this.error = null
+
+      try {
+        const url = `${import.meta.env.VITE_APP_BASE_URL}sales-confirmation/payments/${paymentId}`
+        const response = await axios.delete(url)
+
+        // If deleted successfully and we have paymentStatus, refresh it
+        if (response.data.success && this.paymentStatus) {
+          await this.fetchPayments(this.paymentStatus.proposal_id)
+        }
+
+        // Also refresh current proposal if present
+        if (response.data.success && this.currentProposal) {
+          await this.fetchProposalById(this.currentProposal.id)
+        }
+
+        return response.data
+      } catch (error: any) {
+        this.error = error.message || 'Failed to delete payment'
+        console.error('Error deleting payment:', error)
         throw error
       } finally {
         this.saving = false

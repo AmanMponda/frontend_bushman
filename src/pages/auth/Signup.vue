@@ -115,8 +115,8 @@ const submit = async () => {
     const response = await axios.request(config)
 
     if (response.status === 201) {
-      sessionStorage.setItem('access', response.data.access)
-      sessionStorage.setItem('refresh', response.data.access)
+      sessionStorage.setItem('access', JSON.stringify(response.data.access))
+      sessionStorage.setItem('refresh', JSON.stringify(response.data.refresh))
 
       init({
         message: "You've successfully signed up",

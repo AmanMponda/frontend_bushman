@@ -17,15 +17,32 @@
           <span class="label">Amount Due:</span>
           <span class="amount">{{ formatCurrency(installment?.amount_due || 0) }}</span>
         </div>
+        <!-- Show partial payment info if applicable -->
+        <div v-if="hasPartialPayment" class="partial-payment-info mt-3">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-600">Already Paid:</span>
+            <span class="text-green-600 font-medium">{{ formatCurrency(installment?.amount_paid || 0) }}</span>
+          </div>
+          <div class="flex justify-between text-sm mt-1">
+            <span class="text-gray-600">Remaining Balance:</span>
+            <span class="text-orange-600 font-semibold">{{ formatCurrency(remainingBalance) }}</span>
+          </div>
+        </div>
       </div>
 
       <!-- Stage Change Warning -->
-      <div v-if="triggersStage" class="stage-warning mb-6">
+      <div v-if="triggersStage && willCompleteInstallment" class="stage-warning mb-6">
         <VaIcon name="flash_on" color="warning" />
         <span>
           This payment will move the sale to
           <strong>{{ formatStageName(triggersStage) }}</strong> stage
         </span>
+      </div>
+
+      <!-- Partial Payment Notice -->
+      <div v-if="!willCompleteInstallment && form.amount_paid" class="partial-notice mb-6">
+        <VaIcon name="info" color="info" />
+        <span>This is a partial payment.</span>
       </div>
 
       <!-- Payment Form -->
@@ -71,6 +88,9 @@ interface Installment {
   id: number
   narration: string
   amount_due: number
+  amount_paid?: number
+  remaining_balance?: number
+  payment_status?: 'paid' | 'partial' | 'unpaid'
   installment_type?: string
   triggers_stage?: string | null
   is_paid: boolean
@@ -105,6 +125,24 @@ export default defineComponent({
   computed: {
     isFormValid(): boolean {
       return !!this.form.amount_paid && this.form.amount_paid > 0
+    },
+
+    hasPartialPayment(): boolean {
+      if (!this.installment) return false
+      return this.installment.payment_status === 'partial' || (this.installment.amount_paid || 0) > 0
+    },
+
+    remainingBalance(): number {
+      if (!this.installment) return 0
+      if (this.installment.remaining_balance !== undefined) {
+        return this.installment.remaining_balance
+      }
+      return (this.installment.amount_due || 0) - (this.installment.amount_paid || 0)
+    },
+
+    willCompleteInstallment(): boolean {
+      if (!this.installment || !this.form.amount_paid) return false
+      return this.form.amount_paid >= this.remainingBalance
     },
 
     triggersStage(): string | null {
@@ -247,6 +285,23 @@ export default defineComponent({
 
 .stage-warning strong {
   color: #1f2937;
+}
+
+.partial-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: #e0f2fe;
+  border-radius: 8px;
+  border-left: 4px solid #2196f3;
+  font-size: 0.9rem;
+  color: #0369a1;
+}
+
+.partial-payment-info {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 12px;
 }
 
 .payment-form {

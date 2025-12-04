@@ -251,12 +251,20 @@ interface Installment {
   id: number
   narration: string
   amount_due: number
+  amount_paid?: number
+  remaining_balance?: number
+  payment_status?: 'paid' | 'partial' | 'unpaid'
   installment_type?: string
   triggers_stage?: string | null
   is_paid: boolean
   paid_at?: string | null
-  amount_paid?: number | null
   payment_reference?: string | null
+  payments?: Array<{
+    id: number
+    amount: number
+    payment_reference: string | null
+    paid_at: string
+  }>
 }
 
 export default defineComponent({
@@ -518,11 +526,15 @@ export default defineComponent({
         this.showPaymentModal = false
         this.selectedInstallment = null
 
-        // Show success message with stage change info
+        // Build success message based on payment status
         let message = 'Payment recorded successfully'
         if (result.stage_changed) {
-          message = result.message || `Payment recorded. Stage updated to ${result.new_stage}`
+          message = result.message || `Payment recorded. Stage updated to ${this.formatStatus(result.new_stage || '')}`
+        } else if (result.data?.payment_status === 'partial') {
+          const remaining = this.formatCurrency(result.data.remaining_balance)
+          message = `Partial payment recorded. Remaining balance: ${remaining}`
         }
+
         this.$vaToast?.init({
           message,
           color: 'success',
