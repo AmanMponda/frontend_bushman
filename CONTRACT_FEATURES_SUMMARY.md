@@ -1,14 +1,17 @@
 # Contract Management System - Implementation Summary
 
 ## Overview
+
 Comprehensive contract management system has been implemented with professional UI, PDF generation, and full CRUD operations support.
 
 ## ✅ Completed Features
 
 ### 1. Enhanced Contract Details Component
+
 **File:** `src/pages/client/dashboard/components/ContractDetails.vue`
 
 Features:
+
 - Professional card-based layout with Vuestic UI components
 - Contract information header with status badge
 - Four quick-stat cards (Start Date, End Date, Duration, Created)
@@ -24,9 +27,11 @@ Features:
 - Responsive grid layout (mobile-friendly)
 
 ### 2. Contract PDF Generation
+
 **File:** `src/utils/contractPdfGenerator.ts`
 
 Features:
+
 - Professional PDF document generation
 - Logo and company header integration
 - Company contact information included
@@ -39,15 +44,18 @@ Features:
 - Error handling with user-friendly messages
 
 Usage:
+
 ```typescript
 import { generateContractPDF } from '@/utils/contractPdfGenerator'
 await generateContractPDF(contractData)
 ```
 
 ### 3. Enhanced Contracts Store
+
 **File:** `src/stores/contracts-store.ts`
 
 New Actions:
+
 - `getContracts(contractorType)` - Get contracts list (with 404 error handling)
 - `createContract(payload)` - Create new contract
 - `deleteContract(contractId)` - Delete a contract
@@ -56,6 +64,7 @@ New Actions:
 - `createPermit(payload)` - Create permit
 
 Features:
+
 - Graceful 404 error handling
 - URL object construction for proper endpoint formation
 - Detailed console logging with emoji indicators
@@ -63,9 +72,11 @@ Features:
 - Contract data transformation for display
 
 ### 4. Main Contracts Component
+
 **File:** `src/pages/client/dashboard/Contracts.vue`
 
 Features:
+
 - Tab-based interface (Main Hunters, Companion Hunters)
 - Contract list with data table
 - Pre-selection of sales confirmation via route parameter (`?salesConfirmationId=ID`)
@@ -79,9 +90,11 @@ Features:
 - Warning alert for unavailable endpoint
 
 ### 5. Contract Form
+
 **File:** `src/pages/client/dashboard/components/ContractForm.vue`
 
 Features:
+
 - Form pre-population from sales confirmation
 - Auto-selects sales confirmation from dropdown
 - Contract creation with proper data validation
@@ -89,7 +102,9 @@ Features:
 - Emits `contract-created` event to parent
 
 ### 6. Seamless Workflow Integration
+
 Route from Sales Inquiry Details → Contract Creation:
+
 1. Sales inquiry details page includes "Create Contract" button
 2. Button navigates to contracts page with `?salesConfirmationId={id}`
 3. Contract form pre-selects the sales confirmation
@@ -99,6 +114,7 @@ Route from Sales Inquiry Details → Contract Creation:
 ## 📊 Data Structure
 
 ### Contract Object
+
 ```typescript
 {
   id: number
@@ -111,7 +127,7 @@ Route from Sales Inquiry Details → Contract Creation:
   created_at: string (ISO datetime)
   updated_at: string (ISO datetime)
   pdf: string (PDF URL, nullable)
-  
+
   // Relations
   sales_confirmation_proposal: {
     sales_inquiry: {
@@ -129,12 +145,12 @@ Route from Sales Inquiry Details → Contract Creation:
       hunting_type: { name: string }
     }>
   }
-  
+
   entity: {
     id: number
     full_name: string
   } // For companion contracts
-  
+
   price_break_down: {
     total_amount: { amount: number, currency: { symbol: string } }
     companion_cost_details: { number_of_companions: number }
@@ -154,11 +170,13 @@ VITE_APP_ENTITY_CONTRACT_PERMIT_VSET_URL=sales-confirmation/entity-contract-perm
 ## 🚀 API Endpoints (Backend)
 
 ### GET - List Contracts
+
 ```
 GET /sales-confirmation/sales-confirmation-contract-vset/?contractor_type=MAIN_HUNTER
 ```
 
 ### POST - Create Contract
+
 ```
 POST /sales-confirmation/sales-confirmation-contract-vset/
 Body: {
@@ -172,12 +190,14 @@ Body: {
 ```
 
 ### PATCH - Update Contract
+
 ```
 PATCH /sales-confirmation/sales-confirmation-contract-vset/{id}/
 Body: { ...contract fields }
 ```
 
 ### DELETE - Delete Contract
+
 ```
 DELETE /sales-confirmation/sales-confirmation-contract-vset/{id}/
 ```
@@ -234,16 +254,19 @@ ContractDetails (full information displayed)
 1. **404 Error Handling**: Backend endpoint may return 404 during development. UI gracefully handles this with user-friendly messages.
 
 2. **Pre-population**: Route parameter `?salesConfirmationId=ID` automatically:
+
    - Opens the contract form
    - Pre-selects the sales confirmation from dropdown
    - Reduces manual form entry
 
 3. **PDF Generation**: Generated on-the-fly using jsPDF library:
+
    - No server-side generation needed
    - Logo fetched from public folder
    - Professional formatting with headers/footers
 
 4. **Status Colors**:
+
    - ACTIVE: Success (green)
    - PENDING: Warning (yellow)
    - COMPLETED: Info (blue)
