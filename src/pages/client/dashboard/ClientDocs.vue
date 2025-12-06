@@ -6,18 +6,18 @@
       <!-- Last Name -->
       <VaSelect
         v-model="form.document_type"
-        placeholder="Select Counrty"
+        placeholder="Select Document Type"
         label="Document Type"
         :options="doctypelist"
         searchable
         highlight-matched-text
       />
 
-      <!-- Last Name -->
+      <!-- Document Owner -->
       <VaSelect
         v-model="form.forWho"
-        placeholder="Document Owner"
-        label="Owner"
+        placeholder="Select Document Owner"
+        label="Document Owner"
         :options="observerCompanions"
         searchable
         highlight-matched-text
@@ -25,16 +25,15 @@
 
       <VaFileUpload
         v-model="form.document"
-        upload-button-text="Upload your photo"
+        upload-button-text="Upload Document"
         color="secondary"
-        label="Upload Photo"
+        label="Upload Document"
         dropzone
         undo
-        size="10mb"
-        type="gallery"
-        file-types="image/jpeg, image/png"
+        size="50mb"
+        file-types="image/jpeg, image/png, image/pdf, application/pdf, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         undo-duration="500"
-        :rules="[(v: any) => v.length > 0 || 'Photo is required']"
+        :rules="[(v: any) => v.length > 0 || 'Document is required']"
         :max-files="1"
       />
     </div>
@@ -73,11 +72,11 @@ const observerCompanions: any[] = []
 
 const doctypelist: any[] = [
   {
-    text: 'Travel Packet(Passport Copy',
+    text: 'Travel Packet (Passport Copy)',
     value: 'Passport_Copy',
   },
   {
-    text: 'Travel Packet(Passport  Photo',
+    text: 'Travel Packet (Passport Photo)',
     value: 'Passport_Photo',
   },
   {
@@ -86,11 +85,19 @@ const doctypelist: any[] = [
   },
   {
     text: 'Gun Permits',
-    value: 'Gun Permits',
+    value: 'Gun_Permits',
   },
   {
     text: 'CITES Documentation',
-    value: 'CITES Documentation',
+    value: 'CITES_Documentation',
+  },
+  {
+    text: 'Sales Invoice',
+    value: 'sales_invoice',
+  },
+  {
+    text: 'Receipt',
+    value: 'receipt',
   },
 ]
 

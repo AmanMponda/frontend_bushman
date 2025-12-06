@@ -55,7 +55,12 @@
                 <template v-if="currentTab.content === 'main_hunters_contracts'">
                   <VaDataTable :items="contracts" :columns="columns" :loading="loadingContracts">
                     <template #cell(actions)="{ rowData }">
-                      <VaButton preset="plain" icon="download" @click="downloadPdf(rowData.pdf)"></VaButton>
+                      <VaButton
+                        preset="plain"
+                        icon="download"
+                        :disabled="!rowData.pdf"
+                        @click="downloadPdf(rowData.pdf)"
+                      ></VaButton>
                       <VaButton preset="plain" icon="visibility" @click="viewContract(rowData.selfitem)"></VaButton>
                     </template>
                   </VaDataTable>
@@ -63,7 +68,12 @@
                 <template v-if="currentTab.content === 'componions_contracts'">
                   <VaDataTable :items="contracts" :columns="columns" :loading="loadingContracts">
                     <template #cell(actions)="{ rowData }">
-                      <VaButton preset="plain" icon="download" @click="downloadPdf(rowData.pdf)"></VaButton>
+                      <VaButton
+                        preset="plain"
+                        icon="download"
+                        :disabled="!rowData.pdf"
+                        @click="downloadPdf(rowData.pdf)"
+                      ></VaButton>
                       <VaButton preset="plain" icon="visibility" @click="viewContract(rowData.selfitem)"></VaButton>
                     </template>
                   </VaDataTable>
@@ -112,7 +122,6 @@ export default defineComponent({
 
     return {
       columns,
-      downloadPdf,
       item: null as any,
       showDetails: false,
       showAddContractForm: false,
@@ -131,6 +140,29 @@ export default defineComponent({
   },
   methods: {
     ...mapActions(useContractsStore, ['getContracts']),
+
+    async downloadPdf(pdfUrl: string) {
+      if (!pdfUrl) {
+        alert('PDF is not available for this contract yet.')
+        return
+      }
+      try {
+        await downloadPdf(pdfUrl, 'contract.pdf')
+      } catch (error: any) {
+        console.error('PDF download error:', error)
+        const message = error?.message || 'Unknown error'
+
+        if (message.includes('500')) {
+          alert(
+            'The PDF generation service is temporarily unavailable.\n\nPlease try again in a few moments. If the problem persists, contact support.',
+          )
+        } else if (message.includes('404')) {
+          alert('The PDF file was not found on the server. The contract may not have been processed yet.')
+        } else {
+          alert('Failed to download PDF. Please try again or contact support.\n\nError: ' + message)
+        }
+      }
+    },
 
     viewContract(contract: any) {
       this.item = contract

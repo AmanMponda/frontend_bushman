@@ -9,7 +9,12 @@ const downloadPdf = async (base64OrUrl: string, filename = 'price-list-report.pd
     // If value looks like a URL, fetch it as blob and download
     if (typeof base64OrUrl === 'string' && /^https?:\/\//i.test(base64OrUrl)) {
       const res = await fetch(base64OrUrl)
-      if (!res.ok) throw new Error(`Failed to fetch PDF from URL (status ${res.status})`)
+      if (!res.ok) {
+        console.error(`Failed to fetch PDF from URL (status ${res.status})`)
+        throw new Error(
+          `Failed to fetch PDF from URL (status ${res.status}). The PDF may not be generated yet or the server encountered an error.`,
+        )
+      }
       const blob = await res.blob()
       const objectUrl = URL.createObjectURL(blob)
       const a = document.createElement('a')

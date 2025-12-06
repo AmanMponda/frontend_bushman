@@ -429,12 +429,29 @@ export const useSalesInquiriesStore = defineStore('sales_inquiries', {
       return response
     },
 
-    async getCompanions(salesInquiryId: any, usedOptionsList: boolean = false) {
-      const url =
-        import.meta.env.VITE_APP_BASE_URL +
-        import.meta.env.VITE_APP_SALES_CONFIRMATION_COMPANION_VSET_URL +
-        '?sales_inquiry_id=' +
-        salesInquiryId
+    async getCompanions(proposalIdOrPayload: any, usedOptionsList: boolean = false) {
+      let url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_SALES_CONFIRMATION_COMPANION_VSET_URL
+
+      // Build query parameters based on input type
+      const queryParams: string[] = []
+
+      if (typeof proposalIdOrPayload === 'object') {
+        // If passed an object with entity_id and sales_confirmation_id
+        if (proposalIdOrPayload.entity_id) {
+          queryParams.push('entity_id=' + proposalIdOrPayload.entity_id)
+        }
+        if (proposalIdOrPayload.sales_confirmation_id) {
+          queryParams.push('sales_confirmation_id=' + proposalIdOrPayload.sales_confirmation_id)
+        }
+      } else {
+        // Legacy support: if passed a single ID, assume it's sales_confirmation_id
+        queryParams.push('sales_confirmation_id=' + proposalIdOrPayload)
+      }
+
+      if (queryParams.length > 0) {
+        url += '?' + queryParams.join('&')
+      }
+
       const config = {
         method: 'get',
         maxBodyLength: Infinity,
@@ -445,7 +462,9 @@ export const useSalesInquiriesStore = defineStore('sales_inquiries', {
       }
       try {
         const response = await axios.request(config)
-        if (usedOptionsList === false)
+        console.log('Companions response:', response)
+
+        if (usedOptionsList === false) {
           if (response.status === 200) {
             this.companions = response.data.map((item: any) => {
               return {
@@ -458,7 +477,7 @@ export const useSalesInquiriesStore = defineStore('sales_inquiries', {
           } else {
             return response
           }
-        else {
+        } else {
           this.companions = response.data.map((item: any) => {
             return {
               text: item.companion.full_name,
@@ -467,8 +486,9 @@ export const useSalesInquiriesStore = defineStore('sales_inquiries', {
           })
           return response
         }
-      } catch (error) {
-        console.log(error)
+      } catch (error: any) {
+        console.log('Error fetching companions:', error)
+        this.companions = []
         return error
       }
     },

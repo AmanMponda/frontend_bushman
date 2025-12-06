@@ -42,7 +42,7 @@ export const useContractsStore = defineStore('sales_contracts', {
               start_date: formatDateTime(contract.start_date),
               end_date: formatDateTime(contract.end_date),
               created_at: formatDateTime(contract.created_at),
-              client_name: contract?.sales_confirmation_proposal?.sales_inquiry?.entity?.full_name,
+              client_name: contract.client_name || 'Unknown Client',
               pdf: contract.pdf,
               selfitem: contract,
             }
@@ -121,14 +121,16 @@ export const useContractsStore = defineStore('sales_contracts', {
     async createContract(payload: any) {
       const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_SALES_CONFIRMATION_CONTRACT_VSET_URL
 
-      const data = JSON.stringify({
+      const contractData = {
         sales_confirmation_proposal_id: payload.sales_confirmation_proposal_id,
-        entity_id: payload.entity_id,
+        entity_id: payload.entity_id || null,
         start_date: format(payload.start_date, 'yyyy-MM-dd'),
-        contractor_type: payload.contractor_type,
+        contractor_type: payload.contractor_type || 'MAIN_HUNTER',
         end_date: format(payload.end_date, 'yyyy-MM-dd'),
-        description: 'Updated contract description.',
-      })
+        description: payload.description || 'Updated contract description.',
+      }
+
+      console.log('Creating contract with payload:', contractData)
 
       const config = {
         method: 'post',
@@ -137,12 +139,16 @@ export const useContractsStore = defineStore('sales_contracts', {
         headers: {
           'Content-Type': 'application/json',
         },
-        data: data,
+        data: JSON.stringify(contractData),
       }
 
-      const response = await axios.request(config)
-
-      return response
+      try {
+        const response = await axios.request(config)
+        return response
+      } catch (error: any) {
+        console.error('Contract creation error:', error.response?.data)
+        throw error
+      }
     },
   },
 })

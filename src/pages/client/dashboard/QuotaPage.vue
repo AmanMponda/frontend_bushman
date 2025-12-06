@@ -280,19 +280,65 @@ export default defineComponent({
         // Create document with proper typing
         const doc = new jsPDF('p', 'mm', 'a4') as any // Cast to any to bypass TypeScript issues
 
-        // ===== TITLE SECTION =====
-        doc.setFontSize(20)
-        doc.setTextColor(40, 40, 40)
-        doc.text('QUOTA MANAGEMENT REPORT', 105, 20, { align: 'center' } as any)
+        // ===== COMPANY HEADER WITH LOGO AND DETAILS =====
+        let logoY = 10
+        const contentStartX = 50
 
-        doc.setFontSize(10)
+        // Try to load and add logo
+        try {
+          const logoImg = new Image()
+          logoImg.onload = () => {
+            doc.addImage(logoImg, 'PNG', 14, logoY, 30, 30) // Logo on left
+          }
+          logoImg.src = '/logo.png'
+        } catch (logoError) {
+          console.warn('Could not load logo:', logoError)
+        }
+
+        // Company Header with Details - Right side
+        doc.setFontSize(14)
+        doc.setTextColor(40, 40, 40)
+        doc.setFont(undefined, 'bold')
+        doc.text('BUSHMAN TANZANIA', contentStartX, logoY + 5)
+
+        doc.setFontSize(9)
+        doc.setTextColor(60, 60, 60)
+        doc.setFont(undefined, 'normal')
+
+        const companyDetails = [
+          'Plot 61-64, Kihonda Industrial Area',
+          'Morogoro, Tanzania',
+          'Tel: +255 756 888 222',
+          'Email: info@bushman.co.tz',
+          'Website: www.bushman.co',
+        ]
+
+        let detailY = logoY + 5
+        companyDetails.forEach((detail) => {
+          doc.text(detail, contentStartX, detailY)
+          detailY += 5
+        })
+
+        // Add separator line
+        logoY = logoY + 35
+        doc.setDrawColor(200, 200, 200)
+        doc.line(14, logoY, 196, logoY)
+
+        // ===== TITLE SECTION =====
+        doc.setFontSize(16)
+        doc.setTextColor(40, 40, 40)
+        doc.setFont(undefined, 'bold')
+        doc.text('QUOTA MANAGEMENT REPORT', 105, logoY + 10, { align: 'center' } as any)
+
+        doc.setFontSize(9)
         doc.setTextColor(100, 100, 100)
-        doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 105, 28, {
+        doc.setFont(undefined, 'normal')
+        doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 105, logoY + 18, {
           align: 'center',
         } as any)
 
         // ===== FILTERS SECTION =====
-        let yPos = 40
+        let yPos = logoY + 28
         const filters: string[] = []
 
         if (this.quota && this.quota !== 'all' && this.quota !== null) {
@@ -311,53 +357,139 @@ export default defineComponent({
         }
 
         if (filters.length > 0) {
-          doc.setFontSize(10)
-          doc.setTextColor(60, 60, 60)
+          doc.setFontSize(9)
+          doc.setTextColor(80, 80, 80)
+          doc.setFont(undefined, 'normal')
           doc.text(`Filters: ${filters.join(' | ')}`, 14, yPos)
-          yPos += 10
+          yPos += 8
         }
 
-        // ===== SUMMARY SECTION =====
-        doc.setFontSize(12)
-        doc.setTextColor(0, 0, 0)
+        yPos += 5
+
+        // ===== SUMMARY STATISTICS TABLE =====
+        doc.setFontSize(11)
+        doc.setTextColor(40, 40, 40)
+        doc.setFont(undefined, 'bold')
         doc.text('SUMMARY STATISTICS', 14, yPos)
-        yPos += 10
+        yPos += 7
 
-        // Create summary table with proper typing
-        const summaryData: Array<[string, string | number]> = [
-          ['Total Quota Balance:', this.quotaStats.total_quota_balance],
-          ['Available Quota:', this.quotaStats.available_quota],
-          ['Confirmed:', this.quotaStats.confirmed],
-          ['Provisioned:', this.quotaStats.provisioned],
-          ['Cancelled:', this.quotaStats.cancelled],
-          ['Taken:', this.quotaStats.taken],
-          ['Total Allocated:', this.quotaStats.total_allocated],
-          ['Utilisation Rate:', `${this.quotaStats.utilisation_percentage}%`],
-        ]
+        // Create summary table using autoTable if available, otherwise manual
+        if (typeof doc.autoTable === 'function') {
+          const summaryData: Array<[string, string | number]> = [
+            ['Total Quota Balance', String(this.quotaStats.total_quota_balance)],
+            ['Available Quota', String(this.quotaStats.available_quota)],
+            ['Confirmed', String(this.quotaStats.confirmed)],
+            ['Provisioned', String(this.quotaStats.provisioned)],
+            ['Cancelled', String(this.quotaStats.cancelled)],
+            ['Taken', String(this.quotaStats.taken)],
+            ['Total Allocated', String(this.quotaStats.total_allocated)],
+            ['Utilisation Rate', `${this.quotaStats.utilisation_percentage}%`],
+          ]
 
-        // Draw summary manually
-        let summaryY = yPos
-        summaryData.forEach(([label, value]) => {
-          doc.setFontSize(10)
-          doc.text(String(label), 20, summaryY) // Convert to string
-          doc.text(String(value), 80, summaryY) // Convert to string
-          summaryY += 7
-        })
+          doc.autoTable({
+            head: [['Metric', 'Value']],
+            body: summaryData,
+            startY: yPos,
+            theme: 'grid' as any,
+            styles: {
+              fontSize: 9,
+              cellPadding: 5,
+              overflow: 'linebreak' as any,
+              halign: 'left' as any,
+              valign: 'middle' as any,
+            },
+            headStyles: {
+              fillColor: [41, 128, 185],
+              textColor: [255, 255, 255],
+              fontStyle: 'bold',
+              fontSize: 10,
+              halign: 'center' as any,
+            },
+            bodyStyles: {
+              textColor: [50, 50, 50],
+            },
+            alternateRowStyles: {
+              fillColor: [240, 248, 255],
+            },
+            columnStyles: {
+              0: { halign: 'left' as any, cellWidth: 90 },
+              1: { halign: 'center' as any, cellWidth: 50 },
+            },
+            margin: { left: 14, right: 14 },
+            pageBreak: 'avoid' as any,
+          })
 
-        yPos = summaryY + 10
+          yPos = (doc as any).lastAutoTable.finalY + 10
+        } else {
+          // Fallback to manual table with improved formatting
+          const summaryData: Array<[string, string | number]> = [
+            ['Total Quota Balance', String(this.quotaStats.total_quota_balance)],
+            ['Available Quota', String(this.quotaStats.available_quota)],
+            ['Confirmed', String(this.quotaStats.confirmed)],
+            ['Provisioned', String(this.quotaStats.provisioned)],
+            ['Cancelled', String(this.quotaStats.cancelled)],
+            ['Taken', String(this.quotaStats.taken)],
+            ['Total Allocated', String(this.quotaStats.total_allocated)],
+            ['Utilisation Rate', `${this.quotaStats.utilisation_percentage}%`],
+          ]
+
+          // Draw manual table with header
+          let tableY = yPos
+          const colWidth = 80
+          const col2X = 110
+          const rowHeight = 7
+
+          // Header row
+          doc.setFillColor(41, 128, 185)
+          doc.setTextColor(255, 255, 255)
+          doc.setFont(undefined, 'bold')
+          doc.setFontSize(9)
+          doc.rect(14, tableY, colWidth, rowHeight, 'F')
+          doc.rect(14 + colWidth, tableY, 70, rowHeight, 'F')
+          doc.text('Metric', 16, tableY + 4.5)
+          doc.text('Value', col2X, tableY + 4.5)
+          tableY += rowHeight
+
+          // Data rows
+          doc.setTextColor(50, 50, 50)
+          doc.setFont(undefined, 'normal')
+          doc.setFontSize(9)
+          let rowColor = false
+          summaryData.forEach(([label, value]) => {
+            // Alternate row colors
+            if (rowColor) {
+              doc.setFillColor(240, 248, 255)
+              doc.rect(14, tableY, colWidth, rowHeight, 'F')
+              doc.rect(14 + colWidth, tableY, 70, rowHeight, 'F')
+            } else {
+              doc.setDrawColor(200, 200, 200)
+              doc.rect(14, tableY, colWidth, rowHeight)
+              doc.rect(14 + colWidth, tableY, 70, rowHeight)
+            }
+
+            doc.text(String(label), 16, tableY + 4.5)
+            doc.text(String(value), col2X + 10, tableY + 4.5)
+            tableY += rowHeight
+            rowColor = !rowColor
+          })
+
+          yPos = tableY + 10
+        }
 
         // ===== DETAILED DATA SECTION =====
         if (this.detailedData && this.detailedData.length > 0) {
-          doc.setFontSize(12)
+          doc.setFontSize(11)
+          doc.setTextColor(40, 40, 40)
+          doc.setFont(undefined, 'bold')
           doc.text('DETAILED QUOTA DATA', 14, yPos)
-          yPos += 10
+          yPos += 7
 
           // Check if autoTable is available
           if (typeof doc.autoTable === 'function') {
             const tableHeaders = [
               'Area',
               'Species',
-              'Scientific',
+              'Scientific Name',
               'Total',
               'Provision',
               'Confirmed',
@@ -366,9 +498,9 @@ export default defineComponent({
             ]
 
             const tableData = this.detailedData.map((item) => [
-              (item.area || 'N/A').substring(0, 15),
-              (item.name || 'N/A').substring(0, 15), // Use 'name' instead of 'species_name'
-              (item.scientific_name || 'N/A').substring(0, 15),
+              (item.area || 'N/A').substring(0, 12),
+              (item.name || 'N/A').substring(0, 12),
+              (item.scientific_name || 'N/A').substring(0, 12),
               String(item.no_of_species || 0),
               String(item.provision_sales || 0),
               String(item.confirmed || 0),
@@ -383,13 +515,23 @@ export default defineComponent({
               theme: 'grid' as any,
               styles: {
                 fontSize: 8,
-                cellPadding: 3,
+                cellPadding: 4,
                 overflow: 'linebreak' as any,
+                halign: 'center' as any,
+                valign: 'middle' as any,
               },
               headStyles: {
-                fillColor: [66, 135, 245],
+                fillColor: [41, 128, 185],
                 textColor: [255, 255, 255],
                 fontStyle: 'bold',
+                fontSize: 9,
+                halign: 'center' as any,
+              },
+              bodyStyles: {
+                textColor: [50, 50, 50],
+              },
+              alternateRowStyles: {
+                fillColor: [240, 248, 255],
               },
               margin: { left: 14, right: 14 },
               pageBreak: 'auto' as any,
@@ -404,16 +546,31 @@ export default defineComponent({
           doc.text('No detailed data available', 14, yPos)
         }
 
-        // ===== PAGE NUMBERS =====
-        // Use internal API to get page count
+        // ===== FOOTER WITH COMPANY INFO ON EVERY PAGE =====
         const pageCount = (doc as any).internal.getNumberOfPages?.() || 1
+        const footerY = 285 // A4 height is 297mm, position at 285
+        const footerText = [
+          'Bushman Tanzania | Plot 61-64, Kihonda Industrial Area | Morogoro, Tanzania',
+          'Tel: +255 756 888 222 | Email: info@bushman.co.tz | www.bushman.co',
+        ]
+
         for (let i = 1; i <= pageCount; i++) {
           doc.setPage(i)
-          doc.setFontSize(8)
-          doc.setTextColor(150, 150, 150)
-          const pageWidth = doc.internal.pageSize.width || 210 // A4 width in mm
-          const pageHeight = doc.internal.pageSize.height || 297 // A4 height in mm
-          doc.text(`Page ${i} of ${pageCount}`, pageWidth - 25, pageHeight - 10)
+
+          // Separator line
+          doc.setDrawColor(200, 200, 200)
+          doc.line(14, 280, 196, 280)
+
+          // Footer text
+          doc.setFontSize(7)
+          doc.setTextColor(100, 100, 100)
+          doc.setFont(undefined, 'normal')
+          doc.text(footerText[0], 105, footerY, { align: 'center' } as any)
+          doc.text(footerText[1], 105, footerY + 3, { align: 'center' } as any)
+
+          // Page numbers
+          const pageWidth = doc.internal.pageSize.width || 210
+          doc.text(`Page ${i} of ${pageCount}`, pageWidth - 25, footerY)
         }
 
         // ===== SAVE PDF =====
@@ -507,27 +664,59 @@ export default defineComponent({
       try {
         const jsPDFModule = await import('jspdf')
         const jsPDF = jsPDFModule.jsPDF || jsPDFModule.default
-        const doc = new jsPDF()
+        const doc = new jsPDF('p', 'mm', 'a4')
 
-        let y = 20
+        let y = 10
+
+        // ===== COMPANY HEADER =====
+        doc.setFontSize(12)
+        doc.setTextColor(40, 40, 40)
+        doc.setFont('', 'bold')
+        doc.text('BUSHMAN TANZANIA', 105, y, { align: 'center' } as any)
+        y += 5
+
+        doc.setFontSize(8)
+        doc.setTextColor(60, 60, 60)
+        doc.setFont('', 'normal')
+        const companyInfo = [
+          'Plot 61-64, Kihonda Industrial Area, Morogoro, Tanzania',
+          'Tel: +255 756 888 222 | Email: info@bushman.co.tz | www.bushman.co',
+        ]
+        companyInfo.forEach((info) => {
+          doc.text(info, 105, y, { align: 'center' } as any)
+          y += 4
+        })
+
+        // Separator
+        doc.setDrawColor(200, 200, 200)
+        doc.line(14, y + 2, 196, y + 2)
+        y += 8
 
         // Title
-        doc.setFontSize(16)
-        doc.text('Quota Report', 20, y)
-        y += 10
+        doc.setFontSize(14)
+        doc.setTextColor(40, 40, 40)
+        doc.setFont('', 'bold')
+        doc.text('QUOTA REPORT', 20, y)
+        y += 8
 
         // Date
-        doc.setFontSize(10)
+        doc.setFontSize(9)
+        doc.setTextColor(100, 100, 100)
+        doc.setFont('', 'normal')
         doc.text(`Generated: ${new Date().toLocaleString()}`, 20, y)
-        y += 15
+        y += 10
 
         // Summary
         if (this.quotaStats) {
-          doc.setFontSize(12)
-          doc.text('Summary:', 20, y)
-          y += 10
+          doc.setFontSize(11)
+          doc.setTextColor(40, 40, 40)
+          doc.setFont('', 'bold')
+          doc.text('SUMMARY STATISTICS:', 20, y)
+          y += 8
 
-          doc.setFontSize(10)
+          doc.setFontSize(9)
+          doc.setTextColor(50, 50, 50)
+          doc.setFont('', 'normal')
           const summary = [
             `Total Quota: ${this.quotaStats.total_quota_balance}`,
             `Available: ${this.quotaStats.available_quota}`,
@@ -540,18 +729,22 @@ export default defineComponent({
 
           summary.forEach((text) => {
             doc.text(text, 25, y)
-            y += 7
+            y += 6
           })
-          y += 10
+          y += 8
         }
 
         // Detailed data if available
         if (this.detailedData && this.detailedData.length > 0) {
-          doc.setFontSize(12)
-          doc.text('Detailed Data:', 20, y)
-          y += 10
+          doc.setFontSize(11)
+          doc.setTextColor(40, 40, 40)
+          doc.setFont('', 'bold')
+          doc.text('DETAILED DATA:', 20, y)
+          y += 8
 
           doc.setFontSize(8)
+          doc.setTextColor(50, 50, 50)
+          doc.setFont('', 'normal')
           this.detailedData.forEach((item: any) => {
             if (y > 270) {
               doc.addPage()
@@ -562,14 +755,30 @@ export default defineComponent({
               item.provision_sales || 0
             }, Conf ${item.confirmed || 0}, Can ${item.cancelled || 0}, Taken ${item.taken || 0}`
             doc.text(text.substring(0, 100), 20, y)
-            y += 7
+            y += 6
           })
         }
 
-        const timestamp = new Date().toISOString().split('T')[0]
-        doc.save(`quota-simple-${timestamp}.pdf`)
+        // ===== FOOTER ON EVERY PAGE =====
+        const pageCount = (doc as any).internal.getNumberOfPages?.() || 1
+        const footerY = 285
+        doc.setFontSize(7)
+        doc.setTextColor(100, 100, 100)
+        doc.setFont('', 'normal')
 
-        this.init({ message: 'Simple PDF downloaded!', color: 'success' })
+        for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i)
+          doc.line(14, 280, 196, 280)
+          doc.text('Bushman Tanzania | Plot 61-64, Kihonda Industrial Area, Morogoro', 105, footerY, {
+            align: 'center',
+          } as any)
+          doc.text(`Page ${i} of ${pageCount}`, 14, footerY)
+        }
+
+        const timestamp = new Date().toISOString().split('T')[0]
+        doc.save(`quota-report-${timestamp}.pdf`)
+
+        this.init({ message: 'PDF downloaded successfully!', color: 'success' })
       } catch (error: any) {
         // throw error
       }
