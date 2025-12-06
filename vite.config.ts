@@ -9,7 +9,7 @@ import { vuestic } from '@vuestic/compiler/vite'
 export default defineConfig({
   base: '/frontend_bushman/',
   server: {
-    host: 'localhost',
+    host: '0.0.0.0',
     port: 8080,
     strictPort: false,
   },

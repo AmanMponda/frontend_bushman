@@ -36,7 +36,7 @@
 
         <VaInnerLoading :loading="loadingTerms">
           <div v-if="terms.length === 0 && !loadingTerms" class="text-center py-12">
-            <VaIcon name="description" size="4rem" color="textPlaceholder" />
+            <VaIcon name="description" size="4rem" color="#9B9FB5" />
             <p class="text-gray-500 mt-4">No terms found.</p>
             <VaButton class="mt-4" preset="secondary" @click="openAddTermModal">Add your first term</VaButton>
           </div>
@@ -102,7 +102,7 @@
 
         <VaInnerLoading :loading="loadingTermTypes">
           <div v-if="termTypes.length === 0 && !loadingTermTypes" class="text-center py-12">
-            <VaIcon name="category" size="4rem" color="textPlaceholder" />
+            <VaIcon name="category" size="4rem" color="#9B9FB5" />
             <p class="text-gray-500 mt-4">No term types found.</p>
             <VaButton class="mt-4" preset="secondary" @click="openAddTermTypeModal">Add your first term type</VaButton>
           </div>

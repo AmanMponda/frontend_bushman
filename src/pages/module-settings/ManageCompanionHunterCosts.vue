@@ -15,7 +15,7 @@
       <!-- Data Table -->
       <VaInnerLoading :loading="loading">
         <div v-if="companionHunterCosts.length === 0 && !loading" class="text-center py-12">
-          <VaIcon name="payments" size="4rem" color="textPlaceholder" />
+          <VaIcon name="payments" size="4rem" color="#9B9FB5" />
           <p class="text-gray-500 mt-4">No companion hunter costs found.</p>
           <VaButton class="mt-4" preset="secondary" @click="openAddModal">Add your first cost</VaButton>
         </div>

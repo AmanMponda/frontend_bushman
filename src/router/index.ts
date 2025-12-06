@@ -29,7 +29,7 @@ const routes: Array<RouteRecordRaw> = [
         children: [
           {
             name: 'sales-inquiry',
-            path: '/sales-inquiry',
+            path: 'sales-inquiry',
             component: () => import('../pages/client/dashboard/SalesInquiries.vue'),
           },
           {
@@ -77,7 +77,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         // Game
         name: 'operations',
-        path: '/operations',
+        path: 'operations',
         component: RouteViewComponent,
         children: [
           {
@@ -107,7 +107,7 @@ const routes: Array<RouteRecordRaw> = [
 
       {
         name: 'payments',
-        path: '/payments',
+        path: 'payments',
         component: RouteViewComponent,
         children: [
           {
@@ -129,13 +129,13 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         name: 'faq',
-        path: '/faq',
+        path: 'faq',
         component: () => import('../pages/faq/FaqPage.vue'),
       },
 
       {
         name: 'module-settings',
-        path: '/module-settings',
+        path: 'module-settings',
         component: RouteViewComponent,
         children: [
           {
@@ -228,7 +228,7 @@ const routes: Array<RouteRecordRaw> = [
       // 26 july 2025
       {
         name: 'testing',
-        path: '/testing',
+        path: 'testing',
         component: RouteViewComponent,
         children: [
           {

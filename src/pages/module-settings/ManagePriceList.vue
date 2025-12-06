@@ -138,7 +138,7 @@
           <!-- Price List Table -->
           <VaInnerLoading :loading="loading">
             <div v-if="items.length === 0 && !loading" class="text-center py-12">
-              <VaIcon name="inventory_2" size="4rem" color="textPlaceholder" />
+              <VaIcon name="inventory_2" size="4rem" color="#9B9FB5" />
               <p class="text-gray-500 mt-4">No price lists found for the selected filters.</p>
             </div>
 
