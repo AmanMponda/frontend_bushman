@@ -367,10 +367,19 @@ export default defineComponent({
           this.resetValidationForm()
         }
       } catch (error: any) {
-        const errors = handleErrors(error.response)
+        const errorData = error.response?.data
+        const errorMessage = errorData?.error || errorData?.message || ''
 
+        // Check if it's a duplicate entry constraint error
+        if (errorMessage.includes('Duplicate entry') || errorMessage.includes('constraint')) {
+          this.init({
+            message:
+              'A contract already exists for this sales confirmation and client combination. Please select a different sales confirmation to create a new contract.',
+            color: 'danger',
+          })
+        }
         // Check if it's a foreign key constraint error
-        if (error.response?.data?.error && error.response.data.error.includes('FOREIGN KEY')) {
+        else if (errorMessage.includes('FOREIGN KEY')) {
           this.init({
             message:
               'The selected sales confirmation is no longer available. Please refresh and select a different one.',
@@ -379,6 +388,7 @@ export default defineComponent({
           // Reload proposals
           this.getSalesProposalOptions()
         } else {
+          const errors = handleErrors(error.response)
           this.init({
             message: '\n' + errors.map((error, index) => `${index + 1}. ${error}`).join('\n'),
             color: 'danger',
@@ -399,10 +409,16 @@ export default defineComponent({
         this.loadingSales = false
         const data = Array.isArray(response.data) ? response.data : response.data?.data || []
         this.proposalOptions = data
-          .filter((item: any) => item && item.id && item.sales_inquiry?.entity?.full_name)
+          .filter((item: any) => item && item.id)
           .map((item: any) => {
+            // Prioritize:
+            // 1. actual entity.full_name from sales_inquiry relationship
+            // 2. fallback to client_name from API
+            // 3. fallback to unknown
+            const clientName = item.sales_inquiry?.entity?.full_name || item.client_name || 'Unknown Client'
+            const proposalId = item.id
             return {
-              text: `Sales confirmation for ${item.sales_inquiry.entity.full_name}`,
+              text: `#${proposalId} - ${clientName}`,
               value: item.id,
               selfitem: item,
             }

@@ -464,13 +464,25 @@ export const useSalesInquiriesStore = defineStore('sales_inquiries', {
         const response = await axios.request(config)
         console.log('Companions response:', response)
 
+        // Handle both direct array and wrapped response format
+        let companionsData = []
+        if (response.data.data && Array.isArray(response.data.data)) {
+          // If wrapped in {data: [...], success: true} format
+          companionsData = response.data.data
+        } else if (Array.isArray(response.data)) {
+          // If direct array format
+          companionsData = response.data
+        }
+
+        console.log('Extracted companions data:', companionsData)
+
         if (usedOptionsList === false) {
           if (response.status === 200) {
-            this.companions = response.data.map((item: any) => {
+            this.companions = companionsData.map((item: any) => {
               return {
                 id: item.id,
-                full_name: item.companion.full_name,
-                nationality: item.companion.nationality.name,
+                full_name: item.companion?.full_name || item.full_name,
+                nationality: item.companion?.nationality?.name || item.nationality,
               }
             })
             return response
@@ -478,10 +490,10 @@ export const useSalesInquiriesStore = defineStore('sales_inquiries', {
             return response
           }
         } else {
-          this.companions = response.data.map((item: any) => {
+          this.companions = companionsData.map((item: any) => {
             return {
-              text: item.companion.full_name,
-              value: item.companion.id,
+              text: item.companion?.full_name || item.full_name || 'Unknown',
+              value: item.companion?.id || item.id,
             }
           })
           return response

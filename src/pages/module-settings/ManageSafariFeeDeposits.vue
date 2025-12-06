@@ -15,7 +15,7 @@
       <!-- Data Table -->
       <VaInnerLoading :loading="loading">
         <div v-if="items.length === 0 && !loading" class="text-center py-12">
-          <VaIcon name="payments" size="4rem" color="gray" />
+          <VaIcon name="payments" size="4rem" color="textPlaceholder" />
           <p class="text-gray-500 mt-4">No safari fee deposits found.</p>
           <VaButton class="mt-4" preset="secondary" @click="openAddModal">Add your first deposit</VaButton>
         </div>
