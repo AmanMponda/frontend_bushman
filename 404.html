@@ -20,9 +20,9 @@
       // This way the code will only replace the route part of the path, and not
       // the real directory in which the app resides, for example:
       // https://username.github.io/repo-name/one/two?a=b&c=d#qwe becomes
-      // https://username.github.io/repo-name/?/one/two&a=b~and~c=d#qwe
-      // Otherwise, leave pathSegmentsToKeep as 0.
-      var pathSegmentsToKeep = 1
+      // https://username.github.io/repo-name/?/one/two&a=b~and~c&d#qwe
+      // For /frontend_bushman/, set to 2 to keep username/repo
+      var pathSegmentsToKeep = 2
 
       var l = window.location
       l.replace(
