@@ -44,10 +44,35 @@
       /* Set vuestic higher priority over tailwind normalize css */
       @layer tailwind.base, vuestic;
     </style>
-    <script type="module" crossorigin src="/frontend_bushman/assets/index-P4QeRV7n.js"></script>
-    <link rel="stylesheet" crossorigin href="/frontend_bushman/assets/index-BunwbW71.css">
+    <script type="module" crossorigin src="/frontend_bushman/assets/index-ChBN8f7M.js"></script>
+    <link rel="stylesheet" crossorigin href="/frontend_bushman/assets/index-L54NjA_r.css">
   </head>
   <body>
     <div id="app"></div>
+    <!-- #region agent log -->
+    <script>
+      window.onerror = function (msg, url, line, col, error) {
+        fetch('http://127.0.0.1:7242/ingest/ab14651b-7c7c-4500-8f4c-553f5bb1f67b', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            location: 'index.html:onerror',
+            message: 'Uncaught error',
+            data: {
+              msg: msg,
+              url: url,
+              line: line,
+              col: col,
+              errorMsg: error ? error.message : '',
+              errorStack: error ? error.stack : '',
+            },
+            timestamp: Date.now(),
+            sessionId: 'debug-session',
+            hypothesisId: 'ERROR',
+          }),
+        }).catch(function () {})
+      }
+    </script>
+    <!-- #endregion -->
   </body>
 </html>
