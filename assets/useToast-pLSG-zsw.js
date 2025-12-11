@@ -1,2 +1,0 @@
-import{c,Q as l,a8 as r,a9 as u,aa as a,ab as i}from"./index-ChBN8f7M.js";const p=()=>{const e=l();return c(()=>{var o;return((o=r())==null?void 0:o._context)||(e==null?void 0:e.appContext)})},v=()=>{const e=p(),o=[],s=t=>{const n=i(t,e.value);return n&&o.push(n),n};return{init:t=>s(t),notify:s,close:t=>a(t),closeAll:(t=!1)=>u(t?void 0:e.value),closeAllCreatedInThisHook:()=>{o.forEach(t=>a(t))}}};export{v as u};
-//# sourceMappingURL=useToast-pLSG-zsw.js.map
