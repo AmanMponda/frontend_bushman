@@ -5,6 +5,7 @@
 The application automatically detects the deployment environment and sets the correct base path:
 
 - **GitHub Pages**: Automatically uses `/frontend_bushman/` (default)
+- **Cloudflare Pages**: Automatically detects and uses `/` (root deployment)
 - **Render.com**: Automatically detects and uses `/` (via `render.yaml` or auto-detection)
 - **Other deployments**: Can be configured via `VITE_BASE_PATH` environment variable
 
@@ -12,6 +13,7 @@ The application automatically detects the deployment environment and sets the co
 
 The build process automatically detects:
 
+- Cloudflare Pages deployments (via `CF_PAGES` environment variable)
 - Render.com deployments (via `RENDER` environment variable)
 - Falls back to `VITE_BASE_PATH` environment variable if set
 - Defaults to `/frontend_bushman/` for GitHub Pages
@@ -56,6 +58,29 @@ If you're still seeing 404 errors for assets:
    - In Render.com service settings → Environment
    - Ensure `VITE_BASE_PATH` is set to `/`
    - Ensure it's set as a Build Environment Variable (not Runtime only)
+
+### Cloudflare Pages Setup
+
+**Automatic Deployment:**
+
+1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/) → Pages
+2. Click "Create a project" → "Connect to Git"
+3. Select your repository
+4. Configure build settings:
+   - **Build command**: `npm run build:ci`
+   - **Build output directory**: `dist`
+   - **Root directory**: `/` (or leave empty)
+   - **Node version**: `20`
+5. Add environment variables (optional, auto-detected):
+   - `VITE_BASE_PATH=/` (not required, auto-detected)
+6. Click "Save and Deploy"
+
+**Configuration Files:**
+
+- `public/_redirects` - Handles SPA routing (copied to dist during build)
+- Cloudflare Pages automatically handles SPA routing via the `_redirects` file
+
+**Note**: Cloudflare Pages automatically detects the base path as `/` for root deployments. No additional configuration needed!
 
 ### GitHub Pages
 

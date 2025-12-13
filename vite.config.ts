@@ -21,14 +21,21 @@ export default defineConfig(({ mode }) => {
     !!process.env.RENDER_SERVICE_ID ||
     process.env.RENDER === '1'
 
-  // Use '/' for Render.com if no explicit VITE_BASE_PATH is set, otherwise use environment variable or default to '/frontend_bushman/'
-  const basePath = viteBasePath || (isRender ? '/' : '/frontend_bushman/')
+  // Check if we're on Cloudflare Pages
+  const isCloudflarePages =
+    !!process.env.CF_PAGES ||
+    !!process.env.CF_PAGES_BRANCH ||
+    !!process.env.CF_PAGES_COMMIT_SHA ||
+    process.env.CI === 'true' && !!process.env.CF_PAGES_URL
+
+  // Use '/' for Cloudflare Pages, Render.com, or if explicit VITE_BASE_PATH is set
+  // Otherwise default to '/frontend_bushman/' for GitHub Pages
+  const basePath = viteBasePath || (isCloudflarePages || isRender ? '/' : '/frontend_bushman/')
 
   console.log(`[Vite Config] Base path: ${basePath}`)
   console.log(`[Vite Config] VITE_BASE_PATH: ${viteBasePath}`)
+  console.log(`[Vite Config] Is Cloudflare Pages: ${isCloudflarePages}`)
   console.log(`[Vite Config] Is Render: ${isRender}`)
-  console.log(`[Vite Config] RENDER env: ${process.env.RENDER}`)
-  console.log(`[Vite Config] RENDER_EXTERNAL_HOSTNAME: ${process.env.RENDER_EXTERNAL_HOSTNAME}`)
 
   // https://vitejs.dev/config/
   return {
