@@ -66,14 +66,25 @@ If you're still seeing 404 errors for assets:
 1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/) → Pages
 2. Click "Create a project" → "Connect to Git"
 3. Select your repository
-4. Configure build settings:
-   - **Build command**: `npm run build:ci`
+4. **IMPORTANT**: Configure build settings manually:
+   - **Framework preset**: Select "None" or "Vite" (if available)
+   - **Build command**: `npm run build:ci` ⚠️ **Must be set manually**
    - **Build output directory**: `dist`
    - **Root directory**: `/` (or leave empty)
    - **Node version**: `20`
+   - **Package manager**: Select "npm" ⚠️ **Important - don't use auto-detect**
 5. Add environment variables (optional, auto-detected):
    - `VITE_BASE_PATH=/` (not required, auto-detected)
 6. Click "Save and Deploy"
+
+**Troubleshooting:**
+
+If you see `yarn run build` error:
+- Go to your project settings → Builds & deployments
+- Edit the build configuration
+- **Change Build command** to: `npm run build:ci`
+- **Change Package manager** to: `npm` (explicitly, not auto-detect)
+- Save and trigger a new deployment
 
 **Configuration Files:**
 
