@@ -1,0 +1,124 @@
+@import 'vuestic-ui/dist/styles/css-variables.css';
+@import 'vuestic-ui/dist/styles/essential.css';
+@import 'vuestic-ui/dist/styles/theme.css';
+@import 'vuestic-ui/dist/styles/typography.css';
+
+.va-input,
+.va-select {
+  width: 100%;
+}
+
+/* Global input border styling */
+.va-input-wrapper__field,
+.va-select .va-input-wrapper__field,
+.va-date-input .va-input-wrapper__field {
+  border: 1px solid #d1d5db !important;
+  border-radius: 8px !important;
+  background-color: #fff !important;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease !important;
+}
+
+.va-input-wrapper:focus-within .va-input-wrapper__field,
+.va-select:focus-within .va-input-wrapper__field,
+.va-date-input:focus-within .va-input-wrapper__field {
+  border-color: var(--va-primary) !important;
+  box-shadow: 0 0 0 3px rgba(64, 122, 214, 0.15) !important;
+}
+
+.va-input-wrapper__field:hover,
+.va-select .va-input-wrapper__field:hover,
+.va-date-input .va-input-wrapper__field:hover {
+  border-color: #9ca3af !important;
+}
+
+.va-counter .va-input-wrapper__field {
+  border: 1px solid #d1d5db !important;
+  border-radius: 8px !important;
+}
+
+.va-counter:focus-within .va-input-wrapper__field {
+  border-color: var(--va-primary) !important;
+  box-shadow: 0 0 0 3px rgba(64, 122, 214, 0.15) !important;
+}
+
+:root {
+  --va-modal-padding-top: 1rem;
+  --va-modal-padding-right: 1rem;
+  --va-modal-padding-bottom: 1rem;
+  --va-modal-padding-left: 1rem;
+}
+
+.va-modal {
+  line-height: 20px;
+
+  &__message {
+    margin-bottom: 16px;
+  }
+
+  &__dialog {
+    border-radius: 8px;
+
+    @media (min-width: 640px) {
+      border-radius: 4px;
+    }
+  }
+}
+
+.va-input {
+  &-label {
+    font-size: 9px;
+    line-height: 14px;
+    letter-spacing: 0.4px;
+    min-height: 14px;
+
+    &__required-mark {
+      font-size: 13px;
+    }
+  }
+
+  &-wrapper {
+    &__size-keeper {
+      height: auto;
+    }
+
+    &__label--outer {
+      margin-bottom: 4px;
+    }
+
+    &__field {
+      padding: 8px 12px;
+    }
+  }
+}
+
+.va-sidebar {
+  &__item__content {
+    min-height: 44px;
+  }
+}
+
+.va-select {
+  &--small {
+    .va-input-wrapper__field {
+      padding: 0 0.25rem;
+    }
+  }
+
+  &-anchor__input {
+    flex: unset;
+  }
+}
+
+.va-card {
+  &__title {
+    padding-bottom: calc(var(--va-card-padding) / 2) !important;
+  }
+}
+
+.va-data-table {
+  .va-inner-loading__spinner {
+    margin-top: 32px;
+  }
+}

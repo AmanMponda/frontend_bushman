@@ -1,0 +1,175 @@
+/* 1️⃣ All @use at the top - MUST come before @import */
+@use 'vuestic';
+@use 'icon-fonts/index';
+@use './tailwind.scss';
+
+/* 2️⃣ @import plain CSS after @use */
+/* Bootstrap 5 is imported in styles.scss (Vue Studio) */
+/* @import './vuestic-custom.scss'; */
+
+/* Bootstrap 4 Customizations for VueStudio Design */
+:root {
+  --primary-color: #5c4033;
+  --secondary-color: #c4a484;
+  --accent-color: #ffd700;
+  --sidebar-bg: #5c4033;
+  --sidebar-width: 280px;
+  --sidebar-collapsed-width: 80px;
+}
+
+/* Custom Bootstrap 4 Button Styles */
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: darken(#5c4033, 5%);
+    border-color: darken(#5c4033, 5%);
+  }
+}
+
+.btn-outline-primary {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+
+  &:hover,
+  &:focus,
+  &:active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+  }
+}
+
+/* Card Styles */
+.card {
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  background-color: #ffffff !important;
+
+  .card-header {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+  }
+
+  .card-body {
+    background-color: #ffffff !important;
+  }
+
+  .card-footer {
+    background-color: #ffffff !important;
+  }
+}
+
+/* Table Styles */
+.table {
+  font-size: 0.8125rem;
+  background-color: #ffffff !important;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+
+  thead th {
+    border-top: none;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  tbody td {
+    font-size: 0.8125rem;
+    background-color: #ffffff !important;
+    border-color: #e5e7eb;
+  }
+
+  tbody tr:hover {
+    background-color: #f9fafb !important;
+  }
+
+  tbody tr:nth-child(even) {
+    background-color: #ffffff;
+  }
+}
+
+/* Navbar Styles */
+.navbar {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Custom global styles */
+html,
+body {
+  @apply text-regularMedium;
+  background-color: #e0e4eb !important;
+  min-height: 100vh;
+
+  --va-checkbox-font-size: 0.875rem;
+  --va-card-box-shadow: none;
+  --va-card-padding: 1rem;
+  --va-font-family: 'Inter', sans-serif;
+}
+
+#app,
+.app {
+  background-color: #e0e4eb !important;
+  min-height: 100vh;
+}
+
+.container-fluid,
+.container {
+  background-color: transparent !important;
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: monospace;
+  font-size: 1em;
+}
+
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-title,
+.h1 {
+  @apply text-[32px] md:text-5xl font-bold leading-9 md:leading-[56px] max-sm:mt-6 mb-6 md:mb-4;
+}
+
+.h3,
+.page-sub-title {
+  @apply text-2xl font-bold leading-[30px];
+}
+
+.h5 {
+  @apply font-bold leading-tight;
+}
+
+.block-title {
+  @apply text-2xl font-bold mb-2;
+}
+
+.pricing-plan-card-title {
+  @apply text-[28px] md:text-[32px] leading-10 font-bold;
+}
+
+.text-regular-small {
+  font-size: 0.8125rem;
+  line-height: 1rem;
+}

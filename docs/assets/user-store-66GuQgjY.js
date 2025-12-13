@@ -1,0 +1,35 @@
+import { j as i, k as n } from './index-P4QeRV7n.js'
+const r = i('user', {
+  state: () => ({
+    userName: 'Vasili Savitski',
+    email: 'vasili@gmail.com',
+    memberSince: '8/12/2020',
+    pfp: 'https://picsum.photos/id/22/200/300',
+    is2FAEnabled: !1,
+    users: [],
+  }),
+  actions: {
+    toggle2FA() {
+      this.is2FAEnabled = !this.is2FAEnabled
+    },
+    changeUserName(s) {
+      this.userName = s
+    },
+    async getUsers() {
+      const a = {
+          method: 'get',
+          maxBodyLength: 1 / 0,
+          url: 'https://backend-bushman-master-kxhmlj.laravel.cloud/api/v1.0/authentication/users/',
+          headers: { 'Content-Type': 'application/json' },
+        },
+        t = await n.request(a)
+      t.status === 200 &&
+        (this.users = t.data.map((e) => ({
+          value: e.id,
+          text: e.first_name && e.last_name ? e.first_name + '' + e.last_name : e.username,
+        })))
+    },
+  },
+})
+export { r as u }
+//# sourceMappingURL=user-store-66GuQgjY.js.map
