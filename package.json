@@ -3,7 +3,7 @@
   "private": true,
   "version": "3.1.0",
   "scripts": {
-    "prepare": "husky install",
+    "prepare": "node -e \"try { require('husky').install() } catch (e) {}\" || true",
     "dev": "vite",
     "build": "npm run lint && vue-tsc --noEmit && vite build",
     "build:ci": "vite build",
