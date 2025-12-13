@@ -39,6 +39,20 @@ export default defineConfig({
   },
   build: {
     sourcemap: true,
+    cssCodeSplit: false, // Keep all CSS in a single file for consistent loading
+    cssMinify: true, // Minify CSS for production
+    minify: 'esbuild', // Use esbuild for faster builds
+    rollupOptions: {
+      output: {
+        // Ensure consistent asset file naming
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+            return 'assets/style-[hash][extname]'
+          }
+          return 'assets/[name]-[hash][extname]'
+        },
+      },
+    },
   },
   resolve: {
     alias: {

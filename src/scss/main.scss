@@ -110,16 +110,32 @@
 }
 
 /* Custom global styles */
+html {
+  font-size: 16px; /* Ensure consistent base font size for rem calculations */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 html,
 body {
   @apply text-regularMedium;
   background-color: #e0e4eb !important;
   min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 
   --va-checkbox-font-size: 0.875rem;
   --va-card-box-shadow: none;
   --va-card-padding: 1rem;
   --va-font-family: 'Inter', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 #app,

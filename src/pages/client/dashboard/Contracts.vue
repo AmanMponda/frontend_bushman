@@ -333,6 +333,17 @@ onMounted(() => {
 <style scoped>
 .contracts-page {
   padding: 0;
+  margin: 0;
+}
+
+/* Ensure consistent spacing between breadcrumb and header */
+.contracts-page > div:first-of-type {
+  margin-bottom: 0.5rem !important; /* mb-2 equivalent */
+}
+
+/* Ensure consistent spacing between header and content */
+.contracts-page > div:nth-of-type(2) {
+  margin-bottom: 0.5rem !important; /* mb-2 equivalent */
 }
 
 .empty-state-message {
