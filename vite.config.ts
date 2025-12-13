@@ -7,9 +7,17 @@ import { vuestic } from '@vuestic/compiler/vite'
 
 // Get base path from environment variable, default to '/frontend_bushman/' for GitHub Pages
 // Set VITE_BASE_PATH='/' for Render.com or other root deployments
+// Auto-detect Render.com deployment
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const basePath = env.VITE_BASE_PATH || '/frontend_bushman/'
+
+  // Check if we're on Render.com (RENDER environment is set)
+  const isRender = process.env.RENDER === 'true' || process.env.RENDER_EXTERNAL_HOSTNAME
+
+  // Use '/' for Render.com, otherwise use environment variable or default to '/frontend_bushman/'
+  const basePath = isRender ? '/' : env.VITE_BASE_PATH || '/frontend_bushman/'
+
+  console.log(`Building with base path: ${basePath} (Render: ${isRender})`)
 
   // https://vitejs.dev/config/
   return {

@@ -2,17 +2,26 @@
 
 ## Base Path Configuration
 
-The application uses a configurable base path for different deployment environments.
+The application automatically detects the deployment environment and sets the correct base path:
 
-### Environment Variable
+- **GitHub Pages**: Automatically uses `/frontend_bushman/` (default)
+- **Render.com**: Automatically detects and uses `/` (via `render.yaml` or auto-detection)
+- **Other deployments**: Can be configured via `VITE_BASE_PATH` environment variable
 
-Set `VITE_BASE_PATH` environment variable before building:
+### Auto-Detection
 
-- **GitHub Pages**: `VITE_BASE_PATH=/frontend_bushman/` (default)
-- **Render.com**: `VITE_BASE_PATH=/`
-- **Other root deployments**: `VITE_BASE_PATH=/`
+The build process automatically detects:
+
+- Render.com deployments (via `RENDER` environment variable)
+- Falls back to `VITE_BASE_PATH` environment variable if set
+- Defaults to `/frontend_bushman/` for GitHub Pages
 
 ### Render.com Setup
+
+**Option 1: Using render.yaml (Recommended)**
+The `render.yaml` file is configured to automatically set the correct base path. Just deploy as-is.
+
+**Option 2: Manual Environment Variable**
 
 1. Go to your Render.com service settings
 2. Navigate to "Environment" section
@@ -21,9 +30,11 @@ Set `VITE_BASE_PATH` environment variable before building:
    - **Value**: `/`
 4. Save and redeploy
 
+**Note**: After updating the configuration, you must **rebuild and redeploy** for the changes to take effect.
+
 ### GitHub Pages
 
-No configuration needed - uses default `/frontend_bushman/` base path.
+No configuration needed - automatically uses `/frontend_bushman/` base path.
 
 ### Local Development
 

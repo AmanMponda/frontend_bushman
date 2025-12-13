@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: frontend-bushman
+    env: static
+    buildCommand: npm install --legacy-peer-deps && VITE_BASE_PATH=/ npm run build:ci
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_BASE_PATH
+        value: /
+      - key: NODE_VERSION
+        value: 20
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
