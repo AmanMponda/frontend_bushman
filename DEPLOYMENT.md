@@ -32,6 +32,31 @@ The `render.yaml` file is configured to automatically set the correct base path.
 
 **Note**: After updating the configuration, you must **rebuild and redeploy** for the changes to take effect.
 
+**Troubleshooting on Render.com:**
+
+If you're still seeing 404 errors for assets:
+
+1. **Check if render.yaml is being used:**
+
+   - If you created the service manually (not via Blueprint), `render.yaml` won't be used
+   - Go to your service settings and manually add `VITE_BASE_PATH=/` in Environment variables
+
+2. **Trigger a fresh build:**
+
+   - In Render.com dashboard: Go to your service → "Manual Deploy" → "Clear build cache & deploy"
+   - OR push a new commit to trigger automatic rebuild
+
+3. **Verify the build logs:**
+
+   - Check the build logs in Render.com
+   - Look for: `[Vite Config] Base path: /`
+   - If you see `Base path: /frontend_bushman/`, the environment variable isn't being picked up
+
+4. **Verify environment variables:**
+   - In Render.com service settings → Environment
+   - Ensure `VITE_BASE_PATH` is set to `/`
+   - Ensure it's set as a Build Environment Variable (not Runtime only)
+
 ### GitHub Pages
 
 No configuration needed - automatically uses `/frontend_bushman/` base path.

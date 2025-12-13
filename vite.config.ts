@@ -11,13 +11,24 @@ import { vuestic } from '@vuestic/compiler/vite'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
-  // Check if we're on Render.com (RENDER environment is set)
-  const isRender = process.env.RENDER === 'true' || process.env.RENDER_EXTERNAL_HOSTNAME
+  // Check VITE_BASE_PATH from both process.env (for inline vars) and loaded env
+  const viteBasePath = process.env.VITE_BASE_PATH || env.VITE_BASE_PATH
 
-  // Use '/' for Render.com, otherwise use environment variable or default to '/frontend_bushman/'
-  const basePath = isRender ? '/' : env.VITE_BASE_PATH || '/frontend_bushman/'
+  // Check if we're on Render.com (multiple ways Render.com identifies itself)
+  const isRender =
+    process.env.RENDER === 'true' ||
+    !!process.env.RENDER_EXTERNAL_HOSTNAME ||
+    !!process.env.RENDER_SERVICE_ID ||
+    process.env.RENDER === '1'
 
-  console.log(`Building with base path: ${basePath} (Render: ${isRender})`)
+  // Use '/' for Render.com if no explicit VITE_BASE_PATH is set, otherwise use environment variable or default to '/frontend_bushman/'
+  const basePath = viteBasePath || (isRender ? '/' : '/frontend_bushman/')
+
+  console.log(`[Vite Config] Base path: ${basePath}`)
+  console.log(`[Vite Config] VITE_BASE_PATH: ${viteBasePath}`)
+  console.log(`[Vite Config] Is Render: ${isRender}`)
+  console.log(`[Vite Config] RENDER env: ${process.env.RENDER}`)
+  console.log(`[Vite Config] RENDER_EXTERNAL_HOSTNAME: ${process.env.RENDER_EXTERNAL_HOSTNAME}`)
 
   // https://vitejs.dev/config/
   return {
