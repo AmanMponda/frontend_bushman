@@ -73,13 +73,14 @@ If you're still seeing 404 errors for assets:
    - **Root directory**: `/` (or leave empty)
    - **Node version**: `20`
    - **Package manager**: Select "npm" ⚠️ **Important - don't use auto-detect**
+   - **Deploy command**: ⚠️ **LEAVE EMPTY or DELETE if set** - Cloudflare Pages will auto-deploy from `dist`
 5. Add environment variables (optional, auto-detected):
    - `VITE_BASE_PATH=/` (not required, auto-detected)
 6. Click "Save and Deploy"
 
 **Troubleshooting:**
 
-If you see `yarn run build` error:
+**If you see `yarn run build` error:**
 
 - Go to your project settings → Builds & deployments
 - Edit the build configuration
@@ -87,14 +88,25 @@ If you see `yarn run build` error:
 - **Change Package manager** to: `npm` (explicitly, not auto-detect)
 - Save and trigger a new deployment
 
+**If you see `Missing entry-point to Worker script` error:**
+
+- Go to your project settings → Builds & deployments
+- Edit the build configuration
+- **REMOVE or CLEAR the "Deploy command" field** - Cloudflare Pages should automatically deploy static files
+- OR if you must keep a deploy command, ensure `wrangler.jsonc` exists in your repository (it should be configured for static assets)
+- Save and trigger a new deployment
+
 **Configuration Files:**
 
 - `public/_redirects` - Handles SPA routing (copied to dist during build)
+- `wrangler.jsonc` - Only needed if deploy command is set in dashboard (should be removed instead)
 - Cloudflare Pages automatically handles SPA routing via the `_redirects` file
 
-**Important:** Do NOT create a `wrangler.toml` file - that's for Cloudflare Workers, not Pages. Cloudflare Pages will automatically deploy your static site from the `dist` folder.
+**Important Notes:**
 
-**Note**: Cloudflare Pages automatically detects the base path as `/` for root deployments. No additional configuration needed!
+- **Do NOT set a deploy command** - Cloudflare Pages will automatically deploy your static site from the `dist` folder
+- The `wrangler.jsonc` file is provided as a fallback if deploy command cannot be removed, but removing the deploy command is the recommended solution
+- Cloudflare Pages automatically detects the base path as `/` for root deployments. No additional configuration needed!
 
 ### GitHub Pages
 

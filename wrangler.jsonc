@@ -1,0 +1,14 @@
+{
+  // Cloudflare Pages static site configuration
+  // This file is only needed if a deploy command is set in Cloudflare Pages dashboard
+  // RECOMMENDED: Remove the deploy command from Cloudflare Pages settings instead
+  // Cloudflare Pages will automatically deploy static files from the build output directory
+  
+  "name": "frontend-bushman",
+  "compatibility_date": "2025-12-13",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  }
+}
+
