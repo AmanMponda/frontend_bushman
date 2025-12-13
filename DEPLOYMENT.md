@@ -92,6 +92,8 @@ If you see `yarn run build` error:
 - `public/_redirects` - Handles SPA routing (copied to dist during build)
 - Cloudflare Pages automatically handles SPA routing via the `_redirects` file
 
+**Important:** Do NOT create a `wrangler.toml` file - that's for Cloudflare Workers, not Pages. Cloudflare Pages will automatically deploy your static site from the `dist` folder.
+
 **Note**: Cloudflare Pages automatically detects the base path as `/` for root deployments. No additional configuration needed!
 
 ### GitHub Pages
