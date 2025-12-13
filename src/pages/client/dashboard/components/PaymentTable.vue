@@ -142,7 +142,7 @@ interface Payment {
   paid_at: string
 }
 
-interface Installment {
+export interface Installment {
   id: number
   narration: string
   amount_due: number

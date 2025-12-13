@@ -446,26 +446,7 @@ import { useProposalStore } from '../../../../stores/proposal-store'
 import StageIndicator from './StageIndicator.vue'
 import PaymentTable from './PaymentTable.vue'
 import PaymentModal from './PaymentModal.vue'
-
-interface Installment {
-  id: number
-  narration: string
-  amount_due: number
-  amount_paid?: number
-  remaining_balance?: number
-  payment_status?: 'paid' | 'partial' | 'unpaid'
-  installment_type?: string
-  triggers_stage?: string | null
-  is_paid: boolean
-  paid_at?: string | null
-  payment_reference?: string | null
-  payments?: Array<{
-    id: number
-    amount: number
-    payment_reference: string | null
-    paid_at: string
-  }>
-}
+import type { Installment } from './PaymentTable.vue'
 
 export default defineComponent({
   name: 'ProposalView',
@@ -551,15 +532,32 @@ export default defineComponent({
 
     paymentInstallments(): Installment[] {
       if (this.paymentStatus?.installments) {
-        return this.paymentStatus.installments
+        // Type assertion needed because store type may differ slightly
+        return this.paymentStatus.installments as unknown as Installment[]
       }
-      return (this.proposal.pricing?.installments || []).map((inst: any) => ({
-        ...inst,
-        is_paid: inst.is_paid || false,
-        paid_at: inst.paid_at || null,
-        amount_paid: inst.amount_paid || null,
-        payment_reference: inst.payment_reference || null,
-      }))
+      return (this.proposal.pricing?.installments || []).map(
+        (inst: any): Installment => ({
+          id: inst.id,
+          narration: inst.narration,
+          amount_due: inst.amount_due,
+          installment_type: inst.installment_type,
+          triggers_stage: inst.triggers_stage ?? null,
+          is_paid: inst.is_paid || false,
+          payment_status: inst.payment_status,
+          paid_at: inst.paid_at ?? null,
+          amount_paid: inst.amount_paid ?? null,
+          remaining_balance: inst.remaining_balance ?? null,
+          payment_reference: inst.payment_reference ?? null,
+          paid_by: inst.paid_by ?? null,
+          payments: inst.payments?.map((p: any) => ({
+            id: p.id,
+            amount: p.amount,
+            payment_reference: p.payment_reference ?? undefined,
+            payment_method: p.payment_method,
+            paid_at: p.paid_at,
+          })),
+        }),
+      ) as Installment[]
     },
 
     paymentSummary() {

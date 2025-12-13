@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
     !!process.env.CF_PAGES ||
     !!process.env.CF_PAGES_BRANCH ||
     !!process.env.CF_PAGES_COMMIT_SHA ||
-    process.env.CI === 'true' && !!process.env.CF_PAGES_URL
+    (process.env.CI === 'true' && !!process.env.CF_PAGES_URL)
 
   // Use '/' for Cloudflare Pages, Render.com, or if explicit VITE_BASE_PATH is set
   // Otherwise default to '/frontend_bushman/' for GitHub Pages

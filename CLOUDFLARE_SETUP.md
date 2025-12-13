@@ -18,9 +18,11 @@ You **MUST** update the build command in the Cloudflare Pages dashboard:
 6. Change the following:
 
    **Build command:**
+
    ```
    npm run build:ci
    ```
+
    (Currently it's set to: `yarn run build` ❌)
 
    **Package manager:**
@@ -33,11 +35,13 @@ You **MUST** update the build command in the Cloudflare Pages dashboard:
 ## Verification
 
 After updating, check the build logs. You should see:
+
 ```
 Executing user build command: npm run build:ci
 ```
 
 Instead of:
+
 ```
 Executing user build command: yarn run build  ❌
 ```
@@ -45,9 +49,9 @@ Executing user build command: yarn run build  ❌
 ## Why This Happens
 
 Cloudflare Pages might auto-detect Yarn if:
+
 - Framework preset was set to something that uses Yarn
 - Auto-detect selected Yarn
 - Build command wasn't set explicitly
 
 The fix is to **explicitly set npm** in the dashboard settings.
-

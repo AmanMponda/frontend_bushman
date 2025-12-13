@@ -80,6 +80,7 @@ If you're still seeing 404 errors for assets:
 **Troubleshooting:**
 
 If you see `yarn run build` error:
+
 - Go to your project settings → Builds & deployments
 - Edit the build configuration
 - **Change Build command** to: `npm run build:ci`

@@ -83,18 +83,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
-
-interface Installment {
-  id: number
-  narration: string
-  amount_due: number
-  amount_paid?: number
-  remaining_balance?: number
-  payment_status?: 'paid' | 'partial' | 'unpaid'
-  installment_type?: string
-  triggers_stage?: string | null
-  is_paid: boolean
-}
+import type { Installment } from './PaymentTable.vue'
 
 export default defineComponent({
   name: 'PaymentModal',
@@ -134,7 +123,7 @@ export default defineComponent({
 
     remainingBalance(): number {
       if (!this.installment) return 0
-      if (this.installment.remaining_balance !== undefined) {
+      if (this.installment.remaining_balance !== undefined && this.installment.remaining_balance !== null) {
         return this.installment.remaining_balance
       }
       return (this.installment.amount_due || 0) - (this.installment.amount_paid || 0)
