@@ -98,9 +98,8 @@ If you're still seeing 404 errors for assets:
 
 **Configuration Files:**
 
-- `public/_redirects` - Handles SPA routing (copied to dist during build)
 - `wrangler.jsonc` - Only needed if deploy command is set in dashboard (should be removed instead)
-- Cloudflare Pages automatically handles SPA routing via the `_redirects` file
+- Cloudflare Pages automatically handles SPA routing - no `_redirects` file needed
 
 **Important Notes:**
 
