@@ -93,10 +93,16 @@ onBeforeRouteUpdate(() => {
 <style lang="scss" scoped>
 .wrapper {
   display: flex;
-  width: 100%;
+  width: 100% !important;
+  min-width: 100% !important;
   align-items: stretch;
   min-height: 100vh;
   background-color: #e0e4eb;
+  font-size: 16px !important;
+  /* Prevent shrinking */
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
 }
 
 #sidebar {
@@ -131,11 +137,17 @@ onBeforeRouteUpdate(() => {
 }
 
 #content {
-  width: 100%;
+  width: 100% !important;
+  min-width: 100% !important;
   padding: 0;
   min-height: 100vh;
   transition: all 0.3s;
   background-color: #e0e4eb;
+  font-size: 16px !important;
+  /* Prevent shrinking */
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
 
   @media (max-width: 768px) {
     margin-left: 0 !important;

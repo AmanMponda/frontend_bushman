@@ -41,10 +41,22 @@ defineEmits(['toggle-sidebar'])
   z-index: 1000;
   position: sticky;
   top: 0;
+  width: 100% !important;
+  font-size: 16px !important;
+  /* Prevent shrinking */
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
 
   .navbar-brand {
     margin-right: 1rem;
     text-decoration: none;
+    font-size: 1rem !important;
+
+    span {
+      font-size: 1rem !important;
+      font-weight: 700 !important;
+    }
   }
 
   .btn-link {
