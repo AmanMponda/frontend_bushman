@@ -53,8 +53,10 @@ import WebTraffic from './WebTraffic.vue'
   background: white;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  padding: 24px;
+  /* Use !important to ensure padding is preserved during CSS minification and layer processing */
+  padding: 24px !important;
   height: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 1200px) {

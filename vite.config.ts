@@ -72,7 +72,7 @@ export default defineConfig(({ mode }) => {
     build: {
       sourcemap: true,
       cssCodeSplit: false, // Keep all CSS in a single file for consistent loading
-      cssMinify: true, // Minify CSS for production
+      cssMinify: 'esbuild', // Use esbuild for CSS minification (better scoped style preservation)
       minify: 'esbuild', // Use esbuild for faster builds
       rollupOptions: {
         output: {
