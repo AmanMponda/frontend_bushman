@@ -544,6 +544,15 @@ onMounted(() => {
   width: 100%;
 }
 
+// Local layout spacing classes to ensure consistent spacing in production
+.layout-top-spacing {
+  margin-top: 20px;
+}
+
+.layout-spacing {
+  padding: 10px;
+}
+
 .table-responsive {
   width: 100%;
   overflow-x: auto;
