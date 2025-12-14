@@ -171,6 +171,58 @@ html {
   text-size-adjust: 100% !important;
 }
 
+/* Ensure consistent app-content styling across environments */
+/* Use explicit pixel values to avoid rem calculation differences */
+.app-content {
+  padding: 15px 20px !important; /* Explicit pixel values for consistency */
+  position: relative !important;
+  min-height: 100% !important;
+  background-color: #e0e4eb !important;
+  box-sizing: border-box !important;
+}
+
+/* Override any conflicting layout styles */
+#content {
+  padding: 0 !important; /* Remove padding from #content as it's handled by .app-content */
+  background-color: #e0e4eb !important;
+  box-sizing: border-box !important;
+}
+
+.container-fluid {
+  padding: 16px !important; /* Explicit pixel value - 1rem at 16px base */
+  box-sizing: border-box !important;
+}
+
+main,
+article {
+  box-sizing: border-box !important;
+}
+
+/* Ensure consistent margin for sidebar layout */
+/* Note: margin-left is handled by AppLayout.vue dynamically, but we ensure base consistency */
+@media (min-width: 769px) {
+  .app-content:not(.app-content-full-width) {
+    /* margin-left handled dynamically via inline styles in AppLayout.vue */
+    /* Ensure consistent box-sizing */
+    box-sizing: border-box !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-content:not(.app-content-full-width) {
+    margin-left: 0 !important;
+    padding: 10px 15px !important; /* Explicit pixel values for mobile */
+    box-sizing: border-box !important;
+  }
+}
+
+/* Force consistent box-sizing for all elements to prevent layout differences */
+*,
+*::before,
+*::after {
+  box-sizing: border-box !important;
+}
+
 *,
 *::before,
 *::after {
