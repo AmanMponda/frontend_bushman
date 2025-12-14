@@ -86,7 +86,8 @@ import { defineComponent, ref } from 'vue'
 import { useQuotaStore } from '../../stores/quota-store'
 import { mapActions } from 'pinia'
 import { reactive } from 'vue'
-import { useToast, useForm } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
+import { useForm } from '@/composables/useForm'
 import ModuleTable from './components/ModuleTable.vue'
 import { useSpeciesStore } from '../../stores/species-store'
 import handleErrors from '../../utils/errorHandler'
@@ -123,7 +124,7 @@ export default defineComponent({
       validate: validateSForm,
       resetValidation: resetValidationSForm,
       reset: resetSForm,
-    } = useForm(sformRef)
+    } = useForm()
 
     // Make sure to use `isValidForm`, `validateForm`, and `resetValidationForm` in your component logic as needed
     return {

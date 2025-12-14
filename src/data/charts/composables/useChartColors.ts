@@ -1,29 +1,38 @@
-import { computed, ref, watch } from 'vue'
-import { useColors, useGlobalConfig } from 'vuestic-ui'
+import { ref, watch } from 'vue'
+import { useColors } from '@/composables/useColors'
 
 type chartColors = string | string[]
 
-export function useChartColors(chartColors = [] as chartColors, alfa = 0.6) {
-  const { getGlobalConfig } = useGlobalConfig()
-  const { setHSLAColor, getColor } = useColors()
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function useChartColors(chartColors = [] as chartColors, _alfa = 0.6) {
+  const { getColor } = useColors()
 
-  const generateHSLAColors = (colors: chartColors) =>
-    typeof colors === 'string'
-      ? setHSLAColor(getColor(colors), { a: alfa })
-      : colors.map((color) => setHSLAColor(getColor(color), { a: alfa }))
+  const generateHSLAColors = (colors: chartColors) => {
+    // Simplified version without HSL manipulation - use Bootstrap colors directly
+    if (typeof colors === 'string') {
+      return getColor(colors)
+    }
+    return colors.map((color) => getColor(color))
+  }
 
-  const generateColors = (colors: chartColors) =>
-    typeof colors === 'string' ? getColor(colors) : colors.map((color) => getColor(color))
+  const generateColors = (colors: chartColors) => {
+    if (typeof colors === 'string') {
+      return getColor(colors)
+    }
+    return colors.map((color) => getColor(color))
+  }
 
   const generatedHSLAColors = ref(generateHSLAColors(chartColors))
   const generatedColors = ref(generateColors(chartColors))
 
-  const theme = computed(() => getGlobalConfig().colors!)
-
-  watch(theme, () => {
-    generatedHSLAColors.value = generateHSLAColors(chartColors)
-    generatedColors.value = generateColors(chartColors)
-  })
+  // Watch for color changes (simplified - no theme watching for now)
+  watch(
+    () => chartColors,
+    () => {
+      generatedHSLAColors.value = generateHSLAColors(chartColors)
+      generatedColors.value = generateColors(chartColors)
+    },
+  )
 
   return {
     generateHSLAColors,

@@ -70,6 +70,10 @@ import BootstrapModal from '@/components/bootstrap/Modal.vue'
 import BootstrapCheckbox from '@/components/bootstrap/Checkbox.vue'
 import BootstrapValue from '@/components/bootstrap/Value.vue'
 import BootstrapInnerLoading from '@/components/bootstrap/InnerLoading.vue'
+import BootstrapTextarea from '@/components/bootstrap/Textarea.vue'
+import BootstrapDateInput from '@/components/bootstrap/DateInput.vue'
+import BootstrapIcon from '@/components/bootstrap/Icon.vue'
+import BootstrapButtonGroup from '@/components/bootstrap/ButtonGroup.vue'
 import ToastContainer from '@/components/bootstrap/ToastContainer.vue'
 
 const emitter = mitt()
@@ -93,6 +97,10 @@ app.component('BootstrapModal', BootstrapModal)
 app.component('BootstrapCheckbox', BootstrapCheckbox)
 app.component('BootstrapValue', BootstrapValue)
 app.component('BootstrapInnerLoading', BootstrapInnerLoading)
+app.component('BootstrapTextarea', BootstrapTextarea)
+app.component('BootstrapDateInput', BootstrapDateInput)
+app.component('BootstrapIcon', BootstrapIcon)
+app.component('BootstrapButtonGroup', BootstrapButtonGroup)
 app.component('ToastContainer', ToastContainer)
 
 // Use Pinia (stores is already a Pinia instance from stores/index.ts)
@@ -119,6 +127,16 @@ registerIfNotExists('VaModal', BootstrapModal)
 registerIfNotExists('VaCheckbox', BootstrapCheckbox)
 registerIfNotExists('VaValue', BootstrapValue)
 registerIfNotExists('VaInnerLoading', BootstrapInnerLoading)
+registerIfNotExists('VaTextarea', BootstrapTextarea)
+registerIfNotExists('VaDateInput', BootstrapDateInput)
+registerIfNotExists('VaIcon', BootstrapIcon)
+registerIfNotExists('VaButtonGroup', BootstrapButtonGroup)
+registerIfNotExists('VaCard', Card)
+registerIfNotExists('VaCardContent', CardBody)
+registerIfNotExists('VaCardBody', CardBody)
+registerIfNotExists('VaCardTitle', CardHeader)
+registerIfNotExists('VaCardHeader', CardHeader)
+registerIfNotExists('VaCardFooter', CardFooter)
 
 // Set up emitter for Vue Studio components
 app.config.globalProperties.emitter = emitter

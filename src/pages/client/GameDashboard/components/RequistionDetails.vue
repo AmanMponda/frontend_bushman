@@ -109,7 +109,6 @@ export default {
 </script>
 
 <style lang="scss">
-@import '@vuestic/ag-grid-theme';
 .capitalize {
   text-transform: capitalize;
 }

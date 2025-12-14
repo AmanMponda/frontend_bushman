@@ -1244,12 +1244,13 @@
 <script lang="ts">
 import { defineComponent, reactive, ref, computed, onMounted } from 'vue'
 import axios from 'axios'
-import { VaInput, VaSelect, VaButton } from 'vuestic-ui'
+// Va* components are globally registered Bootstrap components - no import needed
 import handleErrors from '../../../utils/errorHandler'
 import { validators } from '../../../services/utils'
 // import SalesConfirmationClientDetails from './components/SalesConfirmationClientDetails.vue'
 
-import { useForm, useToast } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
+import { useToast } from '@/composables/useToast'
 import { mapActions, mapState } from 'pinia'
 import { useQuotaStore } from '../../../stores/quota-store'
 import { useSalesInquiriesStore } from '../../../stores/sales-store'
@@ -1265,9 +1266,7 @@ import StandardDataTable from '@/components/bootstrap/StandardDataTable.vue'
 // pdfMake.vfs = pdfFonts.pdfMake.vfs
 export default defineComponent({
   components: {
-    VaInput,
-    VaSelect,
-    VaButton,
+    // Va* components (VaInput, VaSelect, VaButton) are globally registered - no need to import
     SalesInquiryDetails,
     StandardDataTable,
     // SalesConfirmationClientDetails,
@@ -1283,14 +1282,14 @@ export default defineComponent({
       validate: validateForm,
       resetValidation: resetValidationForm,
       reset: resetForm,
-    } = useForm(formRef)
+    } = useForm()
 
     const {
       isValid: isValidContactForm,
       validate: validateContactForm,
       resetValidation: resetValidationContactForm,
       reset: resetContactForm,
-    } = useForm(contactFormRef)
+    } = useForm()
 
     const { init } = useToast()
     const showDetailsPage = ref(false)

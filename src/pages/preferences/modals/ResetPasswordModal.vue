@@ -59,7 +59,8 @@
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { useForm, useToast } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
+import { useToast } from '@/composables/useToast'
 
 import { buttonStyles } from '../styles'
 
@@ -67,7 +68,7 @@ const oldPassowrd = ref<string>()
 const newPassword = ref<string>()
 const repeatNewPassword = ref<string>()
 
-const { validate } = useForm('form')
+const { validate } = useForm()
 const { init } = useToast()
 
 const emits = defineEmits(['cancel'])

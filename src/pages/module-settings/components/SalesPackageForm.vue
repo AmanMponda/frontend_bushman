@@ -103,11 +103,12 @@
 
 <script lang="ts">
 import { defineComponent, reactive, ref } from 'vue'
-import { VaForm, VaInput, VaSelect, VaButton } from 'vuestic-ui'
+// Va* components are globally registered Bootstrap components - no import needed
 import handleErrors from '../../../utils/errorHandler'
 import { validators } from '../../../services/utils'
 
-import { useForm, useToast } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
+import { useToast } from '@/composables/useToast'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useQuotaStore } from '../../../stores/quota-store'
 import { useSettingsStore } from '../../../stores/settings-store'
@@ -116,10 +117,7 @@ import { useRegulatoryPackageStore } from '../../../stores/regulatrory-store'
 
 export default defineComponent({
   components: {
-    VaForm,
-    VaInput,
-    VaSelect,
-    VaButton,
+    // Va* components (VaForm, VaInput, VaSelect, VaButton) are globally registered - no need to import
   },
   props: {
     editMode: {
@@ -140,7 +138,7 @@ export default defineComponent({
       validate: validateForm,
       resetValidation: resetValidationForm,
       reset: resetForm,
-    } = useForm(formRef)
+    } = useForm()
 
     const { init } = useToast()
     const showEditForm = ref(false)
@@ -415,6 +413,4 @@ export default defineComponent({
 })
 </script>
 
-<style lang="scss">
-@import '@vuestic/ag-grid-theme';
-</style>
+<style lang="scss"></style>

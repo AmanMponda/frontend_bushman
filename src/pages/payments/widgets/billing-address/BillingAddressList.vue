@@ -45,12 +45,13 @@
 <script lang="ts" setup>
 import CardListItem from './BillingAddressListItem.vue'
 import { computed, ref } from 'vue'
-import { useModal, useToast } from 'vuestic-ui'
+import { useModal } from '@/composables/useModal'
+import { useToast } from '@/composables/useToast'
 import AddressCreateModal from './BillingAddressCreateModal.vue'
 import AddressUpdateModal from './BillingAddressUpdateModal.vue'
 import { useBillingAddressesStore } from '../../../../stores/billing-addresses'
 import { BillingAddress } from '../../types'
-import { useColors } from 'vuestic-ui'
+import { useColors } from '@/composables/useColors'
 
 const store = useBillingAddressesStore()
 
@@ -66,9 +67,7 @@ store.load()
 const remove = async (card: BillingAddress) => {
   confirm({
     message: 'Are you really sure you want to delete this address?',
-    size: 'small',
-    maxWidth: '380px',
-  }).then((ok) => {
+  }).then((ok: boolean) => {
     if (!ok) return
     store.remove(card.id)
     init({ message: 'Billing Address has been deleted', color: 'success' })

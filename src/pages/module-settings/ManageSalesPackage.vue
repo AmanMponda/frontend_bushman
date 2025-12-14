@@ -79,7 +79,8 @@
 import { defineComponent, reactive, ref } from 'vue'
 import handleErrors from '../../utils/errorHandler'
 import { validators } from '../../services/utils'
-import { useForm, useToast } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
+import { useToast } from '@/composables/useToast'
 import { mapActions, mapState } from 'pinia'
 import { useQuotaStore } from '../../stores/quota-store'
 import { useSettingsStore } from '../../stores/settings-store'
@@ -104,7 +105,7 @@ export default defineComponent({
       validate: validateForm,
       resetValidation: resetValidationForm,
       reset: resetForm,
-    } = useForm(formRef)
+    } = useForm()
 
     const { init } = useToast()
     const showEditForm = ref(false)
@@ -552,6 +553,4 @@ export default defineComponent({
 })
 </script>
 
-<style lang="scss">
-@import '@vuestic/ag-grid-theme';
-</style>
+<style lang="scss"></style>

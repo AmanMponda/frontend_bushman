@@ -49,8 +49,29 @@ export function useToast() {
     toasts.value = []
   }
 
+  // Convenience methods matching vuestic-ui API
+  const success = (message: string, options?: Omit<ToastOptions, 'message' | 'color'>) => {
+    return init({ ...options, message, color: 'success' })
+  }
+
+  const error = (message: string, options?: Omit<ToastOptions, 'message' | 'color'>) => {
+    return init({ ...options, message, color: 'danger' })
+  }
+
+  const warning = (message: string, options?: Omit<ToastOptions, 'message' | 'color'>) => {
+    return init({ ...options, message, color: 'warning' })
+  }
+
+  const info = (message: string, options?: Omit<ToastOptions, 'message' | 'color'>) => {
+    return init({ ...options, message, color: 'info' })
+  }
+
   return {
     init,
+    success,
+    error,
+    warning,
+    info,
     close,
     closeAll,
     toasts,

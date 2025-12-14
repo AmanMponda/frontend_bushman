@@ -91,7 +91,8 @@
 import { defineComponent, ref, reactive } from 'vue'
 import { useSettingsStore } from '../../stores/settings-store'
 import { mapActions } from 'pinia'
-import { useToast, useForm } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
+import { useForm } from '@/composables/useForm'
 import handleErrors from '../../utils/errorHandler'
 
 export default defineComponent({
@@ -99,7 +100,7 @@ export default defineComponent({
 
   setup() {
     const formRef = ref(null) as any
-    const { isValid: isValidForm, validate: validateForm, resetValidation: resetValidationForm } = useForm(formRef)
+    const { isValid: isValidForm, validate: validateForm, resetValidation: resetValidationForm } = useForm()
 
     return {
       isValidForm,

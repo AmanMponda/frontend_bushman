@@ -149,7 +149,8 @@
 <script lang="ts">
 import { mapActions, mapState } from 'pinia'
 import { defineComponent, reactive, ref } from 'vue'
-import { useForm, useToast } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
+import { useToast } from '@/composables/useToast'
 import { useSettingsStore } from '../../../../stores/settings-store'
 import { useAccountsStore } from '../../../../stores/account-store'
 import { useRequisitionStore } from '../../../../stores/requistions-store'
@@ -167,7 +168,8 @@ export default defineComponent({
     const { init } = useToast()
 
     const formRef = ref()
-    const iformRef = ref()
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const iformRef = ref() // Used in template as ref="iformRef"
 
     const requisitionItemForm = reactive({
       source_type: null as any,
@@ -194,14 +196,14 @@ export default defineComponent({
       validate: validateIform,
       resetValidation: resetValidationIform,
       reset: resetIform,
-    } = useForm(iformRef)
+    } = useForm()
 
     const {
       isValid: isValidForm,
       validate: validateForm,
       resetValidation: resetValidationForm,
       reset: resetForm,
-    } = useForm(formRef)
+    } = useForm()
     const sourceTypeOptions = [
       { value: 'CASH', text: 'CASH' },
       { value: 'STORE', text: 'STORE' },

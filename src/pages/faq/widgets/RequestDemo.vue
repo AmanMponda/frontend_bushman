@@ -34,11 +34,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-import { useForm, useToast } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
+import { useToast } from '@/composables/useToast'
 
 const showModal = ref(false)
 const email = ref('')
-const { validate } = useForm('form')
+const { validate } = useForm()
 const { init } = useToast()
 
 const submit = async () => {
@@ -46,8 +47,7 @@ const submit = async () => {
     return
   }
   init({
-    title: 'Demo Request Submitted!',
-    message: 'An expert will get in touch soon',
+    message: 'Demo Request Submitted! An expert will get in touch soon',
     color: 'success',
   })
   showModal.value = false

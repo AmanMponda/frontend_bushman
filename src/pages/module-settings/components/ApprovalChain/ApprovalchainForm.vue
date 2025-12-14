@@ -89,7 +89,8 @@
 <script lang="ts">
 import { mapActions, mapState } from 'pinia'
 import { defineComponent, reactive, ref } from 'vue'
-import { useForm, useToast } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
+import { useToast } from '@/composables/useToast'
 
 import { useApprovalChainStore } from '../../../../stores/approval-store'
 import { useUserStore } from '../../../../stores/user-store'
@@ -102,7 +103,8 @@ export default defineComponent({
     const { init } = useToast()
 
     const formRef = ref()
-    const iformRef = ref()
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const iformRef = ref() // Used in template as ref="iformRef"
 
     const moduleForm = reactive({
       name: null as any,
@@ -122,14 +124,14 @@ export default defineComponent({
       validate: validateIform,
       resetValidation: resetValidationIform,
       reset: resetIform,
-    } = useForm(iformRef)
+    } = useForm()
 
     const {
       isValid: isValidForm,
       validate: validateForm,
       resetValidation: resetValidationForm,
       reset: resetForm,
-    } = useForm(formRef)
+    } = useForm()
 
     return {
       moduleForm,

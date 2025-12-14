@@ -192,7 +192,8 @@ import { defineComponent, ref } from 'vue'
 import { useQuotaStore } from '../../stores/quota-store'
 import { mapActions } from 'pinia'
 import { reactive } from 'vue'
-import { useToast, useForm } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
+import { useForm } from '@/composables/useForm'
 import handleErrors from '../../utils/errorHandler'
 import { useSettingsStore } from '../../stores/settings-store'
 import ModuleTable from './components/ModuleTable.vue'
@@ -251,14 +252,14 @@ export default defineComponent({
       validate: validateForm,
       resetValidation: resetValidationForm,
       reset: resetForm,
-    } = useForm(formRef)
+    } = useForm()
 
     const {
       isValid: isValidSForm,
       validate: validateSForm,
       resetValidation: resetValidationSForm,
       reset: resetSForm,
-    } = useForm(sformRef)
+    } = useForm()
 
     // Define columns for the ModuleTable
     const columns = [

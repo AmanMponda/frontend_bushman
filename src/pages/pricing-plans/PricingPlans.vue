@@ -73,25 +73,24 @@
 </template>
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { useToast, useModal } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
+import { useModal } from '@/composables/useModal'
 
 import { badgeStyles, selectButtonStyles } from './styles'
 
 import { pricingPlans } from './options'
 
 const { init } = useToast()
-const { init: initModal } = useModal()
+const { open: openModal } = useModal()
 
 const selectedDuration = ref<string>('Annual')
 const selectedPlan = ref<string>()
 
 const createModal = (planModel: string) => {
-  initModal({
+  openModal({
+    title: 'Confirm Plan Change',
     message: 'Are you sure you want to change plan?',
-    mobileFullscreen: false,
-    maxWidth: '380px',
-    size: 'small',
-    onOk: () => selectPlan(planModel),
+    onConfirm: () => selectPlan(planModel),
   })
 }
 

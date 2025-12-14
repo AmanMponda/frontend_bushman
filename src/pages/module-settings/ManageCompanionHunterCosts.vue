@@ -124,7 +124,8 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
 import { mapActions, mapState } from 'pinia'
-import { useToast, useForm } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
+import { useForm } from '@/composables/useForm'
 import { useSettingsStore } from '../../stores/settings-store'
 import handleErrors from '../../utils/errorHandler'
 
@@ -133,7 +134,7 @@ export default defineComponent({
 
   setup() {
     const formRef = ref(null) as any
-    const { validate, reset } = useForm(formRef)
+    const { validate, reset } = useForm()
 
     return {
       formRef,

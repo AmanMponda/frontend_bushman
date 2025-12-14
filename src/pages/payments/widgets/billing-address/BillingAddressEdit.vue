@@ -45,11 +45,11 @@
 </template>
 
 <script lang="ts" setup>
-import { useForm } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
 import { BillingAddress } from '../../types'
 import { watch, ref } from 'vue'
 
-const { validate } = useForm('form')
+const { validate } = useForm()
 const emits = defineEmits(['save', 'cancel'])
 
 const props = defineProps<{

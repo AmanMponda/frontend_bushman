@@ -19,11 +19,11 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { useForm } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
 import { useRouter } from 'vue-router'
 
 const email = ref('')
-const form = useForm('passwordForm')
+const form = useForm()
 const router = useRouter()
 
 const submit = () => {

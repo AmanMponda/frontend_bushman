@@ -29,7 +29,7 @@
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue'
-import { useToast } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
 import { useI18n } from 'vue-i18n'
 
 const { init } = useToast()

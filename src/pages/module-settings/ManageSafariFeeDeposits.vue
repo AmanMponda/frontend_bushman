@@ -120,7 +120,8 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
 import { mapActions } from 'pinia'
-import { useToast, useForm } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
+import { useForm } from '@/composables/useForm'
 import { useSettingsStore } from '../../stores/settings-store'
 import handleErrors from '../../utils/errorHandler'
 
@@ -128,7 +129,7 @@ export default defineComponent({
   name: 'ManageSafariFeeDeposits',
   setup() {
     const formRef = ref()
-    const { validate } = useForm('formRef')
+    const { validate } = useForm()
     return { formRef, validate }
   },
   data() {

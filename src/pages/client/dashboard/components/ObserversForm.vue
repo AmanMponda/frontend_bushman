@@ -176,9 +176,10 @@
 <script lang="ts">
 import { defineComponent, reactive, ref, computed, onMounted } from 'vue'
 import axios from 'axios'
-import { VaForm, VaInput, VaSelect, VaButton } from 'vuestic-ui'
+// Va* components are globally registered Bootstrap components - no import needed
 
-import { useForm, useToast } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
+import { useToast } from '@/composables/useToast'
 import { mapActions, mapState } from 'pinia'
 import { validators } from '../../../../services/utils'
 import downloadPdf from '../../../../utils/pdfDownloader'
@@ -191,10 +192,7 @@ import { format } from 'date-fns'
 export default defineComponent({
   components: {
     // Salesinquirieslist,
-    VaForm,
-    VaInput,
-    VaSelect,
-    VaButton,
+    // Va* components are globally registered
     // SalesInquiryDetails,
     // SalesConfirmationClientDetails,
   },
@@ -215,14 +213,14 @@ export default defineComponent({
       validate: validateForm,
       resetValidation: resetValidationForm,
       reset: resetForm,
-    } = useForm(formRef)
+    } = useForm()
 
     const {
       isValid: isValidContactForm,
       validate: validateContactForm,
       resetValidation: resetValidationContactForm,
       reset: resetContactForm,
-    } = useForm(contactFormRef)
+    } = useForm()
 
     const { init } = useToast()
     const showDetailsPage = ref(false)

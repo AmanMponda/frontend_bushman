@@ -22,7 +22,7 @@
   </VaModal>
 </template>
 <script lang="ts" setup>
-import { useToast } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
 
 const { init } = useToast()
 

@@ -30,7 +30,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { useToast } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
 import { mapState } from 'pinia'
 import { usePriceListStore } from '../../../../stores/price-list-store'
 

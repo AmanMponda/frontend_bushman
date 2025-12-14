@@ -10,7 +10,7 @@ import { ref, reactive } from 'vue'
 import PaymentCardEdit from './PaymentCardEdit.vue'
 import { PaymentCard, PaymentSystemType } from '../../types'
 import { usePaymentCardsStore } from '../../../../stores/payment-cards'
-import { useToast } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
 
 const isModalOpen = ref(false)
 

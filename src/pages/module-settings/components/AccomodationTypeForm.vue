@@ -24,7 +24,8 @@
 <script lang="ts">
 import { mapActions, mapWritableState } from 'pinia'
 import { defineComponent, reactive, ref } from 'vue'
-import { useForm, useToast } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
+import { useToast } from '@/composables/useToast'
 import { useSettingsStore } from '../../../stores/settings-store'
 import handleErrors from '../../../utils/errorHandler'
 
@@ -45,7 +46,7 @@ export default defineComponent({
       validate: validateForm,
       resetValidation: resetValidationForm,
       reset: resetForm,
-    } = useForm(formRef)
+    } = useForm()
 
     return {
       formRef,

@@ -135,7 +135,8 @@ import { defineComponent, ref } from 'vue'
 import { useQuotaStore } from '../../stores/quota-store'
 import { mapActions } from 'pinia'
 import { reactive } from 'vue'
-import { useToast, useForm } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
+import { useForm } from '@/composables/useForm'
 import handleErrors from '../../utils/errorHandler'
 import { useHuntingAreaStore } from '../../stores/hunting-story'
 
@@ -158,14 +159,14 @@ export default defineComponent({
       validate: validateForm,
       resetValidation: resetValidationForm,
       // reset: resetForm, // Using method-based resetForm instead
-    } = useForm(formRef)
+    } = useForm()
 
     const {
       isValid: isValidareaForm,
       validate: validateareaForm,
       resetValidation: resetValidationareaForm,
       reset: resetareaForm,
-    } = useForm(areaFormRef)
+    } = useForm()
 
     return {
       isValidForm, // Ensure this is utilized somewhere

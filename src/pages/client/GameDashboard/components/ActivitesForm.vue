@@ -172,7 +172,8 @@
 </template>
 
 <script lang="ts">
-import { useForm, useToast } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
+import { useToast } from '@/composables/useToast'
 import { defineComponent, ref, reactive } from 'vue'
 import { mapActions } from 'pinia'
 import handleErrors from '../../../../utils/errorHandler'
@@ -200,7 +201,7 @@ export default defineComponent({
       validate: validateForm,
       resetValidation: resetValidationForm,
       reset: resetForm,
-    } = useForm(iformRef)
+    } = useForm()
 
     const isNotUpBookingSelected = ref(true)
 

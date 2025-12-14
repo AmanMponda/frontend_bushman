@@ -249,7 +249,8 @@
 <script lang="ts">
 import { defineComponent, ref, reactive } from 'vue'
 import { mapActions } from 'pinia'
-import { useToast, useForm } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
+import { useForm } from '@/composables/useForm'
 import handleErrors from '../../utils/errorHandler'
 import ModuleTable from './components/ModuleTable.vue'
 import { useTrophyFeesStore } from '../../stores/trophy-fees-store'
@@ -270,7 +271,7 @@ export default defineComponent({
       validate: validateTrophyFeeForm,
       resetValidation: resetValidationTrophyFeeForm,
       reset: resetTrophyFeeForm,
-    } = useForm(trophyFeeFormRef)
+    } = useForm()
 
     const columns = [
       { key: 'id', label: 'ID', sortable: true, width: 80 },

@@ -187,7 +187,8 @@ import { useSettingsStore } from '../../stores/settings-store'
 import { useQuotaStore } from '../../stores/quota-store'
 import { defineComponent, ref, reactive } from 'vue'
 import { mapState, mapActions } from 'pinia'
-import { useForm, useToast } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
+import { useToast } from '@/composables/useToast'
 import handleErrors from '../../utils/errorHandler'
 import axios from 'axios'
 
@@ -195,7 +196,7 @@ export default defineComponent({
   setup() {
     const { init } = useToast()
     const formRef = ref(null) as any
-    const { isValid, validate, reset } = useForm(formRef)
+    const { isValid, validate, reset } = useForm()
 
     const form = reactive({
       id: null as any,

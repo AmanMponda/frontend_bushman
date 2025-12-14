@@ -59,7 +59,8 @@
 import { useSettingsStore } from '../../../../stores/settings-store'
 import { defineComponent, ref, reactive } from 'vue'
 import { mapState, mapActions, mapWritableState } from 'pinia'
-import { useForm, useToast } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
+import { useToast } from '@/composables/useToast'
 import { useAccountsStore } from '../../../../stores/account-store'
 import { useSalesInquiriesStore } from '../../../../stores/sales-store'
 import handleErrors from '../../../../utils/errorHandler'
@@ -93,7 +94,7 @@ export default defineComponent({
       validate: validateForm,
       resetValidation: resetValidationForm,
       reset: resetForm,
-    } = useForm(formRef)
+    } = useForm()
 
     const form = reactive({
       extra_id: null as any,

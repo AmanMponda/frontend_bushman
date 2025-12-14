@@ -127,7 +127,8 @@
 </template>
 
 <script lang="ts">
-import { useForm, useToast } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
+import { useToast } from '@/composables/useToast'
 import { defineComponent, ref, reactive } from 'vue'
 import { useSettingsStore } from '../../../../stores/settings-store'
 import { mapActions, mapState, mapWritableState } from 'pinia'
@@ -157,7 +158,7 @@ export default defineComponent({
       validate: validateForm,
       resetValidation: resetValidationForm,
       reset: resetForm,
-    } = useForm(formRef)
+    } = useForm()
 
     const form = reactive({
       type_id: null as any,

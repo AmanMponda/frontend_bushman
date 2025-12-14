@@ -82,7 +82,7 @@ import { mapActions } from 'pinia'
 import { defineComponent, ref } from 'vue'
 import { useSalesInquiriesStore } from '../../../../stores/sales-store'
 import { useSettingsStore } from '../../../../stores/settings-store'
-import { useToast } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
 
 export default defineComponent({
   name: 'SalesInquiriesList',

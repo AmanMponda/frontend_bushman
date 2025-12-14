@@ -51,15 +51,15 @@
 
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { useForm } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
 import axios from 'axios'
-import { useToast } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
 import { onMounted } from 'vue'
 import handleErrors from '../../../utils/errorHandler'
 
-const { isValid, validate } = useForm('formRef')
+const { isValid, validate } = useForm()
 const { init } = useToast()
-// import { useModal } from 'vuestic-ui'
+// import { useModal } from '@/composables/useModal'
 
 const form = reactive({
   document_type: null as any,

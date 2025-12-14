@@ -14,7 +14,7 @@
 import { ref } from 'vue'
 import AddressEdit from './BillingAddressEdit.vue'
 import { BillingAddress } from '../../types'
-import { useToast } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
 import { useBillingAddressesStore } from '../../../../stores/billing-addresses'
 
 const isModalOpen = ref(false)

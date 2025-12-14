@@ -189,7 +189,7 @@
 
 <script lang="ts">
 import { defineComponent, PropType } from 'vue'
-import { useForm } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
 import { mapState } from 'pinia'
 import { useProposalStore } from '../../../../stores/proposal-store'
 import { format } from 'date-fns'
@@ -237,7 +237,7 @@ export default defineComponent({
   },
   emits: ['save', 'cancel'],
   setup() {
-    const { validate, reset } = useForm('formRef')
+    const { validate, reset } = useForm()
     return { validate, reset }
   },
   data() {

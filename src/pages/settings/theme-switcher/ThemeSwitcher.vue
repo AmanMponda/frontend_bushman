@@ -6,7 +6,7 @@ import { computed } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 
-import { useColors } from 'vuestic-ui'
+import { useColors } from '@/composables/useColors'
 
 const { applyPreset, currentPresetName } = useColors()
 

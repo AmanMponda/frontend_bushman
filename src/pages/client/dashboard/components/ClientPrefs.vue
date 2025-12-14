@@ -115,13 +115,13 @@
 
 <script setup lang="ts">
 import { reactive, ref, defineProps } from 'vue'
-// import { useForm } from 'vuestic-ui'
-// import { useToast } from 'vuestic-ui'
-import { VaForm, VaInput, VaSelect, VaButton } from 'vuestic-ui'
+// import { useForm } from '@/composables/useForm'
+// import { useToast } from '@/composables/useToast'
+// Va* components (VaForm, VaInput, VaSelect, VaButton) are globally registered Bootstrap components - no import needed
 
 // import { onMounted, computed } from 'vue'
 // import handleErrors from '../../../utils/handleClientRegFormError'
-import { useForm } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
 
 const prefsFormRef = ref()
 const {
@@ -129,7 +129,7 @@ const {
   validate: prefsvalidateForm,
   resetValidation: prefsresetValidationForm,
   reset: pefsresetForm,
-} = useForm(prefsFormRef)
+} = useForm()
 
 const experienceOptions = ref([
   { value: 'none', text: 'None' },

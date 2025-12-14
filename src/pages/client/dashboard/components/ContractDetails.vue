@@ -453,7 +453,7 @@
 <script lang="ts">
 import { defineComponent, PropType, ref } from 'vue'
 import { formatDateTime } from '../../../../services/utils'
-import { useToast } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
 import downloadPdf from '../../../../utils/pdfDownloader'
 
 export default defineComponent({

@@ -66,11 +66,12 @@
 <script lang="ts" setup>
 import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { useForm, useToast } from 'vuestic-ui'
+import { useForm } from '@/composables/useForm'
+import { useToast } from '@/composables/useToast'
 import axios from 'axios' // Import Axios
 // import { text } from 'stream/consumers'
 
-const { validate } = useForm('form')
+const { validate } = useForm()
 const { push } = useRouter()
 const { init } = useToast()
 

@@ -37,7 +37,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useToast } from 'vuestic-ui'
+import { useToast } from '@/composables/useToast'
 import { reactive } from 'vue'
 
 const { init } = useToast()
