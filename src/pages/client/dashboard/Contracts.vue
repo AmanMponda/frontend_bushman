@@ -23,11 +23,11 @@
     <template v-if="!showDetails">
       <template v-if="!showAddContractForm">
         <!-- Contracts List Table -->
-        <div class="row bg-white rounded">
-          <div class="col-xl-12 col-lg-12 col-sm-12">
+        <div class="row layout-top-spacing bg-white rounded">
+          <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
             <div class="panel br-6 p-0">
               <!-- Data Table -->
-              <div class="custom-table p-2">
+              <div class="custom-table p-3">
                 <StandardDataTable
                   :columns="columns"
                   :data="dataFetched"
@@ -330,20 +330,11 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .contracts-page {
   padding: 0;
-  margin: 0;
-}
-
-/* Ensure consistent spacing between breadcrumb and header */
-.contracts-page > div:first-of-type {
-  margin-bottom: 0.5rem !important; /* mb-2 equivalent */
-}
-
-/* Ensure consistent spacing between header and content */
-.contracts-page > div:nth-of-type(2) {
-  margin-bottom: 0.5rem !important; /* mb-2 equivalent */
+  min-height: 600px;
+  width: 100%;
 }
 
 .empty-state-message {
@@ -352,6 +343,79 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  margin: 0;
+  padding: 0;
+}
+
+:deep(.table-simple) {
+  width: 100%;
+  margin: 0;
+
+  .va-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+  }
+
+  th,
+  td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+    text-align: left;
+    background: transparent;
+  }
+
+  th {
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+    background: transparent;
+  }
+
+  tbody tr {
+    background: transparent;
+
+    &:hover {
+      background-color: #f8f9fa;
+    }
+  }
+
+  // Remove all colors, badges, and icons
+  .va-badge,
+  .badge {
+    background: transparent !important;
+    color: inherit !important;
+    padding: 0;
+    border: none;
+    font-weight: normal;
+  }
+
+  // Remove icon colors
+  .va-icon,
+  i.material-icons {
+    color: inherit;
+  }
+
+  // Remove text colors
+  .text-success,
+  .text-green-600,
+  .text-primary,
+  .text-warning,
+  .text-danger,
+  .text-gray-900,
+  .text-gray-700 {
+    color: inherit !important;
+  }
+
+  // Remove font weights
+  .font-semibold,
+  .font-bold {
+    font-weight: normal;
+  }
 }
 
 .breadcrumb {
@@ -381,11 +445,13 @@ onMounted(() => {
 
       &:hover {
         color: #1f2937 !important;
+        text-decoration: none !important;
       }
     }
 
     &.active {
       color: #9ca3af !important;
+      font-weight: 400;
       text-transform: uppercase !important;
     }
   }
