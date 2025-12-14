@@ -110,10 +110,28 @@
 
 /* Custom global styles */
 html {
-  font-size: 16px; /* Ensure consistent base font size for rem calculations */
-  -webkit-text-size-adjust: 100%;
-  -moz-text-size-adjust: 100%;
-  text-size-adjust: 100%;
+  font-size: 16px !important; /* Ensure consistent base font size for rem calculations */
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+  /* Prevent unwanted scaling in production */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  /* Prevent unwanted scaling */
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+  font-size: 16px !important;
+}
+
+#app {
+  /* Ensure app container maintains proper size */
+  width: 100%;
+  min-width: 100%;
+  font-size: 16px;
 }
 
 html,
