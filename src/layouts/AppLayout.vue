@@ -11,7 +11,7 @@
       <AppNavbar :is-mobile="isMobile" @toggleSidebar="toggleSidebar" />
 
       <!-- Main Content -->
-      <div class="container-fluid p-4">
+      <div class="container-fluid content-container">
         <main>
           <article>
             <RouterView :key="$route.fullPath" />
@@ -144,6 +144,11 @@ onBeforeRouteUpdate(() => {
 
 .container-fluid {
   background-color: transparent !important;
+}
+
+.content-container {
+  padding: 0 1rem 1rem 1rem !important;
+  padding-top: 0 !important;
 }
 
 main,

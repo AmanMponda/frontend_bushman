@@ -29,7 +29,7 @@ import WebTraffic from './WebTraffic.vue'
 
 <style scoped>
 .dashboard-container {
-  padding: 20px 0;
+  padding: 0 0 20px 0;
 }
 
 .stats-section {
