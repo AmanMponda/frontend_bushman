@@ -171,48 +171,58 @@ html {
   text-size-adjust: 100% !important;
 }
 
-/* Ensure consistent app-content styling across environments */
-/* Use explicit pixel values to avoid rem calculation differences */
+/* Remove unwanted margins and padding from app-content */
+/* This ensures the layout matches local without extra spacing on GitHub Pages */
 .app-content {
-  padding: 15px 20px !important; /* Explicit pixel values for consistency */
+  padding: 0 !important; /* Remove all padding to match local layout */
+  margin-left: 0 !important; /* Remove sidebar margin - handled by #content in AppLayout */
+  margin-right: 0 !important;
   position: relative !important;
   min-height: 100% !important;
-  background-color: #e0e4eb !important;
+  background-color: transparent !important; /* Match #content background */
   box-sizing: border-box !important;
 }
 
-/* Override any conflicting layout styles */
+/* Ensure #content handles all layout spacing */
 #content {
-  padding: 0 !important; /* Remove padding from #content as it's handled by .app-content */
+  padding: 0 !important;
+  margin-left: 0 !important; /* Sidebar margin handled inline in AppLayout.vue */
   background-color: #e0e4eb !important;
   box-sizing: border-box !important;
+  width: 100% !important;
 }
 
+/* Container-fluid should have minimal padding to match local */
 .container-fluid {
   padding: 16px !important; /* Explicit pixel value - 1rem at 16px base */
   box-sizing: border-box !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 
 main,
 article {
   box-sizing: border-box !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
-/* Ensure consistent margin for sidebar layout */
-/* Note: margin-left is handled by AppLayout.vue dynamically, but we ensure base consistency */
+/* Remove any app-content specific margins/padding across all breakpoints */
 @media (min-width: 769px) {
+  .app-content,
   .app-content:not(.app-content-full-width) {
-    /* margin-left handled dynamically via inline styles in AppLayout.vue */
-    /* Ensure consistent box-sizing */
-    box-sizing: border-box !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding: 0 !important;
   }
 }
 
 @media (max-width: 768px) {
+  .app-content,
   .app-content:not(.app-content-full-width) {
     margin-left: 0 !important;
-    padding: 10px 15px !important; /* Explicit pixel values for mobile */
-    box-sizing: border-box !important;
+    margin-right: 0 !important;
+    padding: 0 !important;
   }
 }
 
