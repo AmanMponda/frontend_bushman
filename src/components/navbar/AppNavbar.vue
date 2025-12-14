@@ -12,7 +12,7 @@
           <i class="material-icons">menu</i>
         </button>
         <RouterLink to="/" class="navbar-brand d-flex align-items-center" aria-label="Visit home page">
-          <VuesticLogo />
+          <span class="fw-bold">BUSHMAN</span>
         </RouterLink>
       </div>
 
@@ -26,7 +26,6 @@
 
 <script setup lang="ts">
 import AppNavbarActions from './components/AppNavbarActions.vue'
-import VuesticLogo from '../VuesticLogo.vue'
 
 defineProps({
   isMobile: { type: Boolean, default: false },

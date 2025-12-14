@@ -1,48 +1,52 @@
 <template>
   <div class="profile-dropdown-wrapper">
-    <VaDropdown v-model="isShown" :offset="[9, 0]" class="profile-dropdown" stick-to-edges>
-      <template #anchor>
-        <VaButton preset="secondary" color="textPrimary">
-          <span class="profile-dropdown__anchor min-w-max">
-            <slot />
-            <VaAvatar :src="`${baseUrl}pholder.jpeg`" :size="32" color="warning"> </VaAvatar>
-          </span>
-        </VaButton>
-      </template>
-      <VaDropdownContent
-        class="profile-dropdown__content md:w-60 px-0 py-4 w-full"
-        :style="{ '--hover-color': hoverColor }"
+    <div class="dropdown">
+      <a
+        href="#"
+        data-bs-toggle="dropdown"
+        data-display="static"
+        class="profile-dropdown__anchor d-flex align-items-center text-decoration-none text-dark"
       >
-        <VaList v-for="group in options" :key="group.name">
-          <header v-if="group.name" class="uppercase text-[var(--va-secondary)] opacity-80 font-bold text-xs px-4">
+        <slot />
+        <img
+          :src="`${baseUrl}pholder.jpeg`"
+          alt="User"
+          class="ms-2 rounded-circle"
+          style="width: 32px; height: 32px; object-fit: cover"
+        />
+      </a>
+      <div class="dropdown-menu dropdown-menu-end">
+        <template v-for="group in options" :key="group.name">
+          <h6 v-if="group.name" class="dropdown-header text-body-emphasis mb-1 text-uppercase">
             {{ t(`user.${group.name}`) }}
-          </header>
-          <VaListItem
-            v-for="item in group.list"
-            :key="item.name"
-            class="menu-item px-4 text-base cursor-pointer h-8"
-            v-bind="resolveLinkAttribute(item)"
-            @click="clearSessionStorageOnLogout(item)"
-          >
-            <VaIcon :name="item.icon" class="pr-1" color="secondary" />
-            {{ t(`user.${item.name}`) }}
-          </VaListItem>
-          <VaListSeparator v-if="group.separator" class="mx-3 my-2" />
-        </VaList>
-      </VaDropdownContent>
-    </VaDropdown>
+          </h6>
+          <template v-for="item in group.list" :key="item.name">
+            <RouterLink
+              v-if="item.to"
+              :to="{ name: item.to }"
+              class="dropdown-item d-flex align-items-center"
+              @click="clearSessionStorageOnLogout(item)"
+            >
+              <i class="material-icons me-2 text-secondary" style="font-size: 18px">{{ item.icon }}</i>
+              {{ t(`user.${item.name}`) }}
+            </RouterLink>
+            <a v-else-if="item.href" :href="item.href" target="_blank" class="dropdown-item d-flex align-items-center">
+              <i class="material-icons me-2 text-secondary" style="font-size: 18px">{{ item.icon }}</i>
+              {{ t(`user.${item.name}`) }}
+            </a>
+            <div v-if="group.separator && item === group.list[group.list.length - 1]" class="dropdown-divider"></div>
+          </template>
+        </template>
+      </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useColors } from 'vuestic-ui'
+import { RouterLink } from 'vue-router'
 
 const baseUrl = import.meta.env.BASE_URL
-
-const { colors, setHSLAColor } = useColors()
-const hoverColor = computed(() => setHSLAColor(colors.focus, { a: 0.1 }))
 
 const { t } = useI18n()
 
@@ -65,43 +69,6 @@ withDefaults(
   }>(),
   {
     options: () => [
-      // {
-      //   name: 'account',
-      //   separator: true,
-      //   list: [
-      //     {
-      //       name: 'profile',
-      //       to: 'preferences',
-      //       icon: 'mso-account_circle',
-      //     },
-      //     {
-      //       name: 'settings',
-      //       to: 'settings',
-      //       icon: 'mso-settings',
-      //     },
-      //     {
-      //       name: 'billing',
-      //       to: 'billing',
-      //       icon: 'mso-receipt_long',
-      //     },
-      //   ],
-      // },
-      // {
-      //   name: 'explore',
-      //   separator: true,
-      //   list: [
-      //     {
-      //       name: 'faq',
-      //       to: 'faq',
-      //       icon: 'mso-quiz',
-      //     },
-      //     {
-      //       name: 'helpAndSupport',
-      //       href: 'https://discord.gg/u7fQdqQt8c',
-      //       icon: 'mso-error',
-      //     },
-      //   ],
-      // },
       {
         name: '',
         separator: false,
@@ -109,7 +76,7 @@ withDefaults(
           {
             name: 'logout',
             to: 'login',
-            icon: 'mso-logout',
+            icon: 'logout',
           },
         ],
       },
@@ -117,32 +84,36 @@ withDefaults(
   },
 )
 
-const isShown = ref(false)
 const clearSessionStorageOnLogout = (item: ProfileListItem) => {
   if (item.name === 'logout') {
     sessionStorage.clear()
   }
 }
-
-const resolveLinkAttribute = (item: ProfileListItem) => {
-  //  clear session storage on logout
-
-  return item.to ? { to: { name: item.to } } : item.href ? { href: item.href, target: '_blank' } : {}
-}
 </script>
 
-<style lang="scss">
-.profile-dropdown {
-  cursor: pointer;
+<style lang="scss" scoped>
+.profile-dropdown-wrapper {
+  .profile-dropdown__anchor {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
 
-  &__content {
-    .menu-item:hover {
-      background: var(--hover-color);
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
     }
   }
 
-  &__anchor {
-    display: inline-block;
+  .dropdown-menu {
+    min-width: 200px;
+  }
+
+  .dropdown-item {
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
   }
 }
 </style>

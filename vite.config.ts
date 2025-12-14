@@ -3,7 +3,6 @@ import vue from '@vitejs/plugin-vue'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'url'
 import VueI18nPlugin from '@intlify/unplugin-vue-i18n/vite'
-import { vuestic } from '@vuestic/compiler/vite'
 
 // Get base path from environment variable, default to '/frontend_bushman/' for GitHub Pages
 // Set VITE_BASE_PATH='/' for Render.com or other root deployments
@@ -94,17 +93,10 @@ export default defineConfig(({ mode }) => {
       dedupe: ['vue', '@vue/runtime-core', '@vue/runtime-dom', '@vue/reactivity', '@vue/shared', 'vue-router'],
     },
     optimizeDeps: {
-      // Exclude vuestic-ui from pre-bundling to avoid lazy initialization issues
-      // It will be loaded as raw ESM which has proper module execution order
-      exclude: ['vuestic-ui'],
       include: ['vue', 'vue-router', 'vue3-perfect-scrollbar'],
     },
     plugins: [
       vue(),
-      vuestic({
-        devtools: true,
-        cssLayers: true,
-      }),
       VueI18nPlugin({
         include: resolve(dirname(fileURLToPath(import.meta.url)), './src/i18n/locales/**'),
       }),

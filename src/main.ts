@@ -51,37 +51,6 @@ import i18n from './i18n'
 import { createGtm } from '@gtm-support/vue-gtm'
 import stores from './stores'
 import './services/interceptors/token_interceptors'
-import '@vuestic/ag-grid-theme'
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/ab14651b-7c7c-4500-8f4c-553f5bb1f67b', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    location: 'main.ts:27',
-    message: 'Before vuestic-ui import',
-    data: { timestamp: performance.now() },
-    timestamp: Date.now(),
-    sessionId: 'debug-session',
-    hypothesisId: 'A',
-  }),
-}).catch(() => {})
-// #endregion
-import { createVuestic } from 'vuestic-ui'
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/ab14651b-7c7c-4500-8f4c-553f5bb1f67b', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    location: 'main.ts:31',
-    message: 'After vuestic-ui import - success',
-    data: { createVuesticType: typeof createVuestic },
-    timestamp: Date.now(),
-    sessionId: 'debug-session',
-    hypothesisId: 'A',
-  }),
-}).catch(() => {})
-// #endregion
-import vuesticGlobalConfig from './services/vuestic-ui/global-config'
 
 // Bootstrap Components
 import Card from '@/components/bootstrap/Card.vue'
@@ -132,7 +101,6 @@ app.use(router)
 app.use(i18n)
 app.use(Vue3ProgressPlugin)
 app.use(PerfectScrollbarPlugin)
-app.use(createVuestic({ config: vuesticGlobalConfig }))
 
 // Also register with Va prefix for easier migration (only if not already registered by Vuestic)
 const registerIfNotExists = (name: string, component: any) => {

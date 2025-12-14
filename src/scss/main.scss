@@ -1,5 +1,4 @@
 /* 1️⃣ All @use at the top - MUST come before @import */
-@use 'vuestic';
 @use 'icon-fonts/index';
 @use './tailwind.scss';
 
@@ -126,10 +125,7 @@ body {
   padding: 0;
   box-sizing: border-box;
 
-  --va-checkbox-font-size: 0.875rem;
-  --va-card-box-shadow: none;
-  --va-card-padding: 1rem;
-  --va-font-family: 'Inter', sans-serif;
+  --font-family: 'Inter', sans-serif;
 }
 
 *,

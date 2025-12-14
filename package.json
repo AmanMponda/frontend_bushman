@@ -35,9 +35,6 @@
     "@marcoschulte/vue3-progress": "^0.0.7",
     "@popperjs/core": "^2.11.8",
     "@vue-leaflet/vue-leaflet": "^0.10.1",
-    "@vuestic/ag-grid-theme": "^1.1.4",
-    "@vuestic/compiler": "^0.1.0",
-    "@vuestic/tailwind": "^0.1.3",
     "@vueuse/core": "^10.6.1",
     "axios": "^1.7.7",
     "bootstrap": "^5.3.8",
@@ -67,8 +64,7 @@
     "vue-phone-number-input": "^1.12.13",
     "vue-router": "^4.2.5",
     "vue-tel-input": "^9.2.0",
-    "vue3-perfect-scrollbar": "^2.0.0",
-    "vuestic-ui": "^1.10.2"
+    "vue3-perfect-scrollbar": "^2.0.0"
   },
   "devDependencies": {
     "@intlify/unplugin-vue-i18n": "^1.5.0",
