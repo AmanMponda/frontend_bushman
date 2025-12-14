@@ -144,11 +144,15 @@ onBeforeRouteUpdate(() => {
 
 .container-fluid {
   background-color: transparent !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 .content-container {
-  padding: 0 1rem 1rem 1rem !important;
-  padding-top: 0 !important;
+  padding: 0 !important;
+  padding-bottom: 1rem !important;
+  padding-left: 0.25rem !important;
+  padding-right: 0.25rem !important;
 }
 
 main,
