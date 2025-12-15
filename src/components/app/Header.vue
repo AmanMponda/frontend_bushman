@@ -1,9 +1,17 @@
 <script setup lang="ts">
 import { slideToggle } from '@/composables/slideToggle.js'
 import { useAppOptionStore } from '@/stores/app-option'
-import { RouterLink } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { RouterLink, useRouter } from 'vue-router'
 
 const appOption = useAppOptionStore()
+const authStore = useAuthStore()
+const router = useRouter()
+
+const handleLogout = () => {
+  authStore.logout()
+  router.push({ name: 'login' })
+}
 const notificationData = [
   {
     icon: 'fa fa-receipt fa-lg fa-fw text-success',
@@ -141,9 +149,9 @@ function checkForm(event: Event) {
             >Setting <i class="fa fa-wrench fa-fw ms-auto text-gray-400 fs-16px"></i
           ></RouterLink>
           <div class="dropdown-divider"></div>
-          <RouterLink to="/page/login" class="dropdown-item d-flex align-items-center"
+          <a href="#" class="dropdown-item d-flex align-items-center" @click.prevent="handleLogout"
             >Log Out <i class="fa fa-toggle-off fa-fw ms-auto text-gray-400 fs-16px"></i
-          ></RouterLink>
+          ></a>
         </div>
       </div>
     </div>
