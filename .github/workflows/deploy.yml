@@ -41,7 +41,7 @@ jobs:
 
       - name: Build
         env:
-          VITE_BASE_PATH: '/'
+          VITE_BASE_PATH: '/frontend_bushman/'
         run: npm run build:ci
 
       - name: Setup Pages
