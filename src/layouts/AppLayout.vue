@@ -335,7 +335,7 @@ onBeforeRouteUpdate(() => {
   align-items: stretch;
   min-height: 100vh;
   background-color: #e0e4eb;
-  font-size: 18px !important;
+  font-size: 16px !important;
   /* Prevent shrinking */
   -webkit-text-size-adjust: 100% !important;
   -moz-text-size-adjust: 100% !important;
@@ -380,7 +380,7 @@ onBeforeRouteUpdate(() => {
   min-height: 100vh;
   transition: all 0.3s;
   background-color: #e0e4eb;
-  font-size: 18px !important;
+  font-size: 16px !important;
   /* Prevent shrinking */
   -webkit-text-size-adjust: 100% !important;
   -moz-text-size-adjust: 100% !important;

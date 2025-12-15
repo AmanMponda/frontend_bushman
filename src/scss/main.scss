@@ -112,7 +112,7 @@
 
 /* Custom global styles */
 html {
-  font-size: 18px !important; /* Ensure consistent base font size for rem calculations */
+  font-size: 16px !important; /* Ensure consistent base font size for rem calculations */
   -webkit-text-size-adjust: 100% !important;
   -moz-text-size-adjust: 100% !important;
   text-size-adjust: 100% !important;
@@ -126,14 +126,14 @@ body {
   -webkit-text-size-adjust: 100% !important;
   -moz-text-size-adjust: 100% !important;
   text-size-adjust: 100% !important;
-  font-size: 18px !important;
+  font-size: 16px !important;
 }
 
 #app {
   /* Ensure app container maintains proper size */
   width: 100%;
   min-width: 100%;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 html,
@@ -161,7 +161,7 @@ body {
   width: 100% !important;
   min-width: 100% !important;
   /* Prevent any scaling issues */
-  font-size: 18px !important;
+  font-size: 16px !important;
 }
 
 .container-fluid,
