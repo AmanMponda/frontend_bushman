@@ -27,8 +27,9 @@ export default defineConfig(({ mode }) => {
     !!process.env.CF_PAGES_COMMIT_SHA ||
     (process.env.CI === 'true' && !!process.env.CF_PAGES_URL)
 
-  // Use '/' for Cloudflare Pages, Render.com, or if explicit VITE_BASE_PATH is set
+  // Use '/' for Cloudflare Pages, Render.com, ERP server, or if explicit VITE_BASE_PATH is set
   // Otherwise default to '/frontend_bushman/' for GitHub Pages
+  // For custom ERP server deployments, set VITE_BASE_PATH environment variable
   const basePath = viteBasePath || (isCloudflarePages || isRender ? '/' : '/frontend_bushman/')
 
   console.log(`[Vite Config] Base path: ${basePath}`)
@@ -69,21 +70,60 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      sourcemap: true,
+      // Disable source maps for production to reduce bundle size
+      sourcemap: false,
+      // Remove comments and whitespace
+      minify: 'esbuild',
+      // Optimize CSS
       cssCodeSplit: false, // Keep all CSS in a single file for consistent loading
-      cssMinify: 'esbuild', // Use esbuild for CSS minification (better scoped style preservation)
-      minify: 'esbuild', // Use esbuild for faster builds
+      cssMinify: 'esbuild',
+      // Target modern browsers for smaller bundles
+      target: 'es2015',
+      // Enable tree shaking
+      treeshake: true,
+      // Chunk size warnings threshold (in kbs)
+      chunkSizeWarningLimit: 1000,
       rollupOptions: {
         output: {
-          // Ensure consistent asset file naming
-          assetFileNames: (assetInfo) => {
-            if (assetInfo.name && assetInfo.name.endsWith('.css')) {
-              return 'assets/style-[hash][extname]'
+          // Ensure ALL assets go to assets folder with consistent naming
+          assetFileNames: 'assets/[name]-[hash][extname]',
+          // Ensure JS files are in assets folder
+          entryFileNames: 'assets/[name]-[hash].js',
+          chunkFileNames: 'assets/[name]-[hash].js',
+          // Manual chunk splitting optimized for performance
+          // Keep pages as individual chunks for lazy loading (better performance)
+          // Only group vendor libraries for better caching
+          manualChunks: (id) => {
+            // Only split vendor libraries, let pages stay as individual chunks
+            if (id.includes('node_modules')) {
+              // Large libraries get their own chunks for better caching
+              if (id.includes('vue') || id.includes('@vue')) {
+                return 'vue-vendor'
+              }
+              if (id.includes('bootstrap')) {
+                return 'bootstrap-vendor'
+              }
+              if (id.includes('chart.js') || id.includes('chartjs')) {
+                return 'chart-vendor'
+              }
+              if (id.includes('@fullcalendar')) {
+                return 'calendar-vendor'
+              }
+              if (id.includes('@ag-grid')) {
+                return 'grid-vendor'
+              }
+              // All other node_modules in one vendor chunk
+              return 'vendor'
             }
-            return 'assets/[name]-[hash][extname]'
+            // Let pages/components stay as individual chunks for optimal lazy loading
+            // This allows users to only download what they visit
           },
         },
       },
+      // Ensure assets are properly referenced
+      assetsDir: 'assets',
+      // Remove empty chunks
+      emptyOutDir: true,
     },
     resolve: {
       alias: {

@@ -68,5 +68,39 @@
     </script>
     <!-- #endregion -->
     <script type="module" src="/src/main.ts"></script>
+    <style>
+      /* Force remove all horizontal padding - loads after all CSS */
+      #content,
+      #content .container-fluid,
+      #content .content-container,
+      #content main,
+      #content article,
+      #content .container-fluid .row,
+      #content [class*='col-'],
+      .container-fluid,
+      .content-container,
+      .app-content {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+      #content .container-fluid .row,
+      .container-fluid .row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+      #content [class*='col-'],
+      [class*='col-'] {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+      .container-fluid {
+        --bs-gutter-x: 0 !important;
+      }
+      /* Override VueStudio app-content padding */
+      .app-content {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+    </style>
   </body>
 </html>

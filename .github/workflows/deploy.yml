@@ -40,6 +40,8 @@ jobs:
         run: npm install --legacy-peer-deps
 
       - name: Build
+        env:
+          VITE_BASE_PATH: '/'
         run: npm run build:ci
 
       - name: Setup Pages

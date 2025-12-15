@@ -550,7 +550,7 @@ onMounted(() => {
 }
 
 .layout-spacing {
-  padding: 10px;
+  padding: 10px 0;
 }
 
 .table-responsive {

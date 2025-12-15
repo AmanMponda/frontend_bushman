@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "npm run lint && vue-tsc --noEmit && vite build",
     "build:ci": "vite build",
+    "build:erp": "VITE_BASE_PATH='/' vite build",
     "start:ci": "serve -s ./dist",
     "deploy": "npm run build:ci && gh-pages -d dist",
     "prelint": "npm run format",

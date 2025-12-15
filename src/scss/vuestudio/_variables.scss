@@ -481,9 +481,9 @@ $app-top-nav-mobile-submenu-padding-start: rem(32px) !default;
 
 // 17. App - Content settings
 
-$app-content-padding-x: rem(20px) !default;
+$app-content-padding-x: 0 !default;
 $app-content-padding-y: rem(15px) !default;
-$app-content-sm-padding-x: rem(15px) !default;
+$app-content-sm-padding-x: 0 !default;
 $app-content-sm-padding-y: rem(10px) !default;
 
 // 18. App - Pos system settings

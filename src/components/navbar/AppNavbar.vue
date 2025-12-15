@@ -36,7 +36,7 @@ defineEmits(['toggle-sidebar'])
 
 <style lang="scss" scoped>
 .navbar {
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 0;
   border-bottom: 1px solid #e9ecef;
   z-index: 1000;
   position: sticky;
@@ -47,6 +47,11 @@ defineEmits(['toggle-sidebar'])
   -webkit-text-size-adjust: 100% !important;
   -moz-text-size-adjust: 100% !important;
   text-size-adjust: 100% !important;
+
+  .container-fluid {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
 
   .navbar-brand {
     margin-right: 1rem;

@@ -2,6 +2,8 @@
 @use 'icon-fonts/index';
 @use './tailwind.scss';
 
+/* Note: Variables can't be overridden here as styles.scss loads first */
+
 /* 2️⃣ @import plain CSS after @use */
 /* Bootstrap 5 is imported in styles.scss (Vue Studio) */
 /* @import './vuestic-custom.scss'; */
@@ -110,7 +112,7 @@
 
 /* Custom global styles */
 html {
-  font-size: 16px !important; /* Ensure consistent base font size for rem calculations */
+  font-size: 18px !important; /* Ensure consistent base font size for rem calculations */
   -webkit-text-size-adjust: 100% !important;
   -moz-text-size-adjust: 100% !important;
   text-size-adjust: 100% !important;
@@ -124,14 +126,14 @@ body {
   -webkit-text-size-adjust: 100% !important;
   -moz-text-size-adjust: 100% !important;
   text-size-adjust: 100% !important;
-  font-size: 16px !important;
+  font-size: 18px !important;
 }
 
 #app {
   /* Ensure app container maintains proper size */
   width: 100%;
   min-width: 100%;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 html,
@@ -159,12 +161,25 @@ body {
   width: 100% !important;
   min-width: 100% !important;
   /* Prevent any scaling issues */
-  font-size: 16px !important;
+  font-size: 18px !important;
 }
 
 .container-fluid,
 .container {
   background-color: transparent !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Remove Bootstrap row and column padding to extend content to edges */
+.row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+[class*='col-'] {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 code,
@@ -206,4 +221,71 @@ pre {
 .text-regular-small {
   font-size: 0.8125rem;
   line-height: 1rem;
+}
+
+/* GLOBAL: Remove all horizontal padding from content area to extend to sidebar and right edge */
+/* Target all possible containers and wrappers */
+#content,
+#content .container-fluid,
+#content .content-container,
+#content main,
+#content article,
+#content .container-fluid .row,
+#content [class*='col-'],
+#content .container-fluid > *,
+#content .navbar .container-fluid,
+#content .navbar,
+.container-fluid,
+.content-container {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Remove margin from rows */
+#content .container-fluid .row,
+.container-fluid .row,
+.row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Remove padding from all columns */
+#content [class*='col-'],
+[class*='col-'] {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Also target app-content if it exists */
+.app-content {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+@media (max-width: 991.98px) {
+  .app-content {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+
+/* FINAL OVERRIDE: Ensure Bootstrap container-fluid padding is removed globally */
+/* This must come after all other styles to override Bootstrap defaults */
+body .container-fluid,
+body #content .container-fluid,
+body .navbar .container-fluid,
+body .content-container,
+body main .container-fluid,
+body article .container-fluid {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Override Bootstrap's default container-fluid padding (typically 15px/1rem) */
+.container-fluid {
+  --bs-gutter-x: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
