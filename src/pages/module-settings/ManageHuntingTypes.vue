@@ -1,58 +1,87 @@
 <template>
-  <VaCard class="p-6">
-    <div class="flex flex-col md:flex-row gap-2 mb-4 justify-between">
-      <div class="flex flex-col md:flex-row gap-2 justify-start">
-        <VaButton v-if="!showList" class="px-2 py-2" icon="arrow_back" size="small" @click="goBack()">
-          Go Back
-        </VaButton>
+  <div class="hunting-types-page">
+    <!-- Breadcrumb -->
+    <div class="d-flex align-items-center mb-3">
+      <div>
+        <ul class="breadcrumb">
+          <li class="breadcrumb-item"><a href="#">Settings</a></li>
+          <li class="breadcrumb-item active">Hunting Types</li>
+        </ul>
       </div>
-      <VaButtonGroup v-if="showList">
-        <VaButton class="px-2 py-2" color="primary" icon="add" size="small" @click="showCreateForm()">
-          Add a New Hunting Type
-        </VaButton>
-      </VaButtonGroup>
     </div>
 
-    <!-- Data Table -->
-    <VaDataTable v-if="showList" :items="items" :columns="columns" :loading="loading" hoverable striped>
-      <template #cell(actions)="{ rowData }">
-        <div class="flex gap-2">
-          <VaButton preset="plain" icon="edit" color="primary" @click="editItem(rowData)" />
-          <VaButton preset="plain" icon="delete" color="danger" @click="confirmDelete(rowData)" />
+    <!-- Main Content -->
+    <template v-if="showList">
+      <div class="row layout-top-spacing bg-white rounded">
+        <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
+          <div class="panel br-6 p-0">
+            <div class="custom-table p-3">
+              <StandardDataTable
+                :columns="columns"
+                :data="items"
+                :loading="loading"
+                :disable-search="false"
+                :disable-pagination="false"
+                :action-buttons="pageActions"
+              >
+                <template #id="{ row }">
+                  {{ (row as any).id }}
+                </template>
+                <template #name="{ row }">
+                  {{ (row as any).name }}
+                </template>
+                <template #description="{ row }">
+                  {{ (row as any).description }}
+                </template>
+                <template #actions="{ row }">
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-info btn-sm" title="Edit" @click="editItem(row)">
+                      <i class="fa fa-edit"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm" title="Delete" @click="confirmDelete(row)">
+                      <i class="fa fa-trash"></i>
+                    </button>
+                  </div>
+                </template>
+              </StandardDataTable>
+            </div>
+          </div>
         </div>
-      </template>
-    </VaDataTable>
+      </div>
+    </template>
 
     <!-- Create/Edit Form -->
-    <div v-else class="p-2">
-      <VaForm ref="formRef" class="mb-6">
-        <h3 class="font-bold text-lg mb-4">{{ editMode ? 'Edit Hunting Type' : 'New Hunting Type' }}</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <VaInput
-            v-model="form.name"
-            label="Name"
-            placeholder="Enter Hunting Type Name (e.g., 1x1, 2x1)"
-            :rules="[(v: any) => !!v || 'Name is required']"
-            required
-          />
+    <template v-else>
+      <div class="p-2">
+        <VaForm ref="formRef" class="mb-6">
+          <h3 class="font-bold text-lg mb-4">{{ editMode ? 'Edit Hunting Type' : 'New Hunting Type' }}</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <VaInput
+              v-model="form.name"
+              label="Name"
+              placeholder="Enter Hunting Type Name (e.g., 1x1, 2x1)"
+              :rules="[(v: any) => !!v || 'Name is required']"
+              required
+            />
 
-          <VaInput v-model="form.description" type="textarea" label="Description" placeholder="Enter Description" />
+            <VaInput v-model="form.description" type="textarea" label="Description" placeholder="Enter Description" />
+          </div>
+        </VaForm>
+
+        <div class="mb-6 flex gap-2">
+          <VaButton
+            :disabled="!isValidForm"
+            color="primary"
+            :icon="editMode ? 'save' : 'add'"
+            :loading="saving"
+            @click="validateForm() && (editMode ? updateItem() : createItem())"
+          >
+            {{ editMode ? 'Update' : 'Save' }}
+          </VaButton>
+          <VaButton preset="secondary" @click="goBack()"> Cancel </VaButton>
         </div>
-      </VaForm>
-
-      <div class="mb-6 flex gap-2">
-        <VaButton
-          :disabled="!isValidForm"
-          color="primary"
-          :icon="editMode ? 'save' : 'add'"
-          :loading="saving"
-          @click="validateForm() && (editMode ? updateItem() : createItem())"
-        >
-          {{ editMode ? 'Update' : 'Save' }}
-        </VaButton>
-        <VaButton preset="secondary" @click="goBack()"> Cancel </VaButton>
       </div>
-    </div>
+    </template>
 
     <!-- Delete Confirmation Modal -->
     <VaModal v-model="showDeleteModal" hide-default-actions>
@@ -64,18 +93,16 @@
           Are you sure you want to delete the hunting type <strong>{{ itemToDelete?.name }}</strong
           >?
         </p>
-        <VaAlert color="danger" class="mb-4">
-          <template #icon>
-            <VaIcon name="warning" />
-          </template>
+        <div class="alert alert-danger mb-4">
+          <i class="fa fa-exclamation-triangle me-2"></i>
           <strong>Warning:</strong> This hunting type may be referenced by:
-          <ul class="list-disc ml-6 mt-2">
+          <ul class="list-disc ms-4 mt-2">
             <li>Price Lists</li>
             <li>Sales Packages</li>
             <li>Trophy Fees</li>
           </ul>
-          <p class="mt-2 font-bold">This action cannot be undone!</p>
-        </VaAlert>
+          <p class="mt-2 fw-bold">This action cannot be undone!</p>
+        </div>
       </div>
       <template #footer>
         <div class="flex gap-2 justify-end">
@@ -84,7 +111,7 @@
         </div>
       </template>
     </VaModal>
-  </VaCard>
+  </div>
 </template>
 
 <script lang="ts">
@@ -94,9 +121,13 @@ import { mapActions } from 'pinia'
 import { useToast } from '@/composables/useToast'
 import { useForm } from '@/composables/useForm'
 import handleErrors from '../../utils/errorHandler'
+import StandardDataTable from '@/components/bootstrap/StandardDataTable.vue'
 
 export default defineComponent({
   name: 'ManageHuntingTypes',
+  components: {
+    StandardDataTable,
+  },
 
   setup() {
     const formRef = ref(null) as any
@@ -112,10 +143,10 @@ export default defineComponent({
 
   data() {
     const columns = [
-      { key: 'id', label: 'ID', sortable: true },
-      { key: 'name', label: 'Name', sortable: true },
-      { key: 'description', label: 'Description', sortable: true },
-      { key: 'actions', label: 'Actions', sortable: false },
+      { key: 'id', label: 'ID', sortable: true, visible: true },
+      { key: 'name', label: 'Name', sortable: true, visible: true },
+      { key: 'description', label: 'Description', sortable: true, visible: true },
+      { key: 'actions', label: 'Actions', sortable: false, visible: true },
     ]
 
     return {
@@ -135,6 +166,21 @@ export default defineComponent({
         description: '',
       }),
     }
+  },
+
+  computed: {
+    pageActions() {
+      const actions = []
+      if (this.showList) {
+        actions.push({
+          label: 'Add New',
+          icon: 'fa fa-plus',
+          class: 'btn btn-primary',
+          method: () => this.showCreateForm(),
+        })
+      }
+      return actions
+    },
   },
 
   mounted() {
@@ -278,3 +324,58 @@ export default defineComponent({
   },
 })
 </script>
+
+<style lang="scss" scoped>
+.hunting-types-page {
+  padding: 0;
+  min-height: 600px;
+  width: 100%;
+}
+
+.layout-top-spacing {
+  margin-top: 20px;
+}
+
+.layout-spacing {
+  padding: 10px 0;
+}
+
+.breadcrumb {
+  text-transform: uppercase !important;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0 !important;
+
+  .breadcrumb-item {
+    text-transform: uppercase !important;
+
+    &::before {
+      content: ' / ' !important;
+      color: #9ca3af !important;
+      padding: 0 0.5rem;
+    }
+
+    &:first-child::before {
+      display: none !important;
+    }
+
+    a {
+      text-transform: uppercase !important;
+      color: #374151 !important;
+      font-weight: 600;
+      text-decoration: none !important;
+
+      &:hover {
+        color: #1f2937 !important;
+        text-decoration: none !important;
+      }
+    }
+
+    &.active {
+      color: #9ca3af !important;
+      font-weight: 400;
+      text-transform: uppercase !important;
+    }
+  }
+}
+</style>

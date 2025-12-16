@@ -1,99 +1,119 @@
 <template>
-  <VaCard class="p-6">
-    <!-- Form for Adding Species -->
-
-    <div class="flex flex-col md:flex-row gap-2 mb-2 justify-between">
-      <div class="flex flex-col md:flex-row gap-2 justify-start">
-        <VaButton
-          v-if="!showHuntingAreaList"
-          class="px-2 py-2"
-          icon="arrow_back"
-          size="small"
-          @click="toggleFormAndList()"
-        >
-          Go Back
-        </VaButton>
-      </div>
-      <VaButtonGroup v-if="showHuntingAreaList">
-        <VaButton
-          class="px-2 py-2"
-          color="primary"
-          label="Add New Quota"
-          icon="add"
-          size="small"
-          @click="showCreateForm()"
-          >Add a New Hunting Area</VaButton
-        >
-      </VaButtonGroup>
-    </div>
-
-    <VaDataTable v-if="showHuntingAreaList" :items="items" :columns="columns" :loading="loading" hoverable striped>
-      <template #cell(actions)="{ rowData }">
-        <div class="flex gap-2">
-          <VaButton preset="plain" icon="edit" color="primary" @click="editHuntingArea(rowData)" />
-          <VaButton preset="plain" icon="delete" color="danger" @click="confirmDelete(rowData)" />
-        </div>
-      </template>
-    </VaDataTable>
-
-    <div v-else class="p-2">
-      <VaForm ref="areaFormRef" class="mb-6">
-        <h3 class="font-bold text-lg mb-2">{{ editMode ? 'Edit Hunting Area' : 'New Hunting Area' }}</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <VaInput
-            v-model="areaForm.name"
-            label="Name"
-            placeholder="Enter Hunting Area Name"
-            :rules="[(v: any) => !!v || 'Hunting Area Name is required']"
-            required
-          />
-
-          <VaInput
-            v-model="areaForm.description"
-            type="textarea"
-            label="Description"
-            placeholder="Enter Hunting Area Description"
-            :rules="[(v: any) => !!v || 'Hunting Area Description is required']"
-            required
-          />
-        </div>
-
-        <h3 class="font-bold text-lg mb-2">Area Location</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <VaInput
-            v-model="areaForm.lat"
-            label="Latitude"
-            type="text"
-            placeholder="Enter Hunting Area Latitude eg. 12.3456789"
-            :rules="[(v: any) => !!v || 'Latitude is required']"
-            required
-          />
-
-          <VaInput
-            v-model="areaForm.lng"
-            label="Longitude"
-            placeholder="Enter Hunting Area Longitude eg. 12.3456789"
-            type="text"
-            :rules="[(v: any) => !!v || 'Longitude is required']"
-            required
-          />
-        </div>
-      </VaForm>
-
-      <div class="mb-6 flex gap-2">
-        <VaButton
-          :disabled="!isValidareaForm"
-          color="primary"
-          :icon="editMode ? 'save' : 'add'"
-          :loading="saving"
-          icon-color="#fff"
-          @click="validateareaForm() && (editMode ? updateExistingHuntingArea() : createNewHuntingArea())"
-        >
-          {{ editMode ? 'Update' : 'Save' }}
-        </VaButton>
-        <VaButton v-if="editMode" preset="secondary" @click="cancelEdit()"> Cancel </VaButton>
+  <div class="area-settings-page">
+    <!-- Breadcrumb -->
+    <div class="d-flex align-items-center mb-3">
+      <div>
+        <ul class="breadcrumb">
+          <li class="breadcrumb-item"><a href="#">Settings</a></li>
+          <li class="breadcrumb-item active">Area Settings</li>
+        </ul>
       </div>
     </div>
+
+    <!-- Main Content -->
+    <template v-if="showHuntingAreaList">
+      <div class="row layout-top-spacing bg-white rounded">
+        <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
+          <div class="panel br-6 p-0">
+            <div class="custom-table p-3">
+              <StandardDataTable
+                :columns="columns"
+                :data="items"
+                :loading="loading"
+                :disable-search="false"
+                :disable-pagination="false"
+                :action-buttons="pageActions"
+              >
+                <template #name="{ row }">
+                  {{ (row as any).name }}
+                </template>
+                <template #description="{ row }">
+                  {{ (row as any).description }}
+                </template>
+                <template #lat="{ row }">
+                  {{ (row as any).lat }}
+                </template>
+                <template #lng="{ row }">
+                  {{ (row as any).lng }}
+                </template>
+                <template #actions="{ row }">
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-info btn-sm" title="Edit" @click="editHuntingArea(row)">
+                      <i class="fa fa-edit"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm" title="Delete" @click="confirmDelete(row)">
+                      <i class="fa fa-trash"></i>
+                    </button>
+                  </div>
+                </template>
+              </StandardDataTable>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Create/Edit Form -->
+    <template v-else>
+      <div class="p-2">
+        <VaForm ref="areaFormRef" class="mb-6">
+          <h3 class="font-bold text-lg mb-2">{{ editMode ? 'Edit Hunting Area' : 'New Hunting Area' }}</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <VaInput
+              v-model="areaForm.name"
+              label="Name"
+              placeholder="Enter Hunting Area Name"
+              :rules="[(v: any) => !!v || 'Hunting Area Name is required']"
+              required
+            />
+
+            <VaInput
+              v-model="areaForm.description"
+              type="textarea"
+              label="Description"
+              placeholder="Enter Hunting Area Description"
+              :rules="[(v: any) => !!v || 'Hunting Area Description is required']"
+              required
+            />
+          </div>
+
+          <h3 class="font-bold text-lg mb-2">Area Location</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <VaInput
+              v-model="areaForm.lat"
+              label="Latitude"
+              type="text"
+              placeholder="Enter Hunting Area Latitude eg. 12.3456789"
+              :rules="[(v: any) => !!v || 'Latitude is required']"
+              required
+            />
+
+            <VaInput
+              v-model="areaForm.lng"
+              label="Longitude"
+              placeholder="Enter Hunting Area Longitude eg. 12.3456789"
+              type="text"
+              :rules="[(v: any) => !!v || 'Longitude is required']"
+              required
+            />
+          </div>
+        </VaForm>
+
+        <div class="mb-6 flex gap-2">
+          <VaButton
+            :disabled="!isValidareaForm"
+            color="primary"
+            :icon="editMode ? 'save' : 'add'"
+            :loading="saving"
+            icon-color="#fff"
+            @click="validateareaForm() && (editMode ? updateExistingHuntingArea() : createNewHuntingArea())"
+          >
+            {{ editMode ? 'Update' : 'Save' }}
+          </VaButton>
+          <VaButton v-if="editMode" preset="secondary" @click="cancelEdit()"> Cancel </VaButton>
+        </div>
+      </div>
+    </template>
 
     <!-- Delete Confirmation Modal -->
     <VaModal v-model="showDeleteModal" hide-default-actions>
@@ -105,20 +125,18 @@
           Are you sure you want to delete the hunting area <strong>{{ itemToDelete?.name }}</strong
           >?
         </p>
-        <VaAlert color="danger" class="mb-4">
-          <template #icon>
-            <VaIcon name="warning" />
-          </template>
+        <div class="alert alert-danger mb-4">
+          <i class="fa fa-exclamation-triangle me-2"></i>
           <strong>Warning:</strong> This will permanently delete this hunting area and may affect:
-          <ul class="list-disc ml-6 mt-2">
+          <ul class="list-disc ms-4 mt-2">
             <li>Sales Packages using this area</li>
             <li>Price Lists referencing this area</li>
             <li>Quotas assigned to this area</li>
             <li>Trophy Fees for this area</li>
             <li>Sales Inquiries linked to this area</li>
           </ul>
-          <p class="mt-2 font-bold">This action cannot be undone!</p>
-        </VaAlert>
+          <p class="mt-2 fw-bold">This action cannot be undone!</p>
+        </div>
       </div>
       <template #footer>
         <div class="flex gap-2 justify-end">
@@ -127,7 +145,7 @@
         </div>
       </template>
     </VaModal>
-  </VaCard>
+  </div>
 </template>
 
 <script lang="ts">
@@ -139,6 +157,7 @@ import { useToast } from '@/composables/useToast'
 import { useForm } from '@/composables/useForm'
 import handleErrors from '../../utils/errorHandler'
 import { useHuntingAreaStore } from '../../stores/hunting-story'
+import StandardDataTable from '@/components/bootstrap/StandardDataTable.vue'
 
 const defaultItem = {
   name: '',
@@ -149,6 +168,9 @@ const defaultItem = {
 
 export default defineComponent({
   name: 'ManageArea',
+  components: {
+    StandardDataTable,
+  },
 
   setup() {
     const formRef = ref(null) as any
@@ -193,11 +215,11 @@ export default defineComponent({
     })
 
     const columns = [
-      { key: 'name', sortable: true },
-      { key: 'description', sortable: true },
-      { key: 'lat', label: 'Latitude', sortable: false },
-      { key: 'lng', label: 'Longitude', sortable: false },
-      { key: 'actions', label: 'Actions', sortable: false },
+      { key: 'name', label: 'Name', sortable: true, visible: true },
+      { key: 'description', label: 'Description', sortable: true, visible: true },
+      { key: 'lat', label: 'Latitude', sortable: false, visible: true },
+      { key: 'lng', label: 'Longitude', sortable: false, visible: true },
+      { key: 'actions', label: 'Actions', sortable: false, visible: true },
     ]
 
     const quotasOptions = [] as any
@@ -224,6 +246,21 @@ export default defineComponent({
       itemToDelete: null as any,
       deleting: false,
     }
+  },
+
+  computed: {
+    pageActions() {
+      const actions = []
+      if (this.showHuntingAreaList) {
+        actions.push({
+          label: 'Add New',
+          icon: 'fa fa-plus',
+          class: 'btn btn-primary',
+          method: () => this.showCreateForm(),
+        })
+      }
+      return actions
+    },
   },
 
   mounted() {
@@ -439,31 +476,83 @@ export default defineComponent({
 })
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+.area-settings-page {
+  padding: 0;
+  min-height: 600px;
+  width: 100%;
+}
+
+.layout-top-spacing {
+  margin-top: 20px;
+}
+
+.layout-spacing {
+  padding: 10px 0;
+}
+
+.breadcrumb {
+  text-transform: uppercase !important;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0 !important;
+
+  .breadcrumb-item {
+    text-transform: uppercase !important;
+
+    &::before {
+      content: ' / ' !important;
+      color: #9ca3af !important;
+      padding: 0 0.5rem;
+    }
+
+    &:first-child::before {
+      display: none !important;
+    }
+
+    a {
+      text-transform: uppercase !important;
+      color: #374151 !important;
+      font-weight: 600;
+      text-decoration: none !important;
+
+      &:hover {
+        color: #1f2937 !important;
+        text-decoration: none !important;
+      }
+    }
+
+    &.active {
+      color: #9ca3af !important;
+      font-weight: 400;
+      text-transform: uppercase !important;
+    }
+  }
+}
+
 .modal-content {
-  padding: 16px; /* Add padding around content */
+  padding: 16px;
 }
 
 .input-group {
-  margin-bottom: 16px; /* Space between input fields */
+  margin-bottom: 16px;
 }
 
 .input-label {
-  margin-bottom: 8px; /* Space between label and input */
-  font-weight: bold; /* Make the label bold for clarity */
+  margin-bottom: 8px;
+  font-weight: bold;
 }
 
-/* Flexbox for horizontal alignment of date inputs */
 .input-container {
   display: flex;
-  align-items: center; /* Align items vertically centered */
+  align-items: center;
 }
 
 .input-container > VaDateInput {
-  margin-right: 8px; /* Space between start date and end date */
+  margin-right: 8px;
 }
 
 .input-container > VaInput {
-  flex: 1; /* Let the input take the remaining space */
+  flex: 1;
 }
 </style>

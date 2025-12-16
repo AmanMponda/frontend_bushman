@@ -14,7 +14,14 @@ declare module '@vue/runtime-core' {
       closeAll: () => void
     }
     $vaModal: {
-      open: (options: { title?: string; message?: string; confirmText?: string; cancelText?: string; onConfirm?: () => void; onCancel?: () => void }) => void
+      open: (options: {
+        title?: string
+        message?: string
+        confirmText?: string
+        cancelText?: string
+        onConfirm?: () => void
+        onCancel?: () => void
+      }) => void
       close: () => void
       confirm: (message: string) => Promise<boolean>
     }

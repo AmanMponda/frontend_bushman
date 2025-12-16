@@ -578,9 +578,56 @@ onMounted(() => {
 
 .card {
   transition: all 0.3s ease;
+  overflow: hidden;
+  border-radius: 0.375rem;
 }
 
 .card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Prevent color leakage from borders */
+.card.border-primary,
+.card.border-success,
+.card.border-warning,
+.card.border-info,
+.card.border-danger {
+  border-width: 1px !important;
+  border-style: solid !important;
+  overflow: hidden;
+  border-radius: 0.375rem;
+}
+
+.card.border-primary {
+  border-color: #0d6efd !important;
+}
+
+.card.border-success {
+  border-color: #198754 !important;
+}
+
+.card.border-warning {
+  border-color: #ffc107 !important;
+}
+
+.card.border-info {
+  border-color: #0dcaf0 !important;
+}
+
+.card.border-danger {
+  border-color: #dc3545 !important;
+}
+
+/* Ensure card body and header don't leak colors */
+.card-body,
+.card-header {
+  border: none !important;
+  overflow: hidden;
+}
+
+/* Ensure nested cards don't leak */
+.card .card {
+  border: 1px solid #dee2e6 !important;
+  overflow: hidden;
 }
 </style>

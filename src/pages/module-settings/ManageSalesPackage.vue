@@ -1,61 +1,104 @@
 <template>
-  <VaCard>
-    <VaCardContent>
-      <div class="flex flex-col md:flex-row gap-2 mb-2 justify-between">
-        <div class="flex flex-col md:flex-row gap-2 justify-start">
-          <VaButton
-            v-if="!showPackageList || showDetailsPage || showEditPackageForm"
-            class="px-2 py-2"
-            icon="arrow_back"
-            size="small"
-            @click="goBack"
-          >
-            Go Back
-          </VaButton>
-        </div>
-        <VaButtonGroup v-if="!showCreateNewPackageForm && !showDetailsPage && !showEditPackageForm">
-          <VaButton
-            class="px-2 py-2"
-            color="primary"
-            label="Add New Quota"
-            icon="add"
-            :border-color="'primary'"
-            round
-            preset="secondary"
-            size="small"
-            @click="showCreateNewPackaeListFormMethod"
-          >
-            Add a package
-          </VaButton>
-        </VaButtonGroup>
+  <div class="sales-package-page">
+    <!-- Breadcrumb -->
+    <div class="d-flex align-items-center mb-3">
+      <div>
+        <ul class="breadcrumb">
+          <li class="breadcrumb-item"><a href="#">Sales</a></li>
+          <li class="breadcrumb-item active">Sales Packages</li>
+        </ul>
       </div>
-      <VaDivider />
+    </div>
 
-      <template v-if="showDetailsPage">
-        <SalesPackageDetails :item="selectItem"> </SalesPackageDetails>
-      </template>
-
-      <template v-else-if="showCreateNewPackageForm && !showDetailsPage">
-        <SalesPackageForm> </SalesPackageForm>
-      </template>
-
-      <template v-else-if="showEditPackageForm">
-        <SalesPackageForm :edit-mode="true" :edit-item="selectItem" @saved="onEditSaved"> </SalesPackageForm>
-      </template>
-
-      <template v-else-if="showPackageList">
-        <VaDataTable :items="packages" :columns="columns as any" :loading="loading" hoverable striped>
-          <template #cell(actions)="{ rowData }">
-            <div class="flex gap-2">
-              <VaButton preset="plain" icon="visibility" title="View" @click="showDetails(rowData)" />
-              <VaButton preset="plain" icon="edit" color="warning" title="Edit" @click="editPackage(rowData)" />
-              <VaButton preset="plain" icon="delete" color="danger" title="Delete" @click="confirmDelete(rowData)" />
+    <!-- Main Content -->
+    <template v-if="!showCreateNewPackageForm">
+      <!-- Package List View -->
+      <template v-if="showPackageList">
+        <div class="row layout-top-spacing bg-white rounded">
+          <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
+            <div class="panel br-6 p-0">
+              <div class="custom-table p-3">
+                <StandardDataTable
+                  :columns="columns"
+                  :data="packages"
+                  :loading="loading"
+                  :disable-search="false"
+                  :disable-pagination="false"
+                  :action-buttons="pageActions"
+                  :show-date-filters="false"
+                >
+                  <template #id="{ row }">
+                    {{ (row as any).id }}
+                  </template>
+                  <template #name="{ row }">
+                    {{ (row as any).name }}
+                  </template>
+                  <template #area_name="{ row }">
+                    {{ (row as any).area_name }}
+                  </template>
+                  <template #regulatory_package_name="{ row }">
+                    {{ (row as any).regulatory_package_name }}
+                  </template>
+                  <template #actions="{ row }">
+                    <div class="d-flex gap-1">
+                      <button class="btn btn-info btn-sm" title="View" @click="showDetails(row)">
+                        <i class="fa fa-eye"></i>
+                      </button>
+                      <button class="btn btn-danger btn-sm" title="Delete" @click="confirmDelete(row)">
+                        <i class="fa fa-trash"></i>
+                      </button>
+                    </div>
+                  </template>
+                </StandardDataTable>
+              </div>
             </div>
-          </template>
-        </VaDataTable>
+          </div>
+        </div>
       </template>
-    </VaCardContent>
-  </VaCard>
+
+      <!-- Detail View -->
+      <template v-else-if="showDetailsPage">
+        <SalesPackageDetails
+          :item="selectItem"
+          @goBack="goBack"
+          @edit="handleEditFromDetails"
+          @delete="handleDeleteFromDetails"
+        ></SalesPackageDetails>
+      </template>
+
+      <!-- Edit Form -->
+      <template v-else-if="showEditPackageForm">
+        <SalesPackageForm
+          :edit-mode="true"
+          :edit-item="selectItem"
+          @saved="onEditSaved"
+          @goBack="goBack"
+        ></SalesPackageForm>
+      </template>
+    </template>
+
+    <!-- Create Form -->
+    <template v-if="showCreateNewPackageForm">
+      <SalesPackageForm @saved="onPackageSaved" @goBack="goBack"> </SalesPackageForm>
+    </template>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <VaModal v-model="showDeleteModal" hide-default-actions>
+    <template #header>
+      <h3 class="va-h6">Confirm Delete</h3>
+    </template>
+    <p>
+      Are you sure you want to delete <strong>{{ itemToDelete?.name }}</strong
+      >?
+    </p>
+    <template #footer>
+      <div class="flex gap-2 justify-end">
+        <VaButton preset="secondary" @click="showDeleteModal = false">Cancel</VaButton>
+        <VaButton color="danger" :loading="deleting" @click="deletePackage">Delete</VaButton>
+      </div>
+    </template>
+  </VaModal>
 
   <!-- Delete Confirmation Modal -->
   <VaModal v-model="showDeleteModal" hide-default-actions>
@@ -88,11 +131,13 @@ import { usePriceListStore } from '../../stores/price-list-store'
 import { useRegulatoryPackageStore } from '../../stores/regulatrory-store'
 import SalesPackageDetails from './components/SalesPackageDetails.vue'
 import SalesPackageForm from './components/SalesPackageForm.vue'
+import StandardDataTable from '@/components/bootstrap/StandardDataTable.vue'
 
 export default defineComponent({
   components: {
     SalesPackageDetails,
     SalesPackageForm,
+    StandardDataTable,
   },
   setup() {
     const formRef = ref()
@@ -178,11 +223,11 @@ export default defineComponent({
   },
   data() {
     const columns = [
-      { key: 'id', sortable: true, sortingOptions: ['desc', 'asc'] },
-      { key: 'name', sortable: true },
-      { key: 'area_name', label: 'Area', sortable: true },
-      { key: 'regulatory_package_name', label: 'Licence', sortable: true },
-      { key: 'actions', sortable: true },
+      { key: 'id', label: 'ID', sortable: true, visible: true },
+      { key: 'name', label: 'Name', sortable: true, visible: true },
+      { key: 'area_name', label: 'Area', sortable: true, visible: true },
+      { key: 'regulatory_package_name', label: 'Licence', sortable: true, visible: true },
+      { key: 'actions', label: 'Actions', sortable: false, visible: true },
     ]
 
     return {
@@ -228,6 +273,23 @@ export default defineComponent({
         console.log('Original value:', originalValue, 'Current value:', currentValue)
         return (originalValue && originalValue !== currentValue) || this.isChanged
       }
+    },
+    pageActions() {
+      const actions = []
+      if (
+        this.showPackageList &&
+        !this.showCreateNewPackageForm &&
+        !this.showEditPackageForm &&
+        !this.showDetailsPage
+      ) {
+        actions.push({
+          label: 'Add Package',
+          icon: 'fa fa-plus',
+          class: 'btn btn-primary',
+          method: () => this.showCreateNewPackaeListFormMethod(),
+        })
+      }
+      return actions
     },
   },
 
@@ -276,23 +338,41 @@ export default defineComponent({
       this.showPackageList = true
       this.showDetailsPage = false
       this.showEditPackageForm = false
+      this.selectItem = null
+      this.getSalesPackages()
+    },
+    onPackageSaved() {
+      this.showCreateNewPackageForm = false
+      this.showPackageList = true
       this.getSalesPackages()
     },
 
     editPackage(rowData: any) {
-      this.selectItem = rowData.selfItem
+      this.selectItem = rowData.selfItem || rowData
       this.showEditPackageForm = true
       this.showPackageList = false
+    },
+
+    handleEditFromDetails() {
+      this.showEditPackageForm = true
+      this.showDetailsPage = false
+    },
+
+    handleDeleteFromDetails() {
+      this.itemToDelete = this.selectItem
+      this.showDeleteModal = true
+      this.showDetailsPage = false
     },
 
     onEditSaved() {
       this.showEditPackageForm = false
       this.showPackageList = true
+      this.selectItem = null
       this.getSalesPackages()
     },
 
     confirmDelete(rowData: any) {
-      this.itemToDelete = rowData
+      this.itemToDelete = rowData.selfItem || rowData
       this.showDeleteModal = true
     },
 
@@ -309,6 +389,10 @@ export default defineComponent({
           })
           this.showDeleteModal = false
           this.itemToDelete = null
+          this.showDetailsPage = false
+          this.showEditPackageForm = false
+          this.selectItem = null
+          this.showPackageList = true
           this.getSalesPackages()
         }
       } catch (error: any) {
@@ -394,27 +478,44 @@ export default defineComponent({
       console.log('Show details for:', data)
       this.showDetailsPage = true
       this.selectItem = data.selfItem || data
-      // this.showEditForm = true
+      this.showPackageList = false
     },
 
     async getSalesPackages() {
       this.loading = true
       try {
-        const response = await this.getSalesPackageList()
-        if (response.status === 200) {
-          this.packages = response.data.map((item: any) => {
+        const response = await this.getSalesPackageList(false)
+        console.log('Sales packages response:', response)
+        if (response && response.status === 200) {
+          // Handle different response structures
+          let dataArray = []
+          if (Array.isArray(response.data)) {
+            dataArray = response.data
+          } else if (response.data?.data && Array.isArray(response.data.data)) {
+            dataArray = response.data.data
+          } else if (response.data?.data && !Array.isArray(response.data.data)) {
+            dataArray = [response.data.data]
+          }
+
+          this.packages = dataArray.map((item: any) => {
             return {
               id: item.id,
-              name: item.name,
+              name: item.name || 'N/A',
               area_name: item?.area?.name ?? 'N/A',
               regulatory_package_name: item?.regulatory_package?.name ?? 'N/A',
               selfItem: item,
             }
           })
+          console.log('Mapped packages:', this.packages)
+          this.loading = false
+        } else {
+          this.packages = []
           this.loading = false
         }
       } catch (error) {
+        console.error('Error fetching sales packages:', error)
         this.loading = false
+        this.packages = []
       }
     },
 
@@ -553,4 +654,67 @@ export default defineComponent({
 })
 </script>
 
-<style lang="scss"></style>
+<style lang="scss" scoped>
+.sales-package-page {
+  padding: 0;
+  min-height: 600px;
+  width: 100%;
+}
+
+// Local layout spacing classes to ensure consistent spacing in production
+.layout-top-spacing {
+  margin-top: 20px;
+}
+
+.layout-spacing {
+  padding: 10px 0;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  margin: 0;
+  padding: 0;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.breadcrumb {
+  text-transform: uppercase !important;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0 !important;
+
+  .breadcrumb-item {
+    text-transform: uppercase !important;
+
+    &::before {
+      content: ' / ' !important;
+      color: #9ca3af !important;
+      padding: 0 0.5rem;
+    }
+
+    &:first-child::before {
+      display: none !important;
+    }
+
+    a {
+      text-transform: uppercase !important;
+      color: #374151 !important;
+      font-weight: 600;
+      text-decoration: none !important;
+
+      &:hover {
+        color: #1f2937 !important;
+        text-decoration: none !important;
+      }
+    }
+
+    &.active {
+      color: #9ca3af !important;
+      font-weight: 400;
+      text-transform: uppercase !important;
+    }
+  }
+}
+</style>

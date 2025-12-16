@@ -1,249 +1,193 @@
 <template>
-  <VaCard class="p-6">
-    <!-- Header Section -->
-    <div class="flex flex-col md:flex-row gap-4 mb-6 justify-between items-center">
+  <div class="trophy-fees-page">
+    <!-- Breadcrumb -->
+    <div class="d-flex align-items-center mb-3">
       <div>
-        <h2 v-if="showTrophyFeesList" class="text-2xl font-semibold">Trophy Fees Management</h2>
-        <h2 v-else class="text-2xl font-semibold">{{ editMode ? 'Edit Trophy Fee' : 'Add New Trophy Fee' }}</h2>
-        <p v-if="showTrophyFeesList" class="text-secondary text-sm mt-1">
-          Manage trophy fees for different species and hunting areas
-        </p>
-      </div>
-
-      <div class="flex gap-2">
-        <VaButton v-if="!showTrophyFeesList" icon="arrow_back" preset="secondary" @click="toggleFormAndList()">
-          Back to List
-        </VaButton>
-        <VaButton v-if="showTrophyFeesList" color="primary" icon="add" @click="toggleFormAndList()">
-          Add Trophy Fee
-        </VaButton>
+        <ul class="breadcrumb">
+          <li class="breadcrumb-item"><a href="#">Settings</a></li>
+          <li class="breadcrumb-item active">Trophy Fees</li>
+        </ul>
       </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div v-if="showTrophyFeesList && !loading" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <VaCard stripe>
-        <VaCardContent class="flex items-center gap-4">
-          <VaIcon name="military_tech" size="large" color="primary" />
-          <div>
-            <div class="text-2xl font-bold">{{ items.length }}</div>
-            <div class="text-sm text-secondary">Total Trophy Fees</div>
-          </div>
-        </VaCardContent>
-      </VaCard>
-
-      <VaCard stripe>
-        <VaCardContent class="flex items-center gap-4">
-          <VaIcon name="pets" size="large" color="success" />
-          <div>
-            <div class="text-2xl font-bold">{{ uniqueSpeciesCount }}</div>
-            <div class="text-sm text-secondary">Unique Species</div>
-          </div>
-        </VaCardContent>
-      </VaCard>
-
-      <VaCard stripe>
-        <VaCardContent class="flex items-center gap-4">
-          <VaIcon name="location_on" size="large" color="warning" />
-          <div>
-            <div class="text-2xl font-bold">{{ uniqueAreasCount }}</div>
-            <div class="text-sm text-secondary">Hunting Areas</div>
-          </div>
-        </VaCardContent>
-      </VaCard>
-    </div>
-
-    <!-- Table View -->
-    <ModuleTable
-      v-if="showTrophyFeesList"
-      :items="items"
-      :columns="columns"
-      :loading="loading"
-      @onView="editTrophyFee"
-      @onDelete="deleteTrophyFee"
-    >
-      <template #filter-elements-and-download-btn>
-        <VaCard stripe stripe-color="primary" class="mb-4">
-          <VaCardContent>
-            <div class="flex items-center gap-2 mb-3">
-              <VaIcon name="filter_list" />
-              <span class="font-semibold">Filter Trophy Fees</span>
-            </div>
-            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <VaSelect
-                v-model="selectedSpecies"
-                :options="speciesOptions"
-                label="Filter by Species"
-                placeholder="All Species"
-                clearable
-                searchable
-                @update:modelValue="getTrophyFees"
+    <!-- Main Content -->
+    <template v-if="showTrophyFeesList">
+      <div class="row layout-top-spacing bg-white rounded">
+        <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
+          <div class="panel br-6 p-0">
+            <div class="custom-table p-3">
+              <StandardDataTable
+                :columns="columns"
+                :data="items"
+                :loading="loading"
+                :disable-search="false"
+                :disable-pagination="false"
+                :action-buttons="pageActions"
+                :custom-filters="customFilters"
+                @update:filters="handleFiltersUpdate"
               >
-                <template #prepend>
-                  <VaIcon name="pets" size="small" />
+                <template #id="{ row }">
+                  {{ (row as any).id }}
                 </template>
-              </VaSelect>
-              <VaSelect
-                v-model="selectedArea"
-                :options="areaOptions"
-                label="Filter by Hunting Area"
-                placeholder="All Areas"
-                clearable
-                searchable
-                @update:modelValue="getTrophyFees"
-              >
-                <template #prepend>
-                  <VaIcon name="location_on" size="small" />
+                <template #species_name="{ row }">
+                  {{ (row as any).species_name }}
                 </template>
-              </VaSelect>
-              <div class="flex items-end">
-                <VaButton v-if="selectedSpecies || selectedArea" preset="plain" icon="clear" @click="clearFilters">
-                  Clear Filters
-                </VaButton>
-              </div>
+                <template #area_name="{ row }">
+                  {{ (row as any).area_name }}
+                </template>
+                <template #season_name="{ row }">
+                  {{ (row as any).season_name }}
+                </template>
+                <template #sequence_order="{ row }">
+                  {{ (row as any).sequence_order }}
+                </template>
+                <template #amount="{ row }">
+                  {{ (row as any).amount }}
+                </template>
+                <template #actions="{ row }">
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-info btn-sm" title="Edit" @click="editTrophyFee(row)">
+                      <i class="fa fa-edit"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm" title="Delete" @click="deleteTrophyFee(row)">
+                      <i class="fa fa-trash"></i>
+                    </button>
+                  </div>
+                </template>
+              </StandardDataTable>
             </div>
-          </VaCardContent>
-        </VaCard>
-      </template>
-    </ModuleTable>
+          </div>
+        </div>
+      </div>
+    </template>
 
     <!-- Form View -->
-    <div v-else>
-      <VaForm ref="trophyFeeFormRef">
-        <VaCard stripe stripe-color="primary" class="mb-4">
-          <VaCardTitle>Species & Area Information</VaCardTitle>
-          <VaCardContent>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <VaSelect
-                v-model="trophyFeeForm.species"
-                :options="speciesOptions"
-                label="Species"
-                placeholder="Select a species"
-                :rules="[(v: any) => !!v || 'Species is required']"
-                searchable
-                highlight-matched-text
-                required-mark
-              >
-                <template #prepend>
-                  <VaIcon name="pets" />
-                </template>
-              </VaSelect>
-
-              <VaSelect
-                v-model="trophyFeeForm.area"
-                :options="areaOptions"
-                label="Hunting Area"
-                placeholder="Select a hunting area"
-                :rules="[(v: any) => !!v || 'Hunting area is required']"
-                searchable
-                highlight-matched-text
-                required-mark
-              >
-                <template #prepend>
-                  <VaIcon name="location_on" />
-                </template>
-              </VaSelect>
+    <template v-else>
+      <div class="trophy-fees-form-page">
+        <!-- Form Container -->
+        <div class="form-trophy-fees-container">
+          <div v-if="!saving" class="card">
+            <div class="card-header bg-white border-bottom">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                  <button type="button" class="btn btn-secondary btn-sm" @click="toggleFormAndList">
+                    <i class="fa fa-arrow-left me-1"></i> Back
+                  </button>
+                  <i class="fa fa-edit text-primary fs-5"></i>
+                  <h2 class="h5 mb-0">{{ editMode ? 'Edit Trophy Fee' : 'Create New Trophy Fee' }}</h2>
+                </div>
+              </div>
             </div>
-          </VaCardContent>
-        </VaCard>
 
-        <VaCard stripe stripe-color="success" class="mb-4">
-          <VaCardTitle>Season & Currency</VaCardTitle>
-          <VaCardContent>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <VaSelect
-                v-model="trophyFeeForm.season"
-                :options="seasonOptions"
-                label="Season"
-                placeholder="Select a season"
-                :rules="[(v: any) => !!v || 'Season is required']"
-                searchable
-                highlight-matched-text
-                required-mark
-              >
-                <template #prepend>
-                  <VaIcon name="date_range" />
-                </template>
-              </VaSelect>
+            <div class="card-body">
+              <form ref="trophyFeeFormRef" @submit.prevent="saveTrophyFee">
+                <div class="row mb-3 trophy-fees-form-row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label class="form-label">Species <span class="text-danger">*</span></label>
+                      <select v-model="trophyFeeForm.species" class="form-select" required>
+                        <option :value="null">Select Species</option>
+                        <option v-for="option in speciesOptions" :key="option.value" :value="option.value">
+                          {{ option.text }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label class="form-label">Hunting Area <span class="text-danger">*</span></label>
+                      <select v-model="trophyFeeForm.area" class="form-select" required>
+                        <option :value="null">Select Hunting Area</option>
+                        <option v-for="option in areaOptions" :key="option.value" :value="option.value">
+                          {{ option.text }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
 
-              <VaSelect
-                v-model="trophyFeeForm.currency"
-                :options="currencyOptions"
-                label="Currency"
-                placeholder="Select a currency"
-                :rules="[(v: any) => !!v || 'Currency is required']"
-                searchable
-                highlight-matched-text
-                required-mark
-              >
-                <template #prepend>
-                  <VaIcon name="payments" />
-                </template>
-              </VaSelect>
+                <div class="row mb-3 trophy-fees-form-row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label class="form-label">Season <span class="text-danger">*</span></label>
+                      <select v-model="trophyFeeForm.season" class="form-select" required>
+                        <option :value="null">Select Season</option>
+                        <option v-for="option in seasonOptions" :key="option.value" :value="option.value">
+                          {{ option.text }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label class="form-label">Currency <span class="text-danger">*</span></label>
+                      <select v-model="trophyFeeForm.currency" class="form-select" required>
+                        <option :value="null">Select Currency</option>
+                        <option v-for="option in currencyOptions" :key="option.value" :value="option.value">
+                          {{ option.text }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row mb-3 trophy-fees-form-row">
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label class="form-label">Sequence Order <span class="text-danger">*</span></label>
+                      <div class="input-group">
+                        <input
+                          v-model.number="trophyFeeForm.sequence_order"
+                          type="number"
+                          class="form-control"
+                          min="1"
+                          placeholder="Enter sequence number"
+                          required
+                        />
+                        <button
+                          type="button"
+                          class="btn btn-outline-secondary"
+                          data-bs-toggle="tooltip"
+                          data-bs-placement="top"
+                          title="Sequence order represents the trophy number (1st, 2nd, 3rd, etc.). Different sequences can have different prices for the same species."
+                        >
+                          <i class="fa fa-info-circle"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-group">
+                      <label class="form-label">Amount <span class="text-danger">*</span></label>
+                      <input
+                        v-model.number="trophyFeeForm.amount"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        class="form-control"
+                        placeholder="0.00"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+              </form>
             </div>
-          </VaCardContent>
-        </VaCard>
+          </div>
 
-        <VaCard stripe stripe-color="info" class="mb-4">
-          <VaCardTitle>Pricing Details</VaCardTitle>
-          <VaCardContent>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <VaInput
-                v-model="trophyFeeForm.sequence_order"
-                label="Sequence Order"
-                type="number"
-                min="1"
-                placeholder="Enter sequence number"
-                :rules="[(v: any) => v > 0 || 'Sequence must be greater than 0']"
-                required-mark
-              >
-                <template #prepend>
-                  <VaIcon name="format_list_numbered" />
-                </template>
-                <template #appendInner>
-                  <VaPopover
-                    message="Sequence order represents the trophy number (1st, 2nd, 3rd, etc.). Different sequences can have different prices for the same species."
-                    placement="top"
-                  >
-                    <VaIcon name="info" size="small" color="info" />
-                  </VaPopover>
-                </template>
-              </VaInput>
-
-              <VaInput
-                v-model="trophyFeeForm.amount"
-                label="Amount"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                :rules="[(v: any) => v > 0 || 'Amount must be greater than 0']"
-                required-mark
-              >
-                <template #prepend>
-                  <VaIcon name="attach_money" />
-                </template>
-              </VaInput>
-            </div>
-          </VaCardContent>
-        </VaCard>
-
-        <!-- Action Buttons -->
-        <div class="flex gap-3 justify-end">
-          <VaButton v-if="editMode" preset="secondary" icon="close" @click="cancelEdit"> Cancel </VaButton>
-          <VaButton
-            :disabled="!isValidTrophyFeeForm"
-            color="primary"
-            icon="save"
-            :loading="saving"
-            @click="validateTrophyFeeForm() && saveTrophyFee()"
-          >
-            {{ editMode ? 'Update Trophy Fee' : 'Save Trophy Fee' }}
-          </VaButton>
+          <!-- Save Button -->
+          <div class="d-flex justify-content-end align-items-center mt-2 mb-2">
+            <button v-if="editMode" type="button" class="btn btn-secondary me-2" @click="cancelEdit">Cancel</button>
+            <button type="button" class="btn btn-primary" :disabled="saving || !canSubmit" @click="saveTrophyFee()">
+              <i class="fa fa-save me-1"></i>
+              <span v-if="saving" class="spinner-border spinner-border-sm me-1" role="status"></span>
+              {{ editMode ? 'Update Trophy Fee' : 'Save Trophy Fee' }}
+            </button>
+          </div>
         </div>
-      </VaForm>
-    </div>
-  </VaCard>
+      </div>
+    </template>
+  </div>
 </template>
 
 <script lang="ts">
@@ -252,7 +196,7 @@ import { mapActions } from 'pinia'
 import { useToast } from '@/composables/useToast'
 import { useForm } from '@/composables/useForm'
 import handleErrors from '../../utils/errorHandler'
-import ModuleTable from './components/ModuleTable.vue'
+import StandardDataTable from '@/components/bootstrap/StandardDataTable.vue'
 import { useTrophyFeesStore } from '../../stores/trophy-fees-store'
 import { useQuotaStore } from '../../stores/quota-store'
 import { useSettingsStore } from '../../stores/settings-store'
@@ -260,7 +204,7 @@ import { useSettingsStore } from '../../stores/settings-store'
 export default defineComponent({
   name: 'ManageTrophyFeesPage',
   components: {
-    ModuleTable,
+    StandardDataTable,
   },
 
   setup() {
@@ -274,13 +218,13 @@ export default defineComponent({
     } = useForm()
 
     const columns = [
-      { key: 'id', label: 'ID', sortable: true, width: 80 },
-      { key: 'species_name', label: 'Species Name', sortable: true },
-      { key: 'area_name', label: 'Hunting Area', sortable: true },
-      { key: 'season_name', label: 'Season', sortable: true },
-      { key: 'sequence_order', label: 'Sequence', sortable: true, width: 100 },
-      { key: 'amount', label: 'Amount', sortable: true, width: 130 },
-      { key: 'actions', label: 'Actions', width: 120 },
+      { key: 'id', label: 'ID', sortable: true, visible: true },
+      { key: 'species_name', label: 'Species Name', sortable: true, visible: true },
+      { key: 'area_name', label: 'Hunting Area', sortable: true, visible: true },
+      { key: 'season_name', label: 'Season', sortable: true, visible: true },
+      { key: 'sequence_order', label: 'Sequence', sortable: true, visible: true },
+      { key: 'amount', label: 'Amount', sortable: true, visible: true },
+      { key: 'actions', label: 'Actions', sortable: false, visible: true },
     ]
 
     return {
@@ -332,6 +276,65 @@ export default defineComponent({
     uniqueAreasCount() {
       const areaIds = new Set(this.items.map((item: any) => item._raw?.area_id))
       return areaIds.size
+    },
+    pageActions() {
+      const actions = []
+      if (this.showTrophyFeesList) {
+        actions.push({
+          label: 'Add New',
+          icon: 'fa fa-plus',
+          class: 'btn btn-primary',
+          method: () => this.toggleFormAndList(),
+        })
+      }
+      return actions
+    },
+    customFilters() {
+      return [
+        {
+          key: 'species_id',
+          label: 'Species',
+          type: 'select',
+          placeholder: 'Select Species',
+          options: this.speciesOptions.map((opt: any) => ({
+            value: opt.value,
+            label: opt.text,
+          })),
+          defaultValue: this.selectedSpecies?.value || '',
+        },
+        {
+          key: 'area_id',
+          label: 'Area',
+          type: 'select',
+          placeholder: 'Select Area',
+          options: this.areaOptions.map((opt: any) => ({
+            value: opt.value,
+            label: opt.text,
+          })),
+          defaultValue: this.selectedArea?.value || '',
+        },
+        {
+          key: 'season_id',
+          label: 'Season',
+          type: 'select',
+          placeholder: 'Select Season',
+          options: this.seasonOptions.map((opt: any) => ({
+            value: opt.value,
+            label: opt.text,
+          })),
+          defaultValue: this.selectedSeason?.value || '',
+        },
+      ]
+    },
+    canSubmit() {
+      return (
+        this.trophyFeeForm.species &&
+        this.trophyFeeForm.area &&
+        this.trophyFeeForm.season &&
+        this.trophyFeeForm.currency &&
+        this.trophyFeeForm.sequence_order > 0 &&
+        this.trophyFeeForm.amount > 0
+      )
     },
   },
 
@@ -419,6 +422,25 @@ export default defineComponent({
       this.getTrophyFees()
     },
 
+    handleFiltersUpdate(filters: any) {
+      if (filters.species_id) {
+        this.selectedSpecies = this.speciesOptions.find((s: any) => s.value === filters.species_id)
+      } else {
+        this.selectedSpecies = null
+      }
+      if (filters.area_id) {
+        this.selectedArea = this.areaOptions.find((a: any) => a.value === filters.area_id)
+      } else {
+        this.selectedArea = null
+      }
+      if (filters.season_id) {
+        this.selectedSeason = this.seasonOptions.find((s: any) => s.value === filters.season_id)
+      } else {
+        this.selectedSeason = null
+      }
+      this.getTrophyFees()
+    },
+
     getSequenceLabel(sequence: number) {
       const suffixes = ['th', 'st', 'nd', 'rd']
       const value = sequence % 100
@@ -461,30 +483,42 @@ export default defineComponent({
       this.editMode = true
       this.showTrophyFeesList = false
 
-      const raw = rowData._raw
+      const raw = rowData._raw || rowData
       this.trophyFeeForm.id = raw.id
-      this.trophyFeeForm.species = this.speciesOptions.find(
-        (s: any) => s.value === raw.species_id || s.value === raw.species?.id,
-      )
-      this.trophyFeeForm.area = this.areaOptions.find((a: any) => a.value === raw.area_id || a.value === raw.area?.id)
-      this.trophyFeeForm.season = this.seasonOptions.find(
-        (s: any) => s.value === raw.season_id || s.value === raw.season?.id,
-      )
-      this.trophyFeeForm.currency = this.currencyOptions.find(
-        (c: any) => c.value === raw.currency_id || c.value === raw.currency?.id,
-      )
+      const speciesId = raw.species_id || raw.species?.id
+      const areaId = raw.area_id || raw.area?.id
+      const seasonId = raw.season_id || raw.season?.id
+      const currencyId = raw.currency_id || raw.currency?.id
+
+      this.trophyFeeForm.species = speciesId
+      this.trophyFeeForm.area = areaId
+      this.trophyFeeForm.season = seasonId
+      this.trophyFeeForm.currency = currencyId
       this.trophyFeeForm.sequence_order = raw.sequence_order
       this.trophyFeeForm.amount = raw.amount
     },
 
     async saveTrophyFee() {
+      if (!this.trophyFeeFormRef?.checkValidity()) {
+        this.trophyFeeFormRef?.reportValidity()
+        return
+      }
+
       this.saving = true
       try {
         const payload: any = {
-          species_id: this.trophyFeeForm.species.value,
-          area_id: this.trophyFeeForm.area.value,
-          season_id: this.trophyFeeForm.season.value,
-          currency_id: this.trophyFeeForm.currency.value,
+          species_id:
+            typeof this.trophyFeeForm.species === 'object'
+              ? this.trophyFeeForm.species.value
+              : this.trophyFeeForm.species,
+          area_id:
+            typeof this.trophyFeeForm.area === 'object' ? this.trophyFeeForm.area.value : this.trophyFeeForm.area,
+          season_id:
+            typeof this.trophyFeeForm.season === 'object' ? this.trophyFeeForm.season.value : this.trophyFeeForm.season,
+          currency_id:
+            typeof this.trophyFeeForm.currency === 'object'
+              ? this.trophyFeeForm.currency.value
+              : this.trophyFeeForm.currency,
           sequence_order: this.trophyFeeForm.sequence_order,
           amount: this.trophyFeeForm.amount,
         }
@@ -558,4 +592,94 @@ export default defineComponent({
 })
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.trophy-fees-page {
+  padding: 0;
+  min-height: 600px;
+  width: 100%;
+}
+
+.layout-top-spacing {
+  margin-top: 20px;
+}
+
+.layout-spacing {
+  padding: 10px 0;
+}
+
+.breadcrumb {
+  text-transform: uppercase !important;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0 !important;
+
+  .breadcrumb-item {
+    text-transform: uppercase !important;
+
+    &::before {
+      content: ' / ' !important;
+      color: #9ca3af !important;
+      padding: 0 0.5rem;
+    }
+
+    &:first-child::before {
+      display: none !important;
+    }
+
+    a {
+      text-transform: uppercase !important;
+      color: #374151 !important;
+      font-weight: 600;
+      text-decoration: none !important;
+
+      &:hover {
+        color: #1f2937 !important;
+        text-decoration: none !important;
+      }
+    }
+
+    &.active {
+      color: #9ca3af !important;
+      font-weight: 400;
+      text-transform: uppercase !important;
+    }
+  }
+}
+
+.trophy-fees-form-page {
+  padding: 0;
+  min-height: 600px;
+  width: 100%;
+}
+
+.form-trophy-fees-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 0.8rem;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.card {
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.trophy-fees-form-row {
+  --bs-gutter-x: 6rem !important;
+  margin-left: calc(-1 * var(--bs-gutter-x) * 0.5) !important;
+  margin-right: calc(-1 * var(--bs-gutter-x) * 0.5) !important;
+}
+
+.trophy-fees-form-row > [class*='col-'] {
+  padding-left: calc(var(--bs-gutter-x) * 0.5) !important;
+  padding-right: calc(var(--bs-gutter-x) * 0.5) !important;
+}
+</style>

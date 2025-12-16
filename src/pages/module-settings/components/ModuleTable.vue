@@ -1,44 +1,38 @@
 <template>
   <!-- filter elements and download btn slot -->
   <slot name="filter-elements-and-download-btn"> </slot>
-  <VaDataTable
-    v-model:sort-by="sortBy"
-    v-model:sorting-order="sortingOrder"
-    :items="items"
+  <StandardDataTable
     :columns="columns"
-    hoverable
+    :data="items"
     :loading="loading"
-    striped
+    :disable-search="false"
+    :disable-pagination="false"
   >
-    <template #cell(actions)="{ rowData }">
-      <div class="flex gap-1">
-        <VaButton
-          v-if="showEdit"
-          preset="plain"
-          icon="edit"
-          color="warning"
-          size="small"
-          @click="clickedEdit(rowData)"
-        />
-        <VaButton preset="plain" :icon="btnViewicon" size="small" @click="clickedView(rowData)" />
-        <VaButton
-          v-if="showDelete"
-          preset="plain"
-          icon="delete"
-          color="danger"
-          size="small"
-          @click="clickedDelete(rowData)"
-        />
+    <template #actions="{ row }">
+      <div class="d-flex gap-1">
+        <button v-if="showEdit" class="btn btn-warning btn-sm" title="Edit" @click="clickedEdit(row)">
+          <i class="fa fa-edit"></i>
+        </button>
+        <button class="btn btn-info btn-sm" title="View" @click="clickedView(row)">
+          <i :class="'fa fa-' + (btnViewicon === 'visibility' ? 'eye' : btnViewicon)"></i>
+        </button>
+        <button v-if="showDelete" class="btn btn-danger btn-sm" title="Delete" @click="clickedDelete(row)">
+          <i class="fa fa-trash"></i>
+        </button>
       </div>
     </template>
-  </VaDataTable>
+  </StandardDataTable>
 </template>
 
 <script>
 import { defineComponent } from 'vue'
+import StandardDataTable from '@/components/bootstrap/StandardDataTable.vue'
 
 export default defineComponent({
   name: 'ModuleTable',
+  components: {
+    StandardDataTable,
+  },
 
   props: {
     items: {

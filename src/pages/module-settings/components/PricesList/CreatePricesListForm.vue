@@ -16,135 +16,126 @@
         </div>
 
         <div class="card-body">
-          <VaForm ref="formRef">
-            <!-- Price List Information & Charges - Combined for better space -->
-            <div class="card mb-2">
-              <div class="card-header bg-light py-2">
-                <h6 class="mb-0"><i class="fa fa-info-circle text-primary me-2"></i>Price List Information</h6>
-              </div>
-              <div class="card-body py-2">
-                <div class="row g-2">
-                  <div class="col-md-4">
-                    <label class="form-label small mb-1">Packages <span class="text-danger">*</span></label>
-                    <VaSelect
-                      v-model="form.package"
-                      :options="packageOptions"
-                      multiple
-                      clearable
-                      placeholder="Select Package list here"
-                      :rules="[(v: any) => v || 'Package is required']"
-                      @update:modelValue="onChangePackage"
+          <form ref="formRef" @submit.prevent="submit">
+            <div class="row mb-5">
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label class="form-label">Package <span class="text-danger">*</span></label>
+                  <div class="input-group">
+                    <select v-model="form.package" class="form-select" required @change="onChangePackage">
+                      <option :value="null">Select Package</option>
+                      <option v-for="option in packageOptions" :key="option.value" :value="option.value">
+                        {{ option.text }}
+                      </option>
+                    </select>
+                    <button
+                      type="button"
+                      class="btn btn-outline-secondary"
+                      title="Add New Package"
+                      @click="_showModal()"
                     >
-                      <template #content="{ value }">
-                        <VaChip
-                          v-for="chip in value"
-                          :key="chip"
-                          size="small"
-                          color="info"
-                          class="mr-1 my-1"
-                          closeable
-                          @update:modelValue="deleteChip(chip)"
-                        >
-                          {{ chip.text }}
-                        </VaChip>
-                      </template>
-                      <template #append>
-                        <i class="fa fa-plus ms-2" style="cursor: pointer" @click="_showModal()"></i>
-                      </template>
-                    </VaSelect>
+                      <i class="fa fa-plus"></i>
+                    </button>
                   </div>
-                  <div class="col-md-4">
-                    <label class="form-label small mb-1">Hunting Type <span class="text-danger">*</span></label>
-                    <VaSelect
-                      v-model="form.hunting_type_id"
-                      placeholder="Select Hunting Type"
-                      :rules="[(v: any) => v || 'Hunting type is required']"
-                      :options="huntingTypesOptions"
-                      searchable
-                      highlight-matched-text
-                    />
-                  </div>
-                  <div class="col-md-4">
-                    <label class="form-label small mb-1">Season <span class="text-danger">*</span></label>
-                    <VaSelect v-model="form.season" :options="seasonsOptions" placeholder="Select season" />
-                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label class="form-label">Hunting Type <span class="text-danger">*</span></label>
+                  <select v-model="form.hunting_type_id" class="form-select" required>
+                    <option :value="null">Select Hunting Type</option>
+                    <option v-for="option in huntingTypesOptions" :key="option.value" :value="option.value">
+                      {{ option.text }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label class="form-label">Season <span class="text-danger">*</span></label>
+                  <select v-model="selectedSeasonId" class="form-select" required @change="onSeasonChange">
+                    <option :value="null">Select season</option>
+                    <option
+                      v-for="option in seasonsOptions"
+                      :key="option.value?.id || option.value"
+                      :value="option.value?.id || option.value"
+                    >
+                      {{ option.text }}
+                    </option>
+                  </select>
                 </div>
               </div>
             </div>
 
-            <!-- Charges -->
-            <div class="card mb-2">
-              <div class="card-header bg-light py-2">
-                <h6 class="mb-0"><i class="fa fa-dollar-sign text-primary me-2"></i>Charges</h6>
+            <div class="row mb-5">
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label class="form-label">Amount <span class="text-danger">*</span></label>
+                  <input v-model="form.amount" type="text" class="form-control" placeholder="Enter Amount" required />
+                </div>
               </div>
-              <div class="card-body py-2">
-                <div class="row g-2">
-                  <div class="col-md-4">
-                    <label class="form-label small mb-1">Amount <span class="text-danger">*</span></label>
-                    <VaInput
-                      v-model="form.amount"
-                      type="text"
-                      placeholder="Enter Amount"
-                      :rules="[(value: any) => (value && value.length > 0) || 'Amount is required']"
-                    />
-                  </div>
-                  <div class="col-md-4">
-                    <label class="form-label small mb-1">Currency <span class="text-danger">*</span></label>
-                    <VaSelect
-                      v-model="form.currency"
-                      placeholder="Select Currency"
-                      :rules="[(v: any) => v || 'Currency is required']"
-                      :options="currencyOptions"
-                      searchable
-                      highlight-matched-text
-                    />
-                  </div>
-                  <div class="col-md-4">
-                    <label class="form-label small mb-1">Duration (days) <span class="text-danger">*</span></label>
-                    <VaSelect
-                      v-model="form.duration"
-                      :options="durationsOptions"
-                      placeholder="Enter Duration eg: 21 days"
-                      :rules="[(v: any) => v || 'Duration is required']"
-                    />
-                  </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label class="form-label">Currency <span class="text-danger">*</span></label>
+                  <select v-model="form.currency" class="form-select" required>
+                    <option :value="null">Select Currency</option>
+                    <option v-for="option in currencyOptions" :key="option.value" :value="option.value">
+                      {{ option.text }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-group">
+                  <label class="form-label">Duration (days) <span class="text-danger">*</span></label>
+                  <select v-model="form.duration" class="form-select" required>
+                    <option :value="null">Enter Duration eg: 21 days</option>
+                    <option v-for="option in durationsOptions" :key="option.value" :value="option.value">
+                      {{ option.text }}
+                    </option>
+                  </select>
                 </div>
               </div>
             </div>
 
-            <!-- Companion & Observer Charges - Combined for better space -->
-            <div class="card mb-2">
-              <div class="card-header bg-light py-2">
-                <h6 class="mb-0"><i class="fa fa-users text-primary me-2"></i>Companion & Observer Charges</h6>
+            <div class="row mb-5">
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label class="form-label">Companion Cost</label>
+                  <input
+                    v-model="form.companion_amount"
+                    type="number"
+                    class="form-control"
+                    placeholder="Enter Amount"
+                  />
+                </div>
               </div>
-              <div class="card-body py-2">
-                <div class="row g-2">
-                  <div class="col-md-3">
-                    <label class="form-label small mb-1">Companion Cost</label>
-                    <VaInput v-model="form.companion_amount" type="number" placeholder="Enter Amount" />
-                  </div>
-                  <div class="col-md-3">
-                    <label class="form-label small mb-1">Companion Days</label>
-                    <VaSelect
-                      v-model="form.companion_days"
-                      :options="durationsOptions"
-                      placeholder="Select Days"
-                      clearable
-                    />
-                  </div>
-                  <div class="col-md-3">
-                    <label class="form-label small mb-1">Observer Cost</label>
-                    <VaInput v-model="form.observer_amount" type="number" placeholder="Enter Amount" />
-                  </div>
-                  <div class="col-md-3">
-                    <label class="form-label small mb-1">Observer Days</label>
-                    <VaSelect
-                      v-model="form.observer_days"
-                      :options="durationsOptions"
-                      placeholder="Select Days"
-                      clearable
-                    />
-                  </div>
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label class="form-label">Companion Days</label>
+                  <select v-model="form.companion_days" class="form-select">
+                    <option :value="null">Select Days</option>
+                    <option v-for="option in durationsOptions" :key="option.value" :value="option.value">
+                      {{ option.text }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label class="form-label">Observer Cost</label>
+                  <input v-model="form.observer_amount" type="number" class="form-control" placeholder="Enter Amount" />
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label class="form-label">Observer Days</label>
+                  <select v-model="form.observer_days" class="form-select">
+                    <option :value="null">Select Days</option>
+                    <option v-for="option in durationsOptions" :key="option.value" :value="option.value">
+                      {{ option.text }}
+                    </option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -173,36 +164,40 @@
                       <div class="row g-2 mb-2">
                         <div class="col-md-3">
                           <label class="form-label small mb-1">Species <span class="text-danger">*</span></label>
-                          <VaSelect
-                            v-model="fee.species_id"
-                            :options="speciesOptions"
-                            placeholder="Select Species"
-                            searchable
-                            highlight-matched-text
-                            :rules="[(v: any) => v || 'Species is required']"
-                          />
+                          <select v-model="fee.species_id" class="form-select" required>
+                            <option :value="null">Select Species</option>
+                            <option v-for="option in speciesOptions" :key="option.value" :value="option.value">
+                              {{ option.text }}
+                            </option>
+                          </select>
                         </div>
                         <div class="col-md-2">
                           <label class="form-label small mb-1">Amount <span class="text-danger">*</span></label>
-                          <VaInput
+                          <input
                             v-model="fee.amount"
                             type="number"
+                            class="form-control"
                             placeholder="Amount"
-                            :rules="[(v: any) => (v !== null && v !== undefined && v !== '') || 'Amount is required']"
+                            required
                           />
                         </div>
                         <div class="col-md-2">
                           <label class="form-label small mb-1">Currency <span class="text-danger">*</span></label>
-                          <VaSelect
-                            v-model="fee.currency_id"
-                            :options="currencyOptions"
-                            placeholder="Currency"
-                            :rules="[(v: any) => v || 'Currency is required']"
-                          />
+                          <select v-model="fee.currency_id" class="form-select" required>
+                            <option :value="null">Currency</option>
+                            <option v-for="option in currencyOptions" :key="option.value" :value="option.value">
+                              {{ option.text }}
+                            </option>
+                          </select>
                         </div>
                         <div class="col-md-4">
                           <label class="form-label small mb-1">Description (Optional)</label>
-                          <VaInput v-model="fee.description" type="text" placeholder="Enter description" />
+                          <input
+                            v-model="fee.description"
+                            type="text"
+                            class="form-control"
+                            placeholder="Enter description"
+                          />
                         </div>
                         <div class="col-md-1 d-flex align-items-end">
                           <button
@@ -226,19 +221,17 @@
                 </div>
               </div>
             </div>
-          </VaForm>
+          </form>
         </div>
       </div>
 
-      <!-- Floating Sticky Footer Navigation -->
-      <div class="floating-footer-wrapper">
-        <div class="floating-footer bg-white border-top shadow-lg">
-          <div class="d-flex justify-content-end align-items-center py-3 px-4">
-            <VaButton icon="save" :loading="savingPriceList" :disabled="!canSubmit" @click="validateForm() && submit()">
-              {{ editMode ? 'Update Price List' : 'Save Price List' }}
-            </VaButton>
-          </div>
-        </div>
+      <!-- Save Button -->
+      <div class="d-flex justify-content-end align-items-center mt-4 mb-3">
+        <button type="button" class="btn btn-primary" :disabled="savingPriceList || !canSubmit" @click="submit()">
+          <i class="fa fa-save me-1"></i>
+          <span v-if="savingPriceList" class="spinner-border spinner-border-sm me-1" role="status"></span>
+          {{ editMode ? 'Update Price List' : 'Save Price List' }}
+        </button>
       </div>
     </div>
   </div>
@@ -264,7 +257,6 @@ import { defineComponent, reactive, ref } from 'vue'
 import handleErrors from '../../../../utils/errorHandler'
 import { validators } from '../../../../services/utils'
 
-import { useForm } from '@/composables/useForm'
 import { useToast } from '@/composables/useToast'
 import { mapActions, mapState, mapWritableState } from 'pinia'
 import { useQuotaStore } from '../../../../stores/quota-store'
@@ -292,15 +284,9 @@ export default defineComponent({
   setup() {
     const formRef = ref()
 
-    const {
-      isValid: isValidForm,
-      validate: validateForm,
-      resetValidation: resetValidationForm,
-      reset: resetForm,
-    } = useForm()
-
     const { init } = useToast()
     const showEditForm = ref(false)
+    const isValidForm = ref(true)
     // const _usePriceListStore: any = usePriceListStore()
 
     // const pkg: any = computed(() => {
@@ -310,8 +296,7 @@ export default defineComponent({
     const form = reactive({
       id: null as any,
       hunting_type_id: null as any,
-      // is list
-      package: [] as any,
+      package: null as any,
       // description: '',s
       // sales_quota_id: null as any,
       amount: null as any,
@@ -339,10 +324,6 @@ export default defineComponent({
       contactable: false,
     })
 
-    const deleteChip = (chip: any) => {
-      form.package = form.package.filter((v: any) => v !== chip)
-    }
-
     const countries = ref([]) as any
     const nationality = ref([]) as any
     const categoryOptions = ref([]) as any
@@ -364,10 +345,6 @@ export default defineComponent({
       // steps,
       init,
       isValidForm,
-      validateForm,
-      resetValidationForm,
-      resetForm,
-      deleteChip,
       validators,
     }
   },
@@ -409,6 +386,7 @@ export default defineComponent({
       savingPriceList: false,
       durationsOptions,
       seasonsOptions: [] as any,
+      selectedSeasonId: null as any,
       upgradeFees: [] as any[],
       originalFormData: null as any,
       originalUpgradeFees: [] as any[],
@@ -462,17 +440,8 @@ export default defineComponent({
       if (!compareValues(this.form.companion_days, this.originalFormData.companion_days)) return true
       if (!compareValues(this.form.observer_days, this.originalFormData.observer_days)) return true
 
-      // Compare packages - check if arrays have same values
-      const currentPackages = (this.form.package || [])
-        .map((p: any) => getValue(p))
-        .filter((v: any) => v !== null && v !== undefined)
-        .sort()
-      const originalPackages = (this.originalFormData.package || [])
-        .map((p: any) => getValue(p))
-        .filter((v: any) => v !== null && v !== undefined)
-        .sort()
-      if (currentPackages.length !== originalPackages.length) return true
-      if (JSON.stringify(currentPackages) !== JSON.stringify(originalPackages)) return true
+      // Compare package - now single value
+      if (!compareValues(this.form.package, this.originalFormData.package)) return true
 
       // Compare upgrade fees
       const normalizeFees = (fees: any[]) => {
@@ -504,7 +473,15 @@ export default defineComponent({
       if (this.editMode) {
         return this.hasFormChanged // Only allow submit if form has changed
       }
-      return this.isValidForm // Check validation in create mode
+      // Basic validation check
+      return (
+        this.form.package &&
+        this.form.hunting_type_id &&
+        this.form.season &&
+        this.form.amount &&
+        this.form.currency &&
+        this.form.duration
+      )
     },
   },
 
@@ -555,6 +532,12 @@ export default defineComponent({
     },
 
     async submit() {
+      // Validate form
+      if (this.formRef && !this.formRef.checkValidity()) {
+        this.formRef.reportValidity()
+        return
+      }
+
       this.savingPriceList = true
 
       // Prepare upgrade fees data (only include valid entries)
@@ -562,9 +545,9 @@ export default defineComponent({
         .filter((fee: any) => fee.species_id && fee.amount && fee.currency_id)
         .map((fee: any) => {
           const feeData: any = {
-            species_id: fee.species_id?.value || fee.species_id,
+            species_id: fee.species_id,
             amount: parseFloat(fee.amount),
-            currency_id: fee.currency_id?.value || fee.currency_id,
+            currency_id: fee.currency_id,
             description: fee.description || '',
           }
           // Include ID for existing fees (when editing)
@@ -574,16 +557,17 @@ export default defineComponent({
           return feeData
         })
 
+      // Handle package - now single value like hunting type
+      const salesPackageIds = this.form.package ? [this.form.package] : []
+
       const requestdata = {
-        huntingTypeId: this.form.hunting_type_id?.value || this.form.hunting_type_id,
-        sales_package_ids: this.form.package?.filter((v: any) => v?.value !== undefined).map((v: any) => v?.value),
+        huntingTypeId: this.form.hunting_type_id,
+        sales_package_ids: salesPackageIds,
         // Also include price_type_packages array expected by backend
-        price_type_packages: this.form.package
-          ?.filter((v: any) => v?.value !== undefined)
-          .map((v: any) => ({ sales_package_id: v?.value })),
+        price_type_packages: salesPackageIds.map((id: any) => ({ sales_package_id: id })),
         amount: this.form.amount,
-        currency: this.form.currency?.value || this.form.currency,
-        duration: this.form.duration?.value || this.form.duration,
+        currency: this.form.currency,
+        duration: this.form.duration,
         season_id: this.form.season?.value?.id || this.form.season?.id,
         //chriss' codes
         start_at: this.form.season?.value?.start_at || this.form.season?.start_at,
@@ -595,12 +579,12 @@ export default defineComponent({
           this.form.companion_amount !== null && this.form.companion_amount !== undefined
             ? Number(this.form.companion_amount)
             : null,
-        companionDays: this.form.companion_days?.value || this.form.companion_days,
+        companionDays: this.form.companion_days || null,
         observerAmount:
           this.form.observer_amount !== null && this.form.observer_amount !== undefined
             ? Number(this.form.observer_amount)
             : null,
-        observerDays: this.form.observer_days?.value || this.form.observer_days,
+        observerDays: this.form.observer_days || null,
         upgrade_fees: validUpgradeFees.length > 0 ? validUpgradeFees : null,
       }
 
@@ -628,11 +612,24 @@ export default defineComponent({
           response = await this.createPriceList(requestdata)
           if (response.status === 201) {
             this.init({ message: response.data.message, color: 'success' })
-            this.resetForm()
-            this.resetValidationForm()
+            // Reset form
+            this.form.package = null
+            this.form.hunting_type_id = null
+            this.form.season = null
+            this.selectedSeasonId = null
+            this.form.amount = null
+            this.form.currency = null
+            this.form.duration = null
+            this.form.companion_amount = null
+            this.form.companion_days = null
+            this.form.observer_amount = null
+            this.form.observer_days = null
             this.speciesObjects = []
             this.upgradeFees = []
             this.savingPriceList = false
+            if (this.formRef) {
+              this.formRef.reset()
+            }
           }
         }
       } catch (error: any) {
@@ -756,20 +753,13 @@ export default defineComponent({
         }
       }
 
-      // Set packages if available - check in sales_package or packages array
+      // Set package if available - now single value
       const salesPackage = this.editItem.sales_package
       if (salesPackage) {
-        this.form.package = [
-          {
-            value: salesPackage.id,
-            text: salesPackage.name,
-          },
-        ]
-      } else if (this.editItem.packages && Array.isArray(this.editItem.packages)) {
-        this.form.package = this.editItem.packages.map((p: any) => ({
-          value: p.id,
-          text: p.name,
-        }))
+        this.form.package = salesPackage.id
+      } else if (this.editItem.packages && Array.isArray(this.editItem.packages) && this.editItem.packages.length > 0) {
+        // If multiple packages, use the first one
+        this.form.package = this.editItem.packages[0].id
       }
 
       // Populate upgrade fees if available
@@ -880,8 +870,13 @@ export default defineComponent({
         console.log(error)
       }
     },
-    onChangePackage(value: any) {
-      console.log(value.filter((v: any) => v?.value !== undefined).map((v: any) => v?.value))
+    onChangePackage() {
+      // Package is now a single value like hunting type
+      console.log('Selected package:', this.form.package)
+    },
+    onSeasonChange() {
+      // Update form.season from selectedSeasonId
+      this.form.season = this.seasonsOptions.find((opt: any) => (opt.value?.id || opt.value) === this.selectedSeasonId)
     },
 
     // async getAllSpieces() {
@@ -957,28 +952,9 @@ export default defineComponent({
   position: relative;
 }
 
-/* Floating Footer Wrapper - matches card width and adds margins */
-.floating-footer-wrapper {
-  position: sticky;
-  bottom: 1rem;
-  z-index: 1050;
-  padding: 0 1rem;
-  margin-top: 1rem;
-}
-
-/* Floating Footer - matches card width, rounded corners, shadow, doesn't touch sides */
-.floating-footer {
-  width: 100%;
-  max-width: 100%;
-  border-radius: 0.375rem;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
-  position: relative;
-  margin: 0 auto;
-}
-
-/* Add padding to card body to prevent content from being hidden behind sticky footer */
+/* Add padding to card body */
 .form-price-list-container .card-body {
-  padding-bottom: 100px;
+  padding-bottom: 1rem;
 }
 
 /* Compact spacing for better space utilization */
@@ -987,13 +963,39 @@ export default defineComponent({
 }
 
 .card-body {
-  padding: 0.75rem 1rem;
+  padding: 1.5rem;
 }
 
-.form-label.small {
-  font-size: 0.875rem;
+.form-label {
+  margin-bottom: 0.5rem;
   font-weight: 500;
-  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.form-group {
+  margin-bottom: 0;
+}
+
+/* Ensure proper spacing between form rows */
+form .row {
+  margin-bottom: 2rem !important;
+}
+
+/* Increased horizontal spacing between columns */
+form .row {
+  --bs-gutter-x: 3rem !important;
+  margin-left: calc(-1 * var(--bs-gutter-x) * 0.5) !important;
+  margin-right: calc(-1 * var(--bs-gutter-x) * 0.5) !important;
+}
+
+form .row > [class*='col-'] {
+  padding-left: calc(var(--bs-gutter-x) * 0.5) !important;
+  padding-right: calc(var(--bs-gutter-x) * 0.5) !important;
+}
+
+/* Additional spacing for form groups */
+form .form-group {
+  margin-bottom: 0;
 }
 
 /* Reduce margins between cards */

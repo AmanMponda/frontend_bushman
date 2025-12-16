@@ -1,184 +1,309 @@
 <template>
   <div class="safari-extras-page">
-    <!-- Header with Add Button -->
-    <div class="flex flex-col md:flex-row gap-2 mb-4 justify-between py-2">
-      <div class="flex flex-col md:flex-row gap-2 justify-start">
-        <h2 class="va-h5">Safari Extra Services by Season</h2>
+    <!-- Breadcrumb -->
+    <div class="d-flex align-items-center mb-3">
+      <div>
+        <ul class="breadcrumb">
+          <li class="breadcrumb-item"><a href="#">Sales</a></li>
+          <li class="breadcrumb-item active">Safari Extra Services</li>
+        </ul>
       </div>
-      <VaButtonGroup>
-        <VaButton
-          class="px-2 py-2"
-          color="primary"
-          round
-          present="secondary"
-          border-color="primary"
-          icon="add"
-          size="small"
-          @click="openAddModal(null)"
-        >
-          Add Extra Service
-        </VaButton>
-      </VaButtonGroup>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="loadingExtras || loadingSeasons" class="flex justify-center py-8">
-      <VaProgressCircle indeterminate />
-    </div>
-
-    <!-- Seasons with Extras -->
-    <template v-else>
-      <VaCollapse
-        v-for="season in seasonsWithExtras"
-        :key="season.id"
-        class="mb-4"
-        :header="season.name"
-        icon="calendar_month"
-        color="primary"
-      >
-        <template #header>
-          <div class="flex items-center justify-between w-full pr-4">
-            <div class="flex items-center gap-2">
-              <VaIcon name="calendar_month" color="primary" />
-              <span class="font-semibold">{{ season.name }}</span>
-              <VaBadge :text="String(season.extras.length)" color="info" />
+    <!-- Main Content -->
+    <div class="row layout-top-spacing bg-white rounded">
+      <div class="col-xl-12 col-lg-12 col-sm-12 layout-spacing">
+        <div class="panel br-6 p-0">
+          <div class="custom-table p-3">
+            <!-- Header with Add Button -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h2 class="mb-0">Safari Extra Services by Season</h2>
+              <button class="btn btn-primary" @click="openAddModal(null)">
+                <i class="fa fa-plus me-2"></i>Add Extra Service
+              </button>
             </div>
-            <VaButton
-              preset="plain"
-              icon="add_circle"
-              color="success"
-              title="Add extra to this season"
-              @click.stop="openAddModal(season)"
-            />
-          </div>
-        </template>
 
-        <div class="pa-4">
-          <div v-if="season.extras.length === 0" class="text-center text-gray-500 py-4">
-            No extra services for this season.
-            <VaButton preset="plain" @click="openAddModal(season)">Add one now</VaButton>
-          </div>
+            <!-- Loading State -->
+            <div v-if="loadingExtras || loadingSeasons" class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
 
-          <VaDataTable v-else :items="season.extras" :columns="columns" hoverable striped>
-            <template #cell(hunting_area)="{ rowData }">
-              {{ rowData.hunting_area?.name || 'N/A' }}
-            </template>
-            <template #cell(amount)="{ rowData }"> {{ rowData.currency?.symbol || '' }} {{ rowData.amount }} </template>
-            <template #cell(charges_per)="{ rowData }">
-              <VaBadge :text="formatChargesPer(rowData.charges_per)" color="secondary" />
-            </template>
-            <template #cell(actions)="{ rowData }">
-              <div class="flex gap-2">
-                <VaButton preset="plain" icon="edit" color="warning" title="Edit" @click="openEditModal(rowData)" />
-                <VaButton preset="plain" icon="delete" color="danger" title="Delete" @click="confirmDelete(rowData)" />
+            <!-- Season Selection View -->
+            <template v-else-if="!selectedSeason">
+              <div v-if="seasonsWithExtras.length > 0">
+                <h4 class="mb-4">Select a Season</h4>
+                <div class="row g-4">
+                  <div v-for="season in seasonsWithExtras" :key="season.id" class="col-md-4 col-sm-6">
+                    <div
+                      class="card season-card h-100 cursor-pointer shadow-sm"
+                      :class="{ 'border-primary bg-light': selectedSeason?.id === season.id }"
+                      @click="selectSeason(season)"
+                    >
+                      <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between">
+                          <div class="d-flex align-items-center">
+                            <i class="fa fa-calendar text-primary me-3" style="font-size: 2rem"></i>
+                            <div>
+                              <h5 class="card-title mb-1">{{ season.name }}</h5>
+                              <p class="text-muted mb-0 small">
+                                {{ season.start_at ? new Date(season.start_at).toLocaleDateString() : 'N/A' }} -
+                                {{ season.end_at ? new Date(season.end_at).toLocaleDateString() : 'Ongoing' }}
+                              </p>
+                            </div>
+                          </div>
+                          <span class="badge bg-primary" style="font-size: 1rem; padding: 0.5rem 0.75rem">
+                            {{ season.extras.length }} {{ season.extras.length === 1 ? 'Service' : 'Services' }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- No seasons message -->
+              <div v-else class="text-center py-5 text-muted">
+                <i class="fa fa-calendar-times fa-3x mb-3"></i>
+                <p>No seasons with extra services found.</p>
+                <button class="btn btn-primary" @click="openAddModal(null)">
+                  <i class="fa fa-plus me-2"></i>Add Extra Service
+                </button>
               </div>
             </template>
-          </VaDataTable>
-        </div>
-      </VaCollapse>
 
-      <!-- No seasons message -->
-      <div v-if="seasonsWithExtras.length === 0" class="text-center py-8 text-gray-500">
-        No seasons found. Please create seasons first in the settings.
+            <!-- Selected Season View -->
+            <template v-else>
+              <div class="mb-4">
+                <button class="btn btn-outline-secondary mb-3" @click="clearSelection">
+                  <i class="fa fa-arrow-left me-2"></i>Back to Seasons
+                </button>
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h3 class="mb-1">
+                      <i class="fa fa-calendar text-primary me-2"></i>
+                      {{ selectedSeason.name }}
+                    </h3>
+                    <p class="text-muted mb-0">
+                      {{ selectedSeason.start_at ? new Date(selectedSeason.start_at).toLocaleDateString() : 'N/A' }} -
+                      {{ selectedSeason.end_at ? new Date(selectedSeason.end_at).toLocaleDateString() : 'Ongoing' }}
+                    </p>
+                  </div>
+                  <button class="btn btn-success" @click="openAddModal(selectedSeason)">
+                    <i class="fa fa-plus me-2"></i>Add Extra Service
+                  </button>
+                </div>
+              </div>
+
+              <!-- Extras Table -->
+              <div v-if="selectedSeasonExtras && selectedSeasonExtras.length > 0" class="table-responsive">
+                <StandardDataTable
+                  :key="`table-${selectedSeason.id}-${selectedSeasonExtras.length}`"
+                  :columns="columns"
+                  :data="selectedSeasonExtras"
+                  :loading="false"
+                  :filters="{}"
+                  :default-page-size="10"
+                  :disable-pagination="selectedSeasonExtras.length <= 10"
+                  :show-date-filters="false"
+                  :disable-search="false"
+                >
+                  <template #name="{ row }">
+                    {{ (row as any).name || 'N/A' }}
+                  </template>
+                  <template #hunting_area="{ row }">
+                    {{ (row as any).hunting_area?.name || 'N/A' }}
+                  </template>
+                  <template #amount="{ row }">
+                    {{ (row as any).currency?.symbol || '' }} {{ (row as any).amount || '0.00' }}
+                  </template>
+                  <template #charges_per="{ row }">
+                    <span class="badge bg-secondary">{{ formatChargesPer((row as any).charges_per) }}</span>
+                  </template>
+                  <template #description="{ row }">
+                    {{ (row as any).description || 'N/A' }}
+                  </template>
+                  <template #actions="{ row }">
+                    <div class="d-flex gap-1">
+                      <button class="btn btn-warning btn-sm" title="Edit" @click="openEditModal(row as any)">
+                        <i class="fa fa-edit"></i>
+                      </button>
+                      <button class="btn btn-danger btn-sm" title="Delete" @click="confirmDelete(row as any)">
+                        <i class="fa fa-trash"></i>
+                      </button>
+                    </div>
+                  </template>
+                </StandardDataTable>
+              </div>
+
+              <!-- No extras for selected season -->
+              <div v-else class="text-center py-5 text-muted">
+                <i class="fa fa-inbox fa-3x mb-3"></i>
+                <p>No extra services for this season.</p>
+                <button class="btn btn-primary" @click="openAddModal(selectedSeason)">
+                  <i class="fa fa-plus me-2"></i>Add Extra Service
+                </button>
+              </div>
+            </template>
+          </div>
+        </div>
       </div>
-    </template>
+    </div>
 
     <!-- Add/Edit Modal -->
-    <VaModal
-      v-model="showFormModal"
-      :title="editMode ? 'Edit Extra Service' : 'Add Extra Service'"
-      size="medium"
-      hide-default-actions
+    <div
+      class="modal fade"
+      :class="{ show: showFormModal, 'd-block': showFormModal }"
+      :style="{ display: showFormModal ? 'block' : 'none' }"
+      tabindex="-1"
+      role="dialog"
+      @click.self="closeFormModal"
     >
-      <VaForm ref="formRef" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <VaInput
-            v-model="form.name"
-            label="Service Name"
-            placeholder="e.g., Ammunition, Trophy Handling"
-            :rules="[(v: any) => !!v || 'Service name is required']"
-            required-mark
-          />
-          <VaInput
-            v-model="form.amount"
-            type="number"
-            label="Amount"
-            placeholder="Enter amount"
-            :rules="[(v: any) => !!v || 'Amount is required']"
-            required-mark
-          />
-        </div>
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">{{ editMode ? 'Edit Extra Service' : 'Add Extra Service' }}</h5>
+            <button type="button" class="btn-close" @click="closeFormModal"></button>
+          </div>
+          <div class="modal-body">
+            <form ref="formRef" @submit.prevent="submitForm">
+              <div class="row mb-3 trophy-fees-form-row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Service Name <span class="text-danger">*</span></label>
+                    <input
+                      v-model="form.name"
+                      type="text"
+                      class="form-control"
+                      placeholder="e.g., Ammunition, Trophy Handling"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Amount <span class="text-danger">*</span></label>
+                    <input
+                      v-model="form.amount"
+                      type="number"
+                      class="form-control"
+                      placeholder="Enter amount"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <VaSelect
-            v-model="form.currency_id"
-            label="Currency"
-            placeholder="Select currency"
-            :options="currenciesOptions"
-            :rules="[(v: any) => !!v || 'Currency is required']"
-            required-mark
-          />
-          <VaSelect
-            v-model="form.hunting_area_id"
-            label="Hunting Area"
-            placeholder="Select hunting area"
-            :options="areasOptions"
-            :rules="[(v: any) => !!v || 'Hunting area is required']"
-            required-mark
-          />
-        </div>
+              <div class="row mb-3 trophy-fees-form-row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Currency <span class="text-danger">*</span></label>
+                    <select v-model="form.currency_id" class="form-select" required>
+                      <option :value="null">Select Currency</option>
+                      <option v-for="option in currenciesOptions" :key="option.value" :value="option.value">
+                        {{ option.text }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Hunting Area <span class="text-danger">*</span></label>
+                    <select v-model="form.hunting_area_id" class="form-select" required>
+                      <option :value="null">Select Hunting Area</option>
+                      <option v-for="option in areasOptions" :key="option.value" :value="option.value">
+                        {{ option.text }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <VaSelect
-            v-model="form.season_id"
-            label="Season"
-            placeholder="Select season"
-            :options="seasonsOptions"
-            :rules="[(v: any) => !!v || 'Season is required']"
-            required-mark
-            :disabled="!!preselectedSeason"
-          />
-          <VaSelect
-            v-model="form.charges_per"
-            label="Charges Per"
-            placeholder="Select charge type"
-            :options="chargesPerOptions"
-            :rules="[(v: any) => !!v || 'Charges per is required']"
-            required-mark
-          />
-        </div>
+              <div class="row mb-3 trophy-fees-form-row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Season <span class="text-danger">*</span></label>
+                    <select v-model="form.season_id" class="form-select" :disabled="!!preselectedSeason" required>
+                      <option :value="null">Select Season</option>
+                      <option v-for="option in seasonsOptions" :key="option.value" :value="option.value">
+                        {{ option.text }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label">Charges Per <span class="text-danger">*</span></label>
+                    <select v-model="form.charges_per" class="form-select" required>
+                      <option :value="null">Select charge type</option>
+                      <option v-for="option in chargesPerOptions" :key="option.value" :value="option.value">
+                        {{ option.text }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
 
-        <VaTextarea
-          v-model="form.description"
-          label="Description (Optional)"
-          placeholder="Describe this extra service"
-          :min-rows="3"
-        />
-      </VaForm>
-
-      <template #footer>
-        <div class="flex gap-2 justify-end">
-          <VaButton preset="secondary" @click="closeFormModal">Cancel</VaButton>
-          <VaButton :loading="savingSafariExtra" :disabled="savingSafariExtra" @click="submitForm">
-            {{ editMode ? 'Update' : 'Save' }}
-          </VaButton>
+              <div class="row mb-3">
+                <div class="col-12">
+                  <div class="form-group">
+                    <label class="form-label">Description (Optional)</label>
+                    <textarea
+                      v-model="form.description"
+                      class="form-control"
+                      rows="3"
+                      placeholder="Describe this extra service"
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="closeFormModal">Cancel</button>
+            <button type="button" class="btn btn-primary" :disabled="savingSafariExtra" @click="submitForm">
+              <span v-if="savingSafariExtra" class="spinner-border spinner-border-sm me-2"></span>
+              {{ editMode ? 'Update' : 'Save' }}
+            </button>
+          </div>
         </div>
-      </template>
-    </VaModal>
+      </div>
+    </div>
+    <div v-if="showFormModal" class="modal-backdrop fade show" @click="closeFormModal"></div>
 
     <!-- Delete Confirmation Modal -->
-    <VaModal v-model="showDeleteModal" title="Confirm Delete" size="small" hide-default-actions>
-      <p>
-        Are you sure you want to delete "<strong>{{ itemToDelete?.name }}</strong
-        >"?
-      </p>
-      <template #footer>
-        <div class="flex gap-2 justify-end">
-          <VaButton preset="secondary" @click="showDeleteModal = false">Cancel</VaButton>
-          <VaButton color="danger" :loading="deleting" @click="deleteExtra"> Delete </VaButton>
+    <div
+      class="modal fade"
+      :class="{ show: showDeleteModal, 'd-block': showDeleteModal }"
+      :style="{ display: showDeleteModal ? 'block' : 'none' }"
+      tabindex="-1"
+      role="dialog"
+      @click.self="showDeleteModal = false"
+    >
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Confirm Delete</h5>
+            <button type="button" class="btn-close" @click="showDeleteModal = false"></button>
+          </div>
+          <div class="modal-body">
+            <p>
+              Are you sure you want to delete "<strong>{{ itemToDelete?.name }}</strong
+              >"?
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="showDeleteModal = false">Cancel</button>
+            <button type="button" class="btn btn-danger" :disabled="deleting" @click="deleteExtra">
+              <span v-if="deleting" class="spinner-border spinner-border-sm me-2"></span>
+              Delete
+            </button>
+          </div>
         </div>
-      </template>
-    </VaModal>
+      </div>
+    </div>
+    <div v-if="showDeleteModal" class="modal-backdrop fade show" @click="showDeleteModal = false"></div>
   </div>
 </template>
 
@@ -187,16 +312,18 @@ import { useSettingsStore } from '../../stores/settings-store'
 import { useQuotaStore } from '../../stores/quota-store'
 import { defineComponent, ref, reactive } from 'vue'
 import { mapState, mapActions } from 'pinia'
-import { useForm } from '@/composables/useForm'
 import { useToast } from '@/composables/useToast'
 import handleErrors from '../../utils/errorHandler'
 import axios from 'axios'
+import StandardDataTable from '@/components/bootstrap/StandardDataTable.vue'
 
 export default defineComponent({
+  components: {
+    StandardDataTable,
+  },
   setup() {
     const { init } = useToast()
     const formRef = ref(null) as any
-    const { isValid, validate, reset } = useForm()
 
     const form = reactive({
       id: null as any,
@@ -212,21 +339,18 @@ export default defineComponent({
     return {
       init,
       formRef,
-      isValid,
-      validate,
-      reset,
       form,
     }
   },
 
   data() {
     const columns = [
-      { key: 'name', label: 'Service Name', sortable: true },
-      { key: 'hunting_area', label: 'Hunting Area', sortable: true },
-      { key: 'amount', label: 'Amount', sortable: true },
-      { key: 'charges_per', label: 'Charges Per', sortable: true },
-      { key: 'description', label: 'Description', sortable: false },
-      { key: 'actions', label: 'Actions', sortable: false, width: 100 },
+      { key: 'name', label: 'Service Name', visible: true },
+      { key: 'hunting_area', label: 'Hunting Area', visible: true },
+      { key: 'amount', label: 'Amount', visible: true },
+      { key: 'charges_per', label: 'Charges Per', visible: true },
+      { key: 'description', label: 'Description', visible: true },
+      { key: 'actions', label: 'Actions', visible: true },
     ]
 
     const chargesPerOptions = [
@@ -250,6 +374,7 @@ export default defineComponent({
       preselectedSeason: null as any,
       itemToDelete: null as any,
       deleting: false,
+      selectedSeason: null as any,
     }
   },
 
@@ -257,10 +382,50 @@ export default defineComponent({
     ...mapState(useSettingsStore, ['loadingExtras', 'savingSafariExtra']),
 
     seasonsWithExtras(): any[] {
-      return this.allSeasons.map((season: any) => ({
-        ...season,
-        extras: this.allExtras.filter((extra: any) => extra.season_id === season.id),
-      }))
+      if (!this.allSeasons || !this.allExtras) {
+        return []
+      }
+
+      const result = this.allSeasons.map((season: any) => {
+        const seasonExtras = this.allExtras.filter((extra: any) => {
+          // Handle both direct season_id and nested season.id
+          const extraSeasonId = extra.season_id || extra.season?.id
+          return extraSeasonId === season.id
+        })
+
+        // Create a new object with the extras array
+        return {
+          ...season,
+          extras: Array.isArray(seasonExtras) ? seasonExtras : [],
+        }
+      })
+
+      // Filter out seasons with no extras - only return seasons that actually have extras
+      const seasonsWithExtrasOnly = result.filter(
+        (season: any) => Array.isArray(season.extras) && season.extras.length > 0,
+      )
+
+      console.log(
+        'Seasons with extras computed:',
+        seasonsWithExtrasOnly.map((s) => ({
+          id: s.id,
+          name: s.name,
+          extrasCount: s.extras?.length || 0,
+          extrasIsArray: Array.isArray(s.extras),
+        })),
+      )
+
+      return seasonsWithExtrasOnly
+    },
+
+    selectedSeasonExtras(): any[] {
+      if (!this.selectedSeason) {
+        return []
+      }
+      return this.allExtras.filter((extra: any) => {
+        const extraSeasonId = extra.season_id || extra.season?.id
+        return extraSeasonId === this.selectedSeason.id
+      })
     },
   },
 
@@ -273,14 +438,96 @@ export default defineComponent({
     ...mapActions(useQuotaStore, ['getAreaList']),
 
     async loadData() {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/c5c1c7eb-cdaf-4e4f-95a3-924dc9400d89', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: 'ManageExtras.vue:467',
+          message: 'loadData: ENTRY',
+          data: { allSeasonsLength: this.allSeasons?.length || 0, allExtrasLength: this.allExtras?.length || 0 },
+          timestamp: Date.now(),
+          sessionId: 'debug-session',
+          runId: 'run1',
+          hypothesisId: 'C',
+        }),
+      }).catch(() => {})
+      // #endregion
       await Promise.all([this.loadSeasons(), this.loadExtras(), this.loadCurrencies(), this.loadAreas()])
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/c5c1c7eb-cdaf-4e4f-95a3-924dc9400d89', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: 'ManageExtras.vue:469',
+          message: 'loadData: AFTER Promise.all',
+          data: { allSeasonsLength: this.allSeasons?.length || 0, allExtrasLength: this.allExtras?.length || 0 },
+          timestamp: Date.now(),
+          sessionId: 'debug-session',
+          runId: 'run1',
+          hypothesisId: 'C',
+        }),
+      }).catch(() => {})
+      // #endregion
     },
 
     async loadSeasons() {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/c5c1c7eb-cdaf-4e4f-95a3-924dc9400d89', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: 'ManageExtras.vue:471',
+          message: 'loadSeasons: ENTRY',
+          data: { currentAllSeasonsLength: this.allSeasons?.length || 0 },
+          timestamp: Date.now(),
+          sessionId: 'debug-session',
+          runId: 'run1',
+          hypothesisId: 'C',
+        }),
+      }).catch(() => {})
+      // #endregion
       this.loadingSeasons = true
       try {
         const response = await this.getSeasons()
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/c5c1c7eb-cdaf-4e4f-95a3-924dc9400d89', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            location: 'ManageExtras.vue:475',
+            message: 'loadSeasons: BEFORE assignment',
+            data: {
+              responseDataLength: response?.data?.length || 0,
+              responseDataIds: response?.data?.map((s: any) => s.id) || [],
+            },
+            timestamp: Date.now(),
+            sessionId: 'debug-session',
+            runId: 'run1',
+            hypothesisId: 'C',
+          }),
+        }).catch(() => {})
+        // #endregion
         this.allSeasons = response.data || []
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/c5c1c7eb-cdaf-4e4f-95a3-924dc9400d89', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            location: 'ManageExtras.vue:476',
+            message: 'loadSeasons: AFTER assignment',
+            data: {
+              allSeasonsLength: this.allSeasons?.length || 0,
+              allSeasonsIds: this.allSeasons?.map((s: any) => s.id) || [],
+              allExtrasLength: this.allExtras?.length || 0,
+            },
+            timestamp: Date.now(),
+            sessionId: 'debug-session',
+            runId: 'run1',
+            hypothesisId: 'C',
+          }),
+        }).catch(() => {})
+        // #endregion
         this.seasonsOptions = this.allSeasons.map((item: any) => ({
           value: item.id,
           text: item.name,
@@ -293,12 +540,78 @@ export default defineComponent({
     },
 
     async loadExtras() {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/c5c1c7eb-cdaf-4e4f-95a3-924dc9400d89', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: 'ManageExtras.vue:487',
+          message: 'loadExtras: ENTRY',
+          data: {
+            currentAllExtrasLength: this.allExtras?.length || 0,
+            currentAllSeasonsLength: this.allSeasons?.length || 0,
+          },
+          timestamp: Date.now(),
+          sessionId: 'debug-session',
+          runId: 'run1',
+          hypothesisId: 'C',
+        }),
+      }).catch(() => {})
+      // #endregion
       const url = import.meta.env.VITE_APP_BASE_URL + import.meta.env.VITE_APP_SAFARY_EXTRAS_VSET_URL
       try {
         const response = await axios.get(url)
-        this.allExtras = response.data || []
+        // Handle both nested and flat response structures
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/c5c1c7eb-cdaf-4e4f-95a3-924dc9400d89', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            location: 'ManageExtras.vue:492',
+            message: 'loadExtras: BEFORE assignment',
+            data: {
+              responseDataLength: response?.data?.data?.length || response?.data?.length || 0,
+              responseDataSample: response?.data?.data?.[0] || response?.data?.[0] || null,
+            },
+            timestamp: Date.now(),
+            sessionId: 'debug-session',
+            runId: 'run1',
+            hypothesisId: 'C',
+          }),
+        }).catch(() => {})
+        // #endregion
+        this.allExtras = response.data?.data || response.data || []
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/c5c1c7eb-cdaf-4e4f-95a3-924dc9400d89', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            location: 'ManageExtras.vue:493',
+            message: 'loadExtras: AFTER assignment',
+            data: {
+              allExtrasLength: this.allExtras?.length || 0,
+              allExtrasSeasonIds: this.allExtras?.map((e: any) => e.season_id || e.season?.id) || [],
+              allSeasonsLength: this.allSeasons?.length || 0,
+            },
+            timestamp: Date.now(),
+            sessionId: 'debug-session',
+            runId: 'run1',
+            hypothesisId: 'C',
+          }),
+        }).catch(() => {})
+        // #endregion
+        console.log('Loaded extras:', JSON.parse(JSON.stringify(this.allExtras)))
+        console.log('Extras count:', this.allExtras.length)
+        if (this.allExtras.length > 0) {
+          const firstExtra = JSON.parse(JSON.stringify(this.allExtras[0]))
+          console.log('First extra sample (full):', firstExtra)
+          console.log('First extra season_id:', firstExtra.season_id)
+          console.log('First extra season object:', firstExtra.season)
+          console.log('All extra keys:', Object.keys(firstExtra))
+        }
       } catch (error) {
         console.error('Error loading extras:', error)
+        this.allExtras = []
       }
     },
 
@@ -326,6 +639,14 @@ export default defineComponent({
       }
     },
 
+    selectSeason(season: any) {
+      this.selectedSeason = season
+    },
+
+    clearSelection() {
+      this.selectedSeason = null
+    },
+
     formatChargesPer(value: string): string {
       const map: Record<string, string> = {
         PER_HOUR: 'Per Hour',
@@ -342,7 +663,7 @@ export default defineComponent({
       this.resetForm()
 
       if (season) {
-        this.form.season_id = { value: season.id, text: season.name }
+        this.form.season_id = season.id
       }
 
       this.showFormModal = true
@@ -356,12 +677,10 @@ export default defineComponent({
       this.form.name = item.name
       this.form.amount = item.amount
       this.form.description = item.description || ''
-      this.form.currency_id = item.currency ? { value: item.currency.id, text: item.currency.name } : null
-      this.form.season_id = item.season ? { value: item.season.id, text: item.season.name } : null
-      this.form.hunting_area_id = item.hunting_area
-        ? { value: item.hunting_area.id, text: item.hunting_area.name }
-        : null
-      this.form.charges_per = this.chargesPerOptions.find((opt) => opt.value === item.charges_per) || null
+      this.form.currency_id = item.currency ? item.currency.id : null
+      this.form.season_id = item.season ? item.season.id : null
+      this.form.hunting_area_id = item.hunting_area ? item.hunting_area.id : null
+      this.form.charges_per = item.charges_per || null
 
       this.showFormModal = true
     },
@@ -384,13 +703,18 @@ export default defineComponent({
     },
 
     async submitForm() {
+      if (!this.formRef?.checkValidity()) {
+        this.formRef?.reportValidity()
+        return
+      }
+
       const payload = {
         name: this.form.name,
         amount: this.form.amount,
-        currency_id: this.form.currency_id?.value,
-        season_id: this.form.season_id?.value,
-        hunting_area_id: this.form.hunting_area_id?.value,
-        charges_per: this.form.charges_per?.value,
+        currency_id: this.form.currency_id,
+        season_id: this.form.season_id,
+        hunting_area_id: this.form.hunting_area_id,
+        charges_per: this.form.charges_per,
         description: this.form.description || '',
       }
 
@@ -442,6 +766,11 @@ export default defineComponent({
         await axios.delete(url)
         this.init({ message: 'Extra service deleted successfully', color: 'success' })
         await this.loadExtras()
+        // Refresh selected season extras if deleting
+        if (this.selectedSeason) {
+          // Force reactivity update
+          this.$forceUpdate()
+        }
         this.showDeleteModal = false
         this.itemToDelete = null
       } catch (error: any) {
@@ -456,15 +785,43 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.safari-extras-page :deep(.va-collapse__header) {
-  background-color: var(--va-background-secondary);
-  border-radius: 8px;
-  padding: 12px 16px;
+.safari-extras-page {
+  padding: 0;
 }
 
-.safari-extras-page :deep(.va-collapse__body-wrapper) {
-  border: 1px solid var(--va-background-border);
-  border-top: none;
-  border-radius: 0 0 8px 8px;
+.trophy-fees-form-row {
+  --bs-gutter-x: 6rem !important;
+  margin-left: calc(-1 * var(--bs-gutter-x) * 0.5) !important;
+  margin-right: calc(-1 * var(--bs-gutter-x) * 0.5) !important;
+}
+
+.trophy-fees-form-row > [class*='col-'] {
+  padding-left: calc(var(--bs-gutter-x) * 0.5) !important;
+  padding-right: calc(var(--bs-gutter-x) * 0.5) !important;
+}
+
+.form-group {
+  margin-bottom: 0.8rem;
+}
+
+.season-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid #e0e0e0;
+}
+
+.season-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border-color: #0d6efd;
+}
+
+.season-card.border-primary {
+  border-color: #0d6efd !important;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2) !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 </style>

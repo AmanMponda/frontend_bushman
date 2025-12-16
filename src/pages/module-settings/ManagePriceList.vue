@@ -28,7 +28,9 @@
                   :show-date-filters="false"
                   :action-buttons="pageActions"
                   :custom-filters="customFilters"
+                  :selectable="true"
                   @update:filters="handleFiltersUpdate"
+                  @selectionChange="handleSelectionChange"
                 >
                   <template #package_name="{ row }">
                     {{ (row as any).package_name }}
@@ -437,6 +439,11 @@ const handleFiltersUpdate = (filters: any) => {
   getPriceLists()
 }
 
+const handleSelectionChange = (selectedRows: any[]) => {
+  // Handle selected rows - can be used for bulk operations
+  console.log('Selected rows:', selectedRows)
+}
+
 const getPriceLists = async () => {
   loading.value = true
 
@@ -558,6 +565,8 @@ onMounted(() => {
   overflow-x: auto;
   margin: 0;
   padding: 0;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 :deep(.table-simple) {
