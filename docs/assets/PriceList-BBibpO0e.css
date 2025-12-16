@@ -1,0 +1,13 @@
+table[data-v-c7926b3e] {
+  border-collapse: collapse;
+  width: 100%;
+}
+th[data-v-c7926b3e],
+td[data-v-c7926b3e] {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+th[data-v-c7926b3e] {
+  background-color: #f0f0f0;
+}

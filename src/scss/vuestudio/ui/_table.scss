@@ -1,0 +1,52 @@
+.table {
+  font-size: 0.8125rem;
+
+  & thead th {
+    font-size: 0.75rem;
+  }
+
+  & tbody td {
+    font-size: 0.8125rem;
+  }
+
+  &.table-card {
+    & thead,
+    & tbody {
+      & > tr {
+        & td,
+        & th {
+          &:first-child {
+            @if $enable-rtl {
+              padding-right: $card-spacer-x;
+            } @else {
+              padding-left: $card-spacer-x;
+            }
+          }
+          &:last-child {
+            @if $enable-rtl {
+              padding-left: $card-spacer-x;
+            } @else {
+              padding-right: $card-spacer-x;
+            }
+          }
+        }
+      }
+    }
+  }
+  &.table-xs {
+    font-size: 0.75rem;
+
+    & thead,
+    & tbody,
+    & tfoot {
+      & th {
+        padding: $table-cell-padding-y * 0.75 $table-cell-padding-x;
+        font-size: 0.7rem;
+      }
+      & td {
+        padding: $table-cell-padding-y * 0.75 $table-cell-padding-x;
+        font-size: 0.75rem;
+      }
+    }
+  }
+}

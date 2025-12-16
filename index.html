@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300..600,0,0"
+    />
+    <link rel="icon" href="/favicon.ico" />
+
+    <title>Bushman Admin</title>
+
+    <!-- Start Single Page Apps for GitHub Pages -->
+    <script type="text/javascript">
+      // Single Page Apps for GitHub Pages
+      // MIT License
+      // https://github.com/rafgraph/spa-github-pages
+      // This script checks to see if a redirect is present in the query string,
+      // converts it back into the correct url and adds it to the
+      // browser's history using window.history.replaceState(...),
+      // which won't cause the browser to attempt to load the new url.
+      // When the single page app is loaded further down in this file,
+      // the correct url will be waiting in the browser's history for
+      // the single page app to route accordingly.
+      ;(function (l) {
+        if (l.search[1] === '/') {
+          var decoded = l.search
+            .slice(1)
+            .split('&')
+            .map(function (s) {
+              return s.replace(/~and~/g, '&')
+            })
+            .join('?')
+          window.history.replaceState(null, null, l.pathname.slice(0, -1) + decoded + l.hash)
+        }
+      })(window.location)
+    </script>
+    <!-- End Single Page Apps for GitHub Pages -->
+  </head>
+  <body>
+    <div id="app"></div>
+    <!-- #region agent log -->
+    <script>
+      window.onerror = function (msg, url, line, col, error) {
+        fetch('http://127.0.0.1:7242/ingest/ab14651b-7c7c-4500-8f4c-553f5bb1f67b', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            location: 'index.html:onerror',
+            message: 'Uncaught error',
+            data: {
+              msg: msg,
+              url: url,
+              line: line,
+              col: col,
+              errorMsg: error ? error.message : '',
+              errorStack: error ? error.stack : '',
+            },
+            timestamp: Date.now(),
+            sessionId: 'debug-session',
+            hypothesisId: 'ERROR',
+          }),
+        }).catch(function () {})
+      }
+    </script>
+    <!-- #endregion -->
+    <script type="module" src="/src/main.ts"></script>
+    <style>
+      /* Force remove all horizontal padding - loads after all CSS */
+      #content,
+      #content .container-fluid,
+      #content .content-container,
+      #content main,
+      #content article,
+      #content .container-fluid .row,
+      #content [class*='col-'],
+      .container-fluid,
+      .content-container,
+      .app-content {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+      #content .container-fluid .row,
+      .container-fluid .row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+      #content [class*='col-'],
+      [class*='col-'] {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+      .container-fluid {
+        --bs-gutter-x: 0 !important;
+      }
+      /* Override VueStudio app-content padding */
+      .app-content {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+    </style>
+  </body>
+</html>

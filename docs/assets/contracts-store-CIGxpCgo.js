@@ -1,0 +1,106 @@
+import { j as d, k as i } from './index-P4QeRV7n.js'
+import { f as s } from './utils-BWc0LXoO.js'
+import { f as o } from './format-Cn4G_mmc.js'
+const m = d('sales_contracts', {
+  state: () => ({ contracts: [], loadingContracts: !1, permits: [], loadingPermits: !1 }),
+  actions: {
+    async getContracts(e = 'MAIN_HUNTER') {
+      this.loadingContracts = !0
+      const n = {
+        method: 'get',
+        maxBodyLength: 1 / 0,
+        url:
+          'https://backend-bushman-master-kxhmlj.laravel.cloud/api/v1.0/sales-confirmation/sales-confirmation-contract-vset/?contractor_type=' +
+          e,
+        headers: { 'Content-Type': 'application/json' },
+      }
+      try {
+        const t = await i.request(n)
+        return t.status === 200
+          ? ((this.contracts = t.data.map((a) => ({
+              contract_number: a.contract_number,
+              start_date: s(a.start_date),
+              end_date: s(a.end_date),
+              created_at: s(a.created_at),
+              client_name: a.client_name || 'Unknown Client',
+              pdf: a.pdf,
+              selfitem: a,
+            }))),
+            (this.loadingContracts = !1),
+            t)
+          : (console.log(this.contracts), t)
+      } catch (t) {
+        return (this.loadingContracts = !1), console.log(t), t
+      }
+    },
+    async getContractPermits() {
+      const r = {
+          method: 'get',
+          maxBodyLength: 1 / 0,
+          url: 'https://backend-bushman-master-kxhmlj.laravel.cloud/api/v1.0/sales-confirmation/entity-contract-permit-vset/',
+          headers: { 'Content-Type': 'application/json' },
+        },
+        n = await i.request(r)
+      if (n.status === 200)
+        return (
+          (this.permits = n.data.map((t) => ({
+            permit_number: t.permit_number,
+            issued_date: s(t.issued_date),
+            description: t.description,
+            start_date: s(t.dates[0].start_date),
+            expiry_date: s(t.dates[0].end_date),
+            updated_at: s(t.updated_at),
+            entity_contract_id: t.entity_contract_id,
+            package_type: t.package_type,
+            pdf: t.pdf,
+            selfitem: t,
+          }))),
+          (this.loadingPermits = !1),
+          n
+        )
+    },
+    async createPermit(e) {
+      const r =
+          'https://backend-bushman-master-kxhmlj.laravel.cloud/api/v1.0/sales-confirmation/entity-contract-permit-vset/',
+        n = JSON.stringify({
+          entity_contract_id: e.entity_contract_id,
+          permit_number: e.permit_number,
+          issued_date: o(e.issued_date, 'yyyy-MM-dd'),
+          package_type: e.package_type,
+          description: e.description,
+          start_date: o(e.start_date, 'yyyy-MM-dd'),
+          end_date: o(e.end_date, 'yyyy-MM-dd'),
+        }),
+        t = { method: 'post', maxBodyLength: 1 / 0, url: r, headers: { 'Content-Type': 'application/json' }, data: n }
+      return await i.request(t)
+    },
+    async createContract(e) {
+      var a
+      const r =
+          'https://backend-bushman-master-kxhmlj.laravel.cloud/api/v1.0/sales-confirmation/sales-confirmation-contract-vset/',
+        n = {
+          sales_confirmation_proposal_id: e.sales_confirmation_proposal_id,
+          entity_id: e.entity_id || null,
+          start_date: o(e.start_date, 'yyyy-MM-dd'),
+          contractor_type: e.contractor_type || 'MAIN_HUNTER',
+          end_date: o(e.end_date, 'yyyy-MM-dd'),
+          description: e.description || 'Updated contract description.',
+        }
+      console.log('Creating contract with payload:', n)
+      const t = {
+        method: 'post',
+        maxBodyLength: 1 / 0,
+        url: r,
+        headers: { 'Content-Type': 'application/json' },
+        data: JSON.stringify(n),
+      }
+      try {
+        return await i.request(t)
+      } catch (c) {
+        throw (console.error('Contract creation error:', (a = c.response) == null ? void 0 : a.data), c)
+      }
+    },
+  },
+})
+export { m as u }
+//# sourceMappingURL=contracts-store-CIGxpCgo.js.map

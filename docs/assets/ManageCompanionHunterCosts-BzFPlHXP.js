@@ -1,0 +1,408 @@
+import {
+  d as H,
+  m as E,
+  l as T,
+  s as $,
+  _ as B,
+  g as V,
+  b as s,
+  w as a,
+  i as l,
+  e as n,
+  h as r,
+  a as N,
+  t as u,
+  F as S,
+  o as C,
+} from './index-P4QeRV7n.js'
+import { u as U } from './useForm-XQT-jLAz.js'
+import { u as _ } from './useToast-DVuIP6Z-.js'
+import { u as D } from './settings-store-BoS8g_yz.js'
+import { h as M } from './errorHandler-DijQ3xmc.js'
+const j = H({
+    name: 'ManageCompanionHunterCosts',
+    setup() {
+      const e = $(null),
+        { validate: t, reset: i } = U(e)
+      return { formRef: e, validate: t, reset: i }
+    },
+    data() {
+      return {
+        columns: [
+          { key: 'id', label: 'ID', sortable: !0 },
+          { key: 'days', label: 'Days', sortable: !0 },
+          { key: 'amount', label: 'Amount', sortable: !0 },
+          { key: 'created_date', label: 'Created', sortable: !0 },
+          { key: 'actions', label: 'Actions', width: 100 },
+        ],
+        toast: _(),
+        loading: !1,
+        saving: !1,
+        deleting: !1,
+        showFormModal: !1,
+        showDeleteModal: !1,
+        isEditMode: !1,
+        editItemId: null,
+        itemToDelete: null,
+        form: { days: null, amount: null },
+      }
+    },
+    computed: { ...T(D, ['companionHunterCosts']) },
+    mounted() {
+      this.fetchData()
+    },
+    methods: {
+      ...E(D, [
+        'getCompanionHunterCosts',
+        'createCompanionHunterCost',
+        'updateCompanionHunterCost',
+        'deleteCompanionHunterCost',
+      ]),
+      formatAmount(e) {
+        return e ? parseFloat(e).toFixed(2) : '0.00'
+      },
+      formatDate(e) {
+        return e ? new Date(e).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'
+      },
+      async fetchData() {
+        var e
+        this.loading = !0
+        try {
+          await this.getCompanionHunterCosts()
+        } catch {
+          ;(e = this.toast) == null || e.init({ message: 'Failed to load data', color: 'danger' })
+        } finally {
+          this.loading = !1
+        }
+      },
+      openAddModal() {
+        ;(this.isEditMode = !1),
+          (this.editItemId = null),
+          (this.form = { days: null, amount: null }),
+          (this.showFormModal = !0)
+      },
+      openEditModal(e) {
+        ;(this.isEditMode = !0),
+          (this.editItemId = e.id),
+          (this.form = { days: e.days, amount: parseFloat(e.amount) }),
+          (this.showFormModal = !0)
+      },
+      closeFormModal() {
+        ;(this.showFormModal = !1), (this.form = { days: null, amount: null })
+      },
+      async saveForm() {
+        var i, m, y
+        if (!(await this.validate())) return
+        this.saving = !0
+        const t = { days: this.form.days, amount: this.form.amount }
+        try {
+          this.isEditMode && this.editItemId
+            ? (await this.updateCompanionHunterCost(this.editItemId, t)).status === 200 &&
+              ((i = this.toast) == null || i.init({ message: 'Cost updated successfully', color: 'success' }),
+              this.closeFormModal())
+            : (await this.createCompanionHunterCost(t)).status === 201 &&
+              ((m = this.toast) == null || m.init({ message: 'Cost created successfully', color: 'success' }),
+              this.closeFormModal())
+        } catch (p) {
+          const f = M(p.response)
+          ;(y = this.toast) == null || y.init({ message: f.join(', ') || 'Failed to save', color: 'danger' })
+        } finally {
+          this.saving = !1
+        }
+      },
+      confirmDelete(e) {
+        ;(this.itemToDelete = e), (this.showDeleteModal = !0)
+      },
+      async deleteItem() {
+        var e, t
+        if (this.itemToDelete) {
+          this.deleting = !0
+          try {
+            const i = await this.deleteCompanionHunterCost(this.itemToDelete.id)
+            ;(i.status === 200 || i.status === 204) &&
+              ((e = this.toast) == null || e.init({ message: 'Cost deleted successfully', color: 'success' }),
+              (this.showDeleteModal = !1),
+              (this.itemToDelete = null))
+          } catch (i) {
+            const m = M(i.response)
+            ;(t = this.toast) == null || t.init({ message: m.join(', ') || 'Failed to delete', color: 'danger' })
+          } finally {
+            this.deleting = !1
+          }
+        }
+      },
+    },
+  }),
+  q = { class: 'flex flex-col md:flex-row gap-2 mb-4 justify-between items-center' },
+  z = { class: 'text-xl font-bold text-gray-700' },
+  L = { key: 0, class: 'text-center py-12' },
+  R = { class: 'font-bold text-green-600' },
+  G = { class: 'text-sm text-gray-600' },
+  J = { class: 'flex gap-2' },
+  K = { class: 'flex gap-2 justify-end' },
+  O = { class: 'text-sm text-gray-500 mt-2' },
+  P = { class: 'flex gap-2 justify-end' }
+function Q(e, t, i, m, y, p) {
+  const f = l('VaIcon'),
+    d = l('VaButton'),
+    b = l('VaDivider'),
+    k = l('VaBadge'),
+    w = l('VaDataTable'),
+    v = l('VaInnerLoading'),
+    F = l('VaCardContent'),
+    I = l('VaCard'),
+    g = l('VaInput'),
+    A = l('VaForm'),
+    h = l('VaModal')
+  return (
+    C(),
+    V(
+      S,
+      null,
+      [
+        s(
+          I,
+          { class: 'companion-hunter-costs-page' },
+          {
+            default: a(() => [
+              s(F, null, {
+                default: a(() => [
+                  n('div', q, [
+                    n('h2', z, [
+                      s(f, { name: 'group_add', class: 'mr-2' }),
+                      t[5] || (t[5] = r(' Companion Hunter Costs ')),
+                    ]),
+                    s(
+                      d,
+                      { class: 'px-4 py-2', color: 'primary', icon: 'add', round: '', onClick: e.openAddModal },
+                      { default: a(() => t[6] || (t[6] = [r(' Add New Cost ')])), _: 1 },
+                      8,
+                      ['onClick'],
+                    ),
+                  ]),
+                  s(b),
+                  s(
+                    v,
+                    { loading: e.loading },
+                    {
+                      default: a(() => [
+                        e.companionHunterCosts.length === 0 && !e.loading
+                          ? (C(),
+                            V('div', L, [
+                              s(f, { name: 'payments', size: '4rem', color: '#9B9FB5' }),
+                              t[8] ||
+                                (t[8] = n(
+                                  'p',
+                                  { class: 'text-gray-500 mt-4' },
+                                  'No companion hunter costs found.',
+                                  -1,
+                                )),
+                              s(
+                                d,
+                                { class: 'mt-4', preset: 'secondary', onClick: e.openAddModal },
+                                { default: a(() => t[7] || (t[7] = [r('Add your first cost')])), _: 1 },
+                                8,
+                                ['onClick'],
+                              ),
+                            ]))
+                          : (C(),
+                            N(
+                              w,
+                              { key: 1, items: e.companionHunterCosts, columns: e.columns, hoverable: '', striped: '' },
+                              {
+                                'cell(days)': a(({ rowData: o }) => [
+                                  s(k, { text: `${o.days} days`, color: 'info' }, null, 8, ['text']),
+                                ]),
+                                'cell(amount)': a(({ rowData: o }) => [
+                                  n('span', R, '$' + u(e.formatAmount(o.amount)), 1),
+                                ]),
+                                'cell(created_date)': a(({ rowData: o }) => [
+                                  n('span', G, u(e.formatDate(o.created_date)), 1),
+                                ]),
+                                'cell(actions)': a(({ rowData: o }) => [
+                                  n('div', J, [
+                                    s(
+                                      d,
+                                      {
+                                        preset: 'plain',
+                                        icon: 'edit',
+                                        color: 'warning',
+                                        size: 'small',
+                                        title: 'Edit',
+                                        onClick: (c) => e.openEditModal(o),
+                                      },
+                                      null,
+                                      8,
+                                      ['onClick'],
+                                    ),
+                                    s(
+                                      d,
+                                      {
+                                        preset: 'plain',
+                                        icon: 'delete',
+                                        color: 'danger',
+                                        size: 'small',
+                                        title: 'Delete',
+                                        onClick: (c) => e.confirmDelete(o),
+                                      },
+                                      null,
+                                      8,
+                                      ['onClick'],
+                                    ),
+                                  ]),
+                                ]),
+                                _: 1,
+                              },
+                              8,
+                              ['items', 'columns'],
+                            )),
+                      ]),
+                      _: 1,
+                    },
+                    8,
+                    ['loading'],
+                  ),
+                ]),
+                _: 1,
+              }),
+            ]),
+            _: 1,
+          },
+        ),
+        s(
+          h,
+          {
+            modelValue: e.showFormModal,
+            'onUpdate:modelValue': t[2] || (t[2] = (o) => (e.showFormModal = o)),
+            title: e.isEditMode ? 'Edit Companion Hunter Cost' : 'Add Companion Hunter Cost',
+            'hide-default-actions': '',
+            size: 'small',
+          },
+          {
+            footer: a(() => [
+              n('div', K, [
+                s(
+                  d,
+                  { preset: 'secondary', onClick: e.closeFormModal },
+                  { default: a(() => t[9] || (t[9] = [r('Cancel')])), _: 1 },
+                  8,
+                  ['onClick'],
+                ),
+                s(
+                  d,
+                  { color: 'primary', loading: e.saving, onClick: e.saveForm },
+                  { default: a(() => [r(u(e.isEditMode ? 'Update' : 'Save'), 1)]), _: 1 },
+                  8,
+                  ['loading', 'onClick'],
+                ),
+              ]),
+            ]),
+            default: a(() => [
+              s(
+                A,
+                { ref: 'formRef', class: 'space-y-4' },
+                {
+                  default: a(() => [
+                    s(
+                      g,
+                      {
+                        modelValue: e.form.days,
+                        'onUpdate:modelValue': t[0] || (t[0] = (o) => (e.form.days = o)),
+                        modelModifiers: { number: !0 },
+                        type: 'number',
+                        label: 'Days',
+                        placeholder: 'Enter number of days',
+                        rules: [(o) => !!o || 'Days is required', (o) => o > 0 || 'Days must be greater than 0'],
+                        'required-mark': '',
+                        min: '1',
+                      },
+                      null,
+                      8,
+                      ['modelValue', 'rules'],
+                    ),
+                    s(
+                      g,
+                      {
+                        modelValue: e.form.amount,
+                        'onUpdate:modelValue': t[1] || (t[1] = (o) => (e.form.amount = o)),
+                        modelModifiers: { number: !0 },
+                        type: 'number',
+                        label: 'Amount ($)',
+                        placeholder: 'Enter amount',
+                        rules: [
+                          (o) => (o !== null && o !== '') || 'Amount is required',
+                          (o) => o >= 0 || 'Amount must be positive',
+                        ],
+                        'required-mark': '',
+                        step: '0.01',
+                        min: '0',
+                      },
+                      null,
+                      8,
+                      ['modelValue', 'rules'],
+                    ),
+                  ]),
+                  _: 1,
+                },
+                512,
+              ),
+            ]),
+            _: 1,
+          },
+          8,
+          ['modelValue', 'title'],
+        ),
+        s(
+          h,
+          {
+            modelValue: e.showDeleteModal,
+            'onUpdate:modelValue': t[4] || (t[4] = (o) => (e.showDeleteModal = o)),
+            'hide-default-actions': '',
+          },
+          {
+            header: a(() => t[10] || (t[10] = [n('h3', { class: 'va-h6' }, 'Confirm Delete', -1)])),
+            footer: a(() => [
+              n('div', P, [
+                s(
+                  d,
+                  { preset: 'secondary', onClick: t[3] || (t[3] = (o) => (e.showDeleteModal = !1)) },
+                  { default: a(() => t[13] || (t[13] = [r('Cancel')])), _: 1 },
+                ),
+                s(
+                  d,
+                  { color: 'danger', loading: e.deleting, onClick: e.deleteItem },
+                  { default: a(() => t[14] || (t[14] = [r('Delete')])), _: 1 },
+                  8,
+                  ['loading', 'onClick'],
+                ),
+              ]),
+            ]),
+            default: a(() => {
+              var o, c
+              return [
+                t[15] ||
+                  (t[15] = n('p', null, 'Are you sure you want to delete this companion hunter cost record?', -1)),
+                n('p', O, [
+                  t[11] || (t[11] = n('strong', null, 'Days:', -1)),
+                  r(' ' + u((o = e.itemToDelete) == null ? void 0 : o.days) + ' | ', 1),
+                  t[12] || (t[12] = n('strong', null, 'Amount:', -1)),
+                  r(' $' + u(e.formatAmount((c = e.itemToDelete) == null ? void 0 : c.amount)), 1),
+                ]),
+              ]
+            }),
+            _: 1,
+          },
+          8,
+          ['modelValue'],
+        ),
+      ],
+      64,
+    )
+  )
+}
+const ee = B(j, [
+  ['render', Q],
+  ['__scopeId', 'data-v-1442b5ac'],
+])
+export { ee as default }
+//# sourceMappingURL=ManageCompanionHunterCosts-BzFPlHXP.js.map

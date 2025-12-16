@@ -1,0 +1,16 @@
+/* @layer tailwind.base {
+  @import 'tailwindcss/base';
+}
+@tailwind components;
+@tailwind utilities; */
+
+/* src/scss/tailwind.scss */
+
+/* Tailwind base styles */
+@tailwind base;
+
+/* Tailwind components */
+@tailwind components;
+
+/* Tailwind utilities */
+@tailwind utilities;

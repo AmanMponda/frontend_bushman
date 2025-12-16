@@ -1,0 +1,24 @@
+.caret {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  display: inline-block;
+  transition:
+    transform 0.2s ease,
+    border-left-color 0.2s ease;
+
+  // Isosceles triangle pointing right (collapsed state)
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 6px solid #6c757d;
+  border-right: 0;
+}
+.dropup {
+  &.caret,
+  & .caret {
+    content: '';
+    border-top: 0;
+    border-bottom: 4px dashed;
+    border-bottom: 4px solid\9;
+  }
+}
