@@ -122,9 +122,9 @@ const submitForm = async () => {
   >
     <div class="container">
       <div class="row justify-content-center">
-        <div class="col-md-4">
+        <div class="col-lg-3 col-md-5 col-sm-6">
           <form
-            class="auth-form rounded-3 shadow-sm p-4 position-relative overflow-hidden"
+            class="auth-form rounded-3 shadow-sm p-3 position-relative overflow-hidden"
             @submit.prevent="submitForm"
           >
             <!-- Top accent bar -->
@@ -140,7 +140,7 @@ const submitForm = async () => {
                   src="/logo.png"
                   class="invert-dark"
                   alt="Logo"
-                  style="width: 12em; height: 4em; display: block; margin: 0 auto"
+                  style="width: 10em; height: auto; display: block; margin: 0 auto; background: transparent"
                 />
               </div>
 
@@ -237,6 +237,7 @@ const submitForm = async () => {
   transition: transform 0.3s ease;
   display: block;
   margin: 0 auto;
+  background: transparent !important;
 }
 
 .logo-container:hover img {
@@ -273,6 +274,7 @@ const submitForm = async () => {
   transition: transform 0.3s ease;
   display: block;
   margin: 0 auto;
+  background: transparent !important;
 }
 
 .logo-container:hover img {

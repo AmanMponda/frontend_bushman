@@ -3,6 +3,11 @@ import { defineStore } from 'pinia'
 export const useAppSidebarMenuStore = defineStore('appSidebarMenu', () => {
   return [
     {
+      url: '/auth/service-selection',
+      icon: 'fa fa-home',
+      text: 'Dashboard',
+    },
+    {
       text: 'Navigation',
       is_header: true,
     },
