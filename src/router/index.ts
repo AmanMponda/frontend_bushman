@@ -5,6 +5,13 @@ import RouteViewComponent from '../layouts/RouterBypass.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
+<<<<<<< HEAD
+=======
+    path: '/:pathMatch(.*)*',
+    redirect: { name: 'login' },
+  },
+  {
+>>>>>>> 0a80d4f1b43396428b46b32448b1dd0100164c72
     name: 'admin',
     path: '/',
     component: RouteViewComponent,
@@ -276,11 +283,14 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('../pages/auth/CheckTheEmail.vue'),
       },
       {
+<<<<<<< HEAD
         name: 'service-selection',
         path: 'service-selection',
         component: () => import('../pages/auth/ServiceSelection.vue'),
       },
       {
+=======
+>>>>>>> 0a80d4f1b43396428b46b32448b1dd0100164c72
         path: '',
         redirect: { name: 'login' },
       },
@@ -291,6 +301,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/404',
     component: () => import('../pages/404.vue'),
   },
+<<<<<<< HEAD
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
@@ -304,6 +315,8 @@ const routes: Array<RouteRecordRaw> = [
       }
     },
   },
+=======
+>>>>>>> 0a80d4f1b43396428b46b32448b1dd0100164c72
 ]
 
 const router = createRouter({
@@ -327,6 +340,7 @@ router.beforeEach((to, from, next) => {
   // Check if user is logged in by checking if access token exists
   const token = sessionStorage.getItem('access')
 
+<<<<<<< HEAD
   // Handle root path - redirect to login if not authenticated, dashboard if authenticated
   if (to.path === '/' || to.name === 'admin') {
     if (token) {
@@ -355,6 +369,16 @@ router.beforeEach((to, from, next) => {
     // If trying to access auth page while already logged in, redirect to service selection
     if (token) {
       next({ name: 'service-selection' })
+=======
+  // Auth routes that don't require login
+  const publicRoutes = ['login', 'signup', 'recover-password', 'recover-password-email', '404']
+
+  // Auth routes that don't require login
+  if (publicRoutes.includes(to.name as string)) {
+    // If trying to access auth page while already logged in, redirect to dashboard
+    if (token) {
+      next({ name: 'dashboard' })
+>>>>>>> 0a80d4f1b43396428b46b32448b1dd0100164c72
     } else {
       next()
     }
