@@ -44,10 +44,7 @@
     "chart.js": "^4.4.1",
     "chartjs-chart-geo": "^4.2.8",
     "date-fns": "^4.1.0",
-<<<<<<< HEAD
     "device-uuid": "^2.0.0",
-=======
->>>>>>> 0a80d4f1b43396428b46b32448b1dd0100164c72
     "epic-spinners": "^2.0.0",
     "flag-icons": "^6.15.0",
     "ionicons": "^4.6.3",

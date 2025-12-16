@@ -79,7 +79,7 @@
                   max="100"
                   min="0"
                   max-length="3"
-                  @update:modelValue="(value) => onChange(item.id, value)"
+                  @update:modelValue="(value: any) => onChange(item.id, value)"
                 />
               </td>
             </tr>

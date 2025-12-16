@@ -3,7 +3,7 @@ import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { slideToggle } from '@/composables/slideToggle.js'
 import { useAppOptionStore } from '@/stores/app-option'
 import { useAuthStore } from '@/stores/auth'
-import { RouterLink, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import avatarImage from '@/images/Avatars.png'
 
 const appOption = useAppOptionStore()
