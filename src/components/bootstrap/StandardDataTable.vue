@@ -595,56 +595,56 @@ function emitSelectionChange() {
             </tr>
           </tbody>
         </table>
-      </div>
 
-      <!-- Pagination -->
-      <div v-if="!props.disablePagination" class="d-md-flex align-items-center mt-3">
-        <div class="me-md-auto text-md-left text-center mb-2 mb-md-0">
-          <template v-if="props.serverSide && props.pagination">
-            Showing {{ (props.pagination.current_page - 1) * props.pagination.per_page + 1 }} to
-            {{ Math.min(props.pagination.current_page * props.pagination.per_page, props.pagination.total) }} of
-            {{ props.pagination.total }} entries
-          </template>
-          <template v-else>
-            Showing {{ (currentPage - 1) * pageSize + 1 }} to
-            {{ Math.min(currentPage * pageSize, sortedData.length) }} of {{ sortedData.length }} entries
-          </template>
-        </div>
+        <!-- Pagination -->
+        <div v-if="!props.disablePagination" class="d-md-flex align-items-center mt-0 p-3">
+          <div class="me-md-auto text-md-left text-center mb-2 mb-md-0">
+            <template v-if="props.serverSide && props.pagination">
+              Showing {{ (pagination.current_page - 1) * pagination.per_page + 1 }} to
+              {{ Math.min(pagination.current_page * pagination.per_page, pagination.total) }} of
+              {{ pagination.total }} entries
+            </template>
+            <template v-else>
+              Showing {{ (currentPage - 1) * pageSize + 1 }} to
+              {{ Math.min(currentPage * pageSize, sortedData.length) }} of {{ sortedData.length }} entries
+            </template>
+          </div>
 
-        <ul class="pagination mb-0 justify-content-center">
-          <li class="page-item" :class="{ disabled: currentPage === 1 }">
-            <a class="page-link" href="#" @click.prevent="changePage(currentPage - 1)">
-              <i class="fa fa-chevron-left"></i>
-            </a>
-          </li>
-          <li
-            v-for="page in visiblePages"
-            :key="page"
-            class="page-item"
-            :class="{ active: page === currentPage, disabled: page === '...' }"
-          >
-            <a v-if="page !== '...'" class="page-link" href="#" @click.prevent="changePage(page)">{{ page }}</a>
-            <span v-else class="page-link">…</span>
-          </li>
-          <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-            <a class="page-link" href="#" @click.prevent="changePage(currentPage + 1)">
-              <i class="fa fa-chevron-right"></i>
-            </a>
-          </li>
-        </ul>
+          <ul class="pagination mb-0 justify-content-center">
+            <li class="page-item" :class="{ disabled: currentPage === 1 }">
+              <a class="page-link" href="#" @click.prevent="changePage(currentPage - 1)">
+                <i class="fa fa-chevron-left"></i>
+              </a>
+            </li>
+            <li
+              v-for="page in visiblePages"
+              :key="page"
+              class="page-item"
+              :class="{ active: page === currentPage, disabled: page === '...' }"
+            >
+              <a v-if="page !== '...'" class="page-link" href="#" @click.prevent="changePage(page)">{{ page }}</a>
+              <span v-else class="page-link">…</span>
+            </li>
+            <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+              <a class="page-link" href="#" @click.prevent="changePage(currentPage + 1)">
+                <i class="fa fa-chevron-right"></i>
+              </a>
+            </li>
+          </ul>
 
-        <div class="ms-3">
-          <select
-            v-model="pageSize"
-            class="form-select"
-            :disabled="props.disablePagination"
-            :readonly="props.disablePagination"
-            @change="applyFilters"
-          >
-            <option v-for="size in props.pageSizeOptions" :key="size" :value="size">
-              {{ size }}
-            </option>
-          </select>
+          <div class="ms-3">
+            <select
+              v-model="pageSize"
+              class="form-select"
+              :disabled="props.disablePagination"
+              :readonly="props.disablePagination"
+              @change="applyFilters"
+            >
+              <option v-for="size in props.pageSizeOptions" :key="size" :value="size">
+                {{ size }}
+              </option>
+            </select>
+          </div>
         </div>
       </div>
     </div>
@@ -725,17 +725,12 @@ table.table tbody tr:last-child td {
   padding: 0.375rem 0.75rem;
 }
 
-.pagination .page-item.active .page-link {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
-  color: #ffffff;
-}
-
-.pagination .page-item.disabled .page-link {
-  color: #6c757d;
-  pointer-events: none;
+.table-responsive {
+  border-radius: 4px !important;
+  overflow: hidden;
   background-color: #ffffff;
-  border-color: #dee2e6;
+  box-shadow: none;
+  border: 1px solid #e5e7eb;
 }
 
 .pagination .page-item .page-link:hover {
@@ -755,8 +750,50 @@ table.table tbody tr:last-child td {
   margin-right: calc(-1 * var(--bs-gutter-x) * 0.5) !important;
 }
 
-.filters-row .filter-col {
-  padding-left: calc(var(--bs-gutter-x) * 0.5) !important;
-  padding-right: calc(var(--bs-gutter-x) * 0.5) !important;
+table.table {
+  font-size: 0.8125rem;
+  background-color: #ffffff;
+  box-shadow: none;
+  border-radius: 0;
+  border: none;
+
+  thead th {
+    border-top: none;
+    box-shadow: none;
+    background-color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 0.65rem !important;
+    color: #495057 !important;
+    border-color: transparent;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0.75rem 0.5rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  tbody tr:first-child td {
+    border-top: none;
+  }
+
+  tbody td {
+    background-color: #ffffff !important;
+    border-top: none;
+    vertical-align: middle;
+    font-size: 0.8125rem !important;
+  }
+
+  tbody tr:hover td {
+    background-color: #f9fafb !important;
+  }
+
+  tbody tr:nth-child(even) td {
+    background-color: #ffffff !important;
+  }
+}
+
+/* Custom filter badge */
+.badge {
+  font-size: 0.6rem;
+  padding: 0.2rem 0.4rem;
 }
 </style>

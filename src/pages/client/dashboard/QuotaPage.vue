@@ -744,9 +744,25 @@ export default defineComponent({
 }
 
 .panel {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* Style for Statistics and Breakdown Panels (excluding data table) */
+.layout-top-spacing .panel {
   background: white;
   border: 1px solid #e9ecef;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+}
+
+/* Keep data table panel transparent */
+.layout-top-spacing[style*='margin-top: 40px'] .panel {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 .br-6 {
@@ -778,7 +794,7 @@ export default defineComponent({
 }
 
 .bg-white {
-  background: white;
+  background: transparent;
 }
 
 .rounded {
@@ -1149,58 +1165,7 @@ export default defineComponent({
 
 /* Data Table Section */
 .custom-table {
-  padding: 16px;
-}
-
-.table-responsive {
-  overflow-x: auto;
-  background: white;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  background: white;
-  margin: 0;
-}
-
-.table thead {
-  background: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.table th {
-  padding: 12px 15px;
-  text-align: left;
-  font-weight: 600;
-  color: #333;
-  font-size: 11px;
-  text-transform: uppercase;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.table td {
-  padding: 12px 15px;
-  border-bottom: 1px solid #e9ecef;
-  color: #666;
-  background: white;
-}
-
-.table tbody tr {
-  background: white;
-}
-
-.table tbody tr:hover {
-  background: #fafbfc;
-}
-
-.table-striped tbody tr:nth-child(odd) {
-  background: white;
-}
-
-.table-striped tbody tr:nth-child(even) {
-  background: white;
+  padding: 0;
 }
 
 .badge {

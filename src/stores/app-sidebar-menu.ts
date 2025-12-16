@@ -36,10 +36,18 @@ export const useAppSidebarMenuStore = defineStore('appSidebarMenu', () => {
       icon: 'fa fa-shopping-cart',
       text: 'Sales',
       children: [
-        { url: '/sales/price-list', text: 'Price Lists' },
-        { url: '/sales/sales-inquiry', text: 'Sales Quotations' },
-        { url: '/sales/sales-confirmation', text: 'Sales Confirmations' },
-        { url: '/sales/sales-contracts', text: 'Sales Contracts' },
+        { url: '/sales/quotas', text: 'Sales Quotas' },
+        { url: '/sales/sales-calendar', text: 'Sales Calendar' },
+        { url: '/sales/sales-pipeline', text: 'Sales Pipeline' },
+        {
+          text: 'Sales',
+          children: [
+            { url: '/sales/price-list', text: 'Price Lists' },
+            { url: '/sales/sales-inquiry', text: 'Sales Quotations' },
+            { url: '/sales/sales-confirmation', text: 'Sales Confirmations' },
+            { url: '/sales/sales-contracts', text: 'Sales Contracts' },
+          ],
+        },
       ],
     },
     {

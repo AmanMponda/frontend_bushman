@@ -26,28 +26,6 @@ export default {
       },
       children: [
         {
-          name: 'price-list',
-          meta: {
-            icon: 'sell',
-          },
-          displayName: 'menu.price-list',
-        },
-        {
-          name: 'sales-pipeline',
-          meta: {
-            icon: 'view_kanban',
-          },
-          displayName: 'menu.sales-pipeline',
-        },
-        {
-          name: 'sales-inquiry',
-          meta: {
-            icon: 'live_help',
-          },
-
-          displayName: 'menu.sales-inquiry',
-        },
-        {
           name: 'quotas',
           meta: {
             icon: 'star_half',
@@ -55,15 +33,6 @@ export default {
 
           displayName: 'menu.sales-quotas',
         },
-        {
-          name: 'sales-confirmation',
-          meta: {
-            icon: 'check_circle',
-          },
-
-          displayName: 'menu.sales-confirmation',
-        },
-
         {
           name: 'sales-calendar',
           meta: {
@@ -73,15 +42,49 @@ export default {
           displayName: 'menu.sales-calendar',
         },
         {
-          name: 'sales-contracts',
+          name: 'sales-pipeline',
           meta: {
-            icon: 'verified',
+            icon: 'view_kanban',
           },
-
-          displayName: 'menu.sales-contracts',
+          displayName: 'menu.sales-pipeline',
         },
-
-        // sales-contract-permit
+        {
+          name: 'sales-documents',
+          displayName: 'menu.sales-documents',
+          meta: {
+            icon: 'description',
+          },
+          children: [
+            {
+              name: 'price-list',
+              meta: {
+                icon: 'sell',
+              },
+              displayName: 'menu.price-list',
+            },
+            {
+              name: 'sales-inquiry',
+              meta: {
+                icon: 'live_help',
+              },
+              displayName: 'menu.sales-quotations',
+            },
+            {
+              name: 'sales-confirmation',
+              meta: {
+                icon: 'check_circle',
+              },
+              displayName: 'menu.sales-confirmations',
+            },
+            {
+              name: 'sales-contracts',
+              meta: {
+                icon: 'verified',
+              },
+              displayName: 'menu.sales-contracts',
+            },
+          ],
+        },
       ],
     },
     {

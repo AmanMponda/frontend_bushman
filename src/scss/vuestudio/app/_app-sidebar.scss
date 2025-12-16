@@ -52,14 +52,14 @@
   width: var(--#{$prefix}app-sidebar-width);
   z-index: var(--#{$prefix}app-sidebar-zindex);
   background-color: #e0e4eb;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+  box-shadow: none;
 
   @if $enable-rtl {
     right: 0;
-    border-left: 1px solid var(--#{$prefix}app-sidebar-border-color);
+    border-left: 1px solid #d0d4db;
   } @else {
     left: 0;
-    border-right: 1px solid var(--#{$prefix}app-sidebar-border-color);
+    border-right: 1px solid #d0d4db;
   }
   @include media-breakpoint-down(lg) {
     top: 0;
