@@ -28,6 +28,7 @@
                   :show-date-filters="false"
                   :action-buttons="pageActions"
                   :custom-filters="customFilters"
+                  :selectable="true"
                   @update:filters="handleFiltersUpdate"
                 >
                   <template #client_name="{ row }">

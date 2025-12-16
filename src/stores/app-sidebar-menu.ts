@@ -17,35 +17,20 @@ export const useAppSidebarMenuStore = defineStore('appSidebarMenu', () => {
       text: 'Bushman',
     },
     {
-      url: '/sales/quotas',
-      icon: 'fa fa-star-half',
-      text: 'Sales Quotas',
-    },
-    {
-      url: '/sales/sales-calendar',
-      icon: 'fa fa-calendar',
-      text: 'Sales Calendar',
-    },
-    {
-      url: '/sales/sales-pipeline',
-      icon: 'fa fa-project-diagram',
-      text: 'Sales Pipeline',
-    },
-    {
       url: '/sales',
       icon: 'fa fa-shopping-cart',
       text: 'Sales',
       children: [
-        { url: '/sales/quotas', text: 'Sales Quotas' },
-        { url: '/sales/sales-calendar', text: 'Sales Calendar' },
-        { url: '/sales/sales-pipeline', text: 'Sales Pipeline' },
+        { url: '/sales/quotas', icon: 'fa fa-percentage', text: 'Sales Quotas' },
+        { url: '/sales/sales-calendar', icon: 'fa fa-calendar', text: 'Sales Calendar' },
+        { url: '/sales/sales-pipeline', icon: 'fa fa-stream', text: 'Sales Pipeline' },
         {
           text: 'Sales',
           children: [
-            { url: '/sales/price-list', text: 'Price Lists' },
-            { url: '/sales/sales-inquiry', text: 'Sales Quotations' },
-            { url: '/sales/sales-confirmation', text: 'Sales Confirmations' },
-            { url: '/sales/sales-contracts', text: 'Sales Contracts' },
+            { url: '/sales/price-list', icon: 'fa fa-list', text: 'Price Lists' },
+            { url: '/sales/sales-inquiry', icon: 'fa fa-question-circle', text: 'Sales Quotations' },
+            { url: '/sales/sales-confirmation', icon: 'fa fa-check-circle', text: 'Sales Confirmations' },
+            { url: '/sales/sales-contracts', icon: 'fa fa-file-contract', text: 'Sales Contracts' },
           ],
         },
       ],

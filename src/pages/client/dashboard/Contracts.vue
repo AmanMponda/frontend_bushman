@@ -37,6 +37,7 @@
                   :disable-pagination="false"
                   :show-date-filters="false"
                   :action-buttons="pageActions"
+                  :selectable="true"
                   @update:filters="handleFiltersUpdate"
                 >
                   <template #contract_number="{ row }">

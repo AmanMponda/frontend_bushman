@@ -1,84 +1,97 @@
 <template>
-  <VaCard class="p-6">
-    <!-- Form for Adding Species -->
-
-    <div class="flex flex-col md:flex-row gap-2 mb-2 justify-between">
-      <div class="flex flex-col md:flex-row gap-2 justify-start">
-        <VaButton v-if="!showSpeciesList" size="small" class="px-2" icon="arrow_back" @click="showSpecies">
-          Go Back
-        </VaButton>
+  <div class="species-page">
+    <!-- Breadcrumb -->
+    <div class="d-flex align-items-center mb-3">
+      <div>
+        <ul class="breadcrumb">
+          <li class="breadcrumb-item"><a href="#">SETTINGS</a></li>
+          <li class="breadcrumb-item active">SPECIES</li>
+        </ul>
       </div>
-      <VaButtonGroup>
-        <VaButton class="px-2 py-2" color="primary" label="Add New Quota" icon="add" size="small" @click="showSpecies"
-          >Add a new species</VaButton
-        >
-      </VaButtonGroup>
     </div>
 
-    <ModuleTable
-      v-if="showSpeciesList"
-      :items="items"
-      :columns="columns"
-      :loading="loading"
-      @onView="showSpecies"
-    ></ModuleTable>
+    <VaCard class="p-6">
+      <!-- Form for Adding Species -->
 
-    <div v-else class="p-2">
-      <VaForm ref="sformRef" class="mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
-          <!-- name -->
+      <div v-if="!showSpeciesList" class="flex flex-col md:flex-row gap-2 mb-2 justify-between align-items-center">
+        <div class="flex flex-col md:flex-row gap-2 justify-start">
+          <VaButton v-if="!showSpeciesList" size="small" class="px-2" icon="arrow_back" @click="showSpecies">
+            Go Back
+          </VaButton>
+        </div>
+      </div>
 
-          <VaInput
-            v-model="sform.name"
-            label="Species Name"
-            placeholder="Enter Species Name"
-            :rules="[(v: any) => !!v || 'Species Name is required']"
-            required
-          />
-          <VaInput
-            v-model="sform.scientific_name"
-            label="Scientific Name"
-            placeholder="Select Scientific Name"
-            :rules="[(v: any) => !!v || 'Scientific Name is required']"
-            required
-          />
-          <!-- Type -->
+      <ModuleTable v-if="showSpeciesList" :items="items" :columns="columns" :loading="loading" @onView="showSpecies">
+        <template #filter-elements-and-download-btn>
+          <VaButton
+            class="px-2 py-2"
+            color="primary"
+            label="Add New Species"
+            icon="add"
+            size="small"
+            @click="showSpecies"
+            >Add a new species</VaButton
+          >
+        </template>
+      </ModuleTable>
+
+      <div v-else class="p-2">
+        <VaForm ref="sformRef" class="mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
+            <!-- name -->
+
+            <VaInput
+              v-model="sform.name"
+              label="Species Name"
+              placeholder="Enter Species Name"
+              :rules="[(v: any) => !!v || 'Species Name is required']"
+              required
+            />
+            <VaInput
+              v-model="sform.scientific_name"
+              label="Scientific Name"
+              placeholder="Select Scientific Name"
+              :rules="[(v: any) => !!v || 'Scientific Name is required']"
+              required
+            />
+            <!-- Type -->
+            <div class="mb-4 grid grid-cols-1 md:grid-cols-1">
+              <VaSelect
+                v-model="sform.type"
+                label="Type"
+                :options="TYPES"
+                :rules="[(v: any) => !!v || 'Type is required']"
+                required-mark
+              />
+            </div>
+          </div>
+          <!-- description -->
           <div class="mb-4 grid grid-cols-1 md:grid-cols-1">
-            <VaSelect
-              v-model="sform.type"
-              label="Type"
-              :options="TYPES"
-              :rules="[(v: any) => !!v || 'Type is required']"
-              required-mark
+            <VaTextarea
+              v-model="sform.description"
+              label="Description"
+              placeholder="Enter Description"
+              :rules="[(v: any) => !!v || 'Description is required']"
+              required
             />
           </div>
-        </div>
-        <!-- description -->
-        <div class="mb-4 grid grid-cols-1 md:grid-cols-1">
-          <VaTextarea
-            v-model="sform.description"
-            label="Description"
-            placeholder="Enter Description"
-            :rules="[(v: any) => !!v || 'Description is required']"
-            required
-          />
-        </div>
-        <!-- start_date -->
-      </VaForm>
+          <!-- start_date -->
+        </VaForm>
 
-      <div class="mb-6">
-        <VaButton
-          :disabled="!isValidSForm"
-          color="primary"
-          icon="save"
-          icon-color="#fff"
-          @click="validateSForm() && addNewSpecies()"
-        >
-          Save
-        </VaButton>
+        <div class="mb-6">
+          <VaButton
+            :disabled="!isValidSForm"
+            color="primary"
+            icon="save"
+            icon-color="#fff"
+            @click="validateSForm() && addNewSpecies()"
+          >
+            Save
+          </VaButton>
+        </div>
       </div>
-    </div>
-  </VaCard>
+    </VaCard>
+  </div>
 </template>
 
 <script lang="ts">
@@ -111,10 +124,10 @@ export default defineComponent({
     const sformRef = ref(null) as any
 
     const columns = [
-      { key: 'id', sortable: true, sortingOptions: ['desc', 'asc'] },
-      { key: 'name', sortable: true },
-      { key: 'scientific_name', sortable: true },
-      { key: 'type', sortable: true },
+      { key: 'id', label: 'ID', sortable: true, sortingOptions: ['desc', 'asc'] },
+      { key: 'name', label: 'Name', sortable: true },
+      { key: 'scientific_name', label: 'Scientific Name', sortable: true },
+      { key: 'type', label: 'Type', sortable: true },
 
       // { key: 'actions', width: 80 },
     ]
@@ -280,6 +293,45 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
+.breadcrumb {
+  text-transform: uppercase !important;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0 !important;
+
+  .breadcrumb-item {
+    text-transform: uppercase !important;
+
+    &::before {
+      content: ' / ' !important;
+      color: #9ca3af !important;
+      padding: 0 0.5rem;
+    }
+
+    &:first-child::before {
+      display: none !important;
+    }
+
+    a {
+      text-transform: uppercase !important;
+      color: #374151 !important;
+      font-weight: 600;
+      text-decoration: none !important;
+
+      &:hover {
+        color: #1f2937 !important;
+        text-decoration: none !important;
+      }
+    }
+
+    &.active {
+      color: #9ca3af !important;
+      font-weight: 400;
+      text-transform: uppercase !important;
+    }
+  }
+}
+
 .modal-content {
   padding: 16px; /* Add padding around content */
 }
@@ -307,4 +359,3 @@ export default defineComponent({
   flex: 1; /* Let the input take the remaining space */
 }
 </style>
-ss

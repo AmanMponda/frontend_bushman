@@ -357,20 +357,23 @@ function emitSelectionChange() {
         </div>
       </div>
       <div class="d-flex gap-2">
-        <!-- Action Buttons -->
-        <button
-          v-for="action in actionButtons"
-          :key="action.label"
-          class="btn"
-          :class="action.class || 'btn-outline-info'"
-          :disabled="props.disableSearch"
-          :readonly="props.disableSearch"
-          :title="action.tooltip"
-          @click="action.method"
-        >
-          <i :class="`${action.icon} me-1`"></i>
-          {{ action.label }}
-        </button>
+        <!-- Header Actions Slot -->
+        <slot name="header-actions">
+          <!-- Action Buttons -->
+          <button
+            v-for="action in actionButtons"
+            :key="action.label"
+            class="btn"
+            :class="action.class || 'btn-outline-info'"
+            :disabled="props.disableSearch"
+            :readonly="props.disableSearch"
+            :title="action.tooltip"
+            @click="action.method"
+          >
+            <i :class="`${action.icon} me-1`"></i>
+            {{ action.label }}
+          </button>
+        </slot>
 
         <!-- Filters Toggle -->
         <button
@@ -704,15 +707,17 @@ table.table tbody tr:last-child td {
 }
 
 .checkbox-column {
-  width: 40px;
-  min-width: 40px;
+  width: 32px;
+  min-width: 32px;
   text-align: center;
-  padding: 0.5rem !important;
+  padding: 0.25rem !important;
 }
 
 .checkbox-column .form-check-input {
   margin: 0;
   cursor: pointer;
+  width: 1rem;
+  height: 1rem;
 }
 
 .pagination {

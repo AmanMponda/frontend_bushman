@@ -202,9 +202,12 @@
             padding-right: 0;
           }
 
-          // Hide icons and carets from child menu items
+          // Show icons in child menu items
           & .menu-icon {
-            display: none;
+            display: inline-block;
+            margin-right: 8px;
+            width: auto;
+            flex-shrink: 0;
           }
 
           & .menu-caret {
@@ -216,6 +219,9 @@
               var(--#{$prefix}app-sidebar-submenu-menu-link-padding-x);
             font-size: 0.8rem;
             transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
 
             &:hover {
               background: rgba(227, 242, 253, 0.5);

@@ -1,129 +1,139 @@
 <template>
-  <VaCard class="p-6">
-    <div class="flex flex-col md:flex-row gap-2 mb-2 justify-between">
-      <div class="flex flex-col md:flex-row gap-2 justify-start">
-        <VaButton v-if="!showQuotaList" class="px-2 py-2" icon="arrow_back" size="small" @click="toggleQuotaView">
-          Go Back
-        </VaButton>
+  <div class="quota-page">
+    <!-- Breadcrumb -->
+    <div class="d-flex align-items-center mb-3">
+      <div>
+        <ul class="breadcrumb">
+          <li class="breadcrumb-item"><a href="#">Sales</a></li>
+          <li class="breadcrumb-item active">Quotas</li>
+        </ul>
       </div>
-      <VaButtonGroup>
-        <VaButton
-          class="px-2 py-2"
-          color="primary"
-          label="Add New Quota"
-          icon="add"
-          size="small"
-          @click="showAddQuotaModal()"
-        >
-          Add a New Quota
-        </VaButton>
-      </VaButtonGroup>
     </div>
 
-    <!-- Use ModuleTable for quota list -->
-    <ModuleTable
-      v-if="showQuotaList"
-      :items="items"
-      :columns="columns"
-      :loading="loadingQuotas"
-      btn-view-icon="visibility"
-      :show-edit="true"
-      :show-delete="true"
-      @onView="viewQuotaDetails"
-      @onEdit="editQuota"
-      @onDelete="confirmDeleteQuota"
-    ></ModuleTable>
+    <VaCard class="p-6">
+      <!-- Use ModuleTable for quota list -->
+      <ModuleTable
+        v-if="showQuotaList"
+        :items="items"
+        :columns="columns"
+        :loading="loadingQuotas"
+        btn-view-icon="visibility"
+        :show-edit="true"
+        :show-delete="true"
+        :selectable="true"
+        @onView="viewQuotaDetails"
+        @onEdit="editQuota"
+        @onDelete="confirmDeleteQuota"
+      >
+        <template #filter-elements-and-download-btn>
+          <VaButton
+            class="px-2 py-2"
+            color="primary"
+            label="Add New Quota"
+            icon="add"
+            size="small"
+            @click="showAddQuotaModal()"
+          >
+            Add a New Quota
+          </VaButton>
+        </template>
+      </ModuleTable>
 
-    <!-- Species Form Section (when showQuotaList is false) -->
-    <div v-else class="p-2">
-      <VaForm ref="sformRef" class="mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-4">
-          <VaValue :default-value="false">
-            <VaSelect
-              v-model="sform.salesQuota"
-              :options="quotasOptions"
-              label="Sales Quota"
-              :rules="[(v: any) => !!v || 'Sales Quota is required']"
-              placeholder="Select Sales Quota"
-              :disabled="true"
-            >
-              <template #appendInner>
-                <VaIcon name="av_timer" size="small" color="primary" />
-              </template>
-            </VaSelect>
-          </VaValue>
-
-          <VaSelect
-            v-model="sform.area"
-            label="Hunting Area"
-            :options="areasOptions"
-            placeholder="Select Hunting Area"
-            :rules="[(v: any) => !!v || 'Hunting Area is required']"
-            required
-          />
+      <!-- Species Form Section (when showQuotaList is false) -->
+      <div v-else class="p-2">
+        <div class="flex flex-col md:flex-row gap-2 mb-2 justify-start">
+          <VaButton class="px-2 py-2" icon="arrow_back" size="small" @click="toggleQuotaView"> Go Back </VaButton>
         </div>
 
-        <VaDivider orientation="left" class="py-12">
-          <span caption class="px-2">Add a List of Species</span>
-        </VaDivider>
-
-        <div class="flex flex-col md:flex-row gap-2 mb-2 justify-between">
-          <div class="flex flex-col md:flex-row gap-2 justify-start">
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-4">
+        <VaForm ref="sformRef" class="mb-6">
+          <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-4">
+            <VaValue :default-value="false">
               <VaSelect
-                v-model="sform.id"
-                label="Species"
-                :options="speciesOptions"
-                placeholder="Select Species"
-                :rules="[(v: any) => !!v || 'Species is required']"
-                required
-                @update:modelValue="updateQuantitySelectedSpecies"
-              />
+                v-model="sform.salesQuota"
+                :options="quotasOptions"
+                label="Sales Quota"
+                :rules="[(v: any) => !!v || 'Sales Quota is required']"
+                placeholder="Select Sales Quota"
+                :disabled="true"
+              >
+                <template #appendInner>
+                  <VaIcon name="av_timer" size="small" color="primary" />
+                </template>
+              </VaSelect>
+            </VaValue>
 
-              <VaCounter v-model="sform.quantity" label="Quantity" manual-input :min="1" :max="100" />
-            </div>
-          </div>
-          <VaButtonGroup>
-            <VaButton
-              class="px-0 py-0"
-              color="primary"
-              icon="add"
-              size="small"
-              round
-              @click="addNewSpeciesItemToStorage()"
+            <VaSelect
+              v-model="sform.area"
+              label="Hunting Area"
+              :options="areasOptions"
+              placeholder="Select Hunting Area"
+              :rules="[(v: any) => !!v || 'Hunting Area is required']"
+              required
             />
-          </VaButtonGroup>
+          </div>
+
+          <VaDivider orientation="left" class="py-12">
+            <span caption class="px-2">Add a List of Species</span>
+          </VaDivider>
+
+          <div class="flex flex-col md:flex-row gap-2 mb-2 justify-between">
+            <div class="flex flex-col md:flex-row gap-2 justify-start">
+              <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-4">
+                <VaSelect
+                  v-model="sform.id"
+                  label="Species"
+                  :options="speciesOptions"
+                  placeholder="Select Species"
+                  :rules="[(v: any) => !!v || 'Species is required']"
+                  required
+                  @update:modelValue="updateQuantitySelectedSpecies"
+                />
+
+                <VaCounter v-model="sform.quantity" label="Quantity" manual-input :min="1" :max="100" />
+              </div>
+            </div>
+            <VaButtonGroup>
+              <VaButton
+                class="px-0 py-0"
+                color="primary"
+                icon="add"
+                size="small"
+                round
+                @click="addNewSpeciesItemToStorage()"
+              />
+            </VaButtonGroup>
+          </div>
+        </VaForm>
+
+        <div class="mb-6">
+          <VaList>
+            <VaListLabel v-if="speciesObjects.length > 0" class="text-md mb-2 text-left">Selected Species</VaListLabel>
+            <VaListItem v-for="(s, index) in speciesObjects" :key="index" class="list__item">
+              <VaListItemSection>
+                <VaListItemLabel>
+                  Name: {{ s.name }}
+                  <VaIcon name="delete" size="small" color="primary" @click="deleteFromStorage(index)" />
+                </VaListItemLabel>
+                <VaListItemLabel caption>Quantity: {{ s.quantity }}</VaListItemLabel>
+              </VaListItemSection>
+            </VaListItem>
+          </VaList>
         </div>
-      </VaForm>
 
-      <div class="mb-6">
-        <VaList>
-          <VaListLabel v-if="speciesObjects.length > 0" class="text-md mb-2 text-left">Selected Species</VaListLabel>
-          <VaListItem v-for="(s, index) in speciesObjects" :key="index" class="list__item">
-            <VaListItemSection>
-              <VaListItemLabel>
-                Name: {{ s.name }}
-                <VaIcon name="delete" size="small" color="primary" @click="deleteFromStorage(index)" />
-              </VaListItemLabel>
-              <VaListItemLabel caption>Quantity: {{ s.quantity }}</VaListItemLabel>
-            </VaListItemSection>
-          </VaListItem>
-        </VaList>
+        <div class="mb-6">
+          <VaButton
+            :disabled="!isValidSForm"
+            color="primary"
+            :loading="savingQuotaSpecies"
+            icon="save"
+            icon-color="#fff"
+            @click="validateSForm() && addNewSpeciesToQuota()"
+          >
+            save
+          </VaButton>
+        </div>
       </div>
-
-      <div class="mb-6">
-        <VaButton
-          :disabled="!isValidSForm"
-          color="primary"
-          :loading="savingQuotaSpecies"
-          icon="save"
-          icon-color="#fff"
-          @click="validateSForm() && addNewSpeciesToQuota()"
-        >
-          save
-        </VaButton>
-      </div>
-    </div>
+    </VaCard>
 
     <!-- Add/Edit Quota Modal -->
     <VaModal v-model="showModal" z-index="1" :overlay="false" size="small" hide-default-actions @cancel="resetModal()">
@@ -184,7 +194,7 @@
         </div>
       </div>
     </VaModal>
-  </VaCard>
+  </div>
 </template>
 
 <script lang="ts">
@@ -797,6 +807,45 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
+.breadcrumb {
+  text-transform: uppercase !important;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0 !important;
+
+  .breadcrumb-item {
+    text-transform: uppercase !important;
+
+    &::before {
+      content: ' / ' !important;
+      color: #9ca3af !important;
+      padding: 0 0.5rem;
+    }
+
+    &:first-child::before {
+      display: none !important;
+    }
+
+    a {
+      text-transform: uppercase !important;
+      color: #374151 !important;
+      font-weight: 600;
+      text-decoration: none !important;
+
+      &:hover {
+        color: #1f2937 !important;
+        text-decoration: none !important;
+      }
+    }
+
+    &.active {
+      color: #9ca3af !important;
+      font-weight: 400;
+      text-transform: uppercase !important;
+    }
+  }
+}
+
 .modal-content {
   padding: 16px;
 }

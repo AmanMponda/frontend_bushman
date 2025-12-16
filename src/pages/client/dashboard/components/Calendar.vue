@@ -379,7 +379,13 @@ export default defineComponent({
         headerToolbar: {
           left: 'prev,next today',
           center: 'title',
-          right: 'dayGridMonth,multiMonthYear',
+          right: 'dayGridMonth,multiMonthYear downloadCalendar',
+        },
+        customButtons: {
+          downloadCalendar: {
+            text: 'Download Calendar',
+            click: () => this.downloadCalendar(),
+          },
         },
         // Start at earliest booked date (set dynamically)
         initialDate: new Date().toISOString().split('T')[0],
@@ -390,9 +396,11 @@ export default defineComponent({
             multiMonthMaxColumns: 3,
             multiMonthMinWidth: 280,
             fixedWeekCount: false,
+            buttonText: 'Multi-Month Year',
           },
           dayGridMonth: {
             fixedWeekCount: false,
+            buttonText: 'Month',
           },
         },
         height: 'auto',
@@ -453,6 +461,52 @@ export default defineComponent({
 
   methods: {
     ...mapActions(useCalendarStore, ['getCalendarStats']),
+
+    downloadCalendar() {
+      // Generate iCal format calendar file
+      const calendarData = this.generateICalendarData()
+      const blob = new Blob([calendarData], { type: 'text/calendar;charset=utf-8' })
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', `hunting-calendar-${new Date().toISOString().split('T')[0]}.ics`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    },
+
+    generateICalendarData(): string {
+      const events = this.calendarOptions.events as EventInput[]
+      let icalData = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Bushman//Hunting Calendar//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Hunting Calendar
+X-WR-TIMEZONE:UTC
+X-WR-CALDESC:Hunting Schedule and Bookings
+`
+
+      for (const event of events) {
+        const eventData = event as any
+        const startDate = new Date(eventData.start)
+        const endDate = new Date(eventData.end || startDate)
+
+        icalData += `BEGIN:VEVENT
+UID:${eventData.id}@bushman.local
+DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
+DTSTART:${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z
+DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z
+SUMMARY:${eventData.title || 'Hunting Event'}
+DESCRIPTION:Status: ${eventData.extendedProps?.status || 'N/A'}
+END:VEVENT
+`
+      }
+
+      icalData += 'END:VCALENDAR'
+      return icalData
+    },
 
     formatEventDate(date: string | Date | undefined): string {
       if (!date) return 'N/A'
@@ -933,7 +987,15 @@ export default defineComponent({
   padding: 12px 0;
   margin-bottom: 12px !important;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
+  align-items: center;
+  display: flex !important;
+}
+
+:deep(.fc-toolbar-chunk) {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
 }
 
 :deep(.fc-toolbar-title) {
@@ -943,16 +1005,66 @@ export default defineComponent({
 }
 
 :deep(.fc-button) {
-  padding: 6px 12px !important;
+  padding: 8px 16px !important;
   font-size: 0.875rem !important;
   border-radius: 6px !important;
   border: 1px solid #dee2e6 !important;
   background-color: #fff !important;
   color: #212529 !important;
   transition: all 0.2s ease !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  vertical-align: middle !important;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  min-width: 100px !important;
 }
 
-:deep(.fc-button:hover) {
+:deep(.fc-button.fc-downloadCalendar-button) {
+  background-color: #6b5344 !important;
+  color: #fff !important;
+  border-color: #6b5344 !important;
+  padding: 8px 16px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  line-height: 1 !important;
+  vertical-align: middle !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 100px !important;
+}
+
+:deep(.fc-button.fc-downloadCalendar-button:hover) {
+  background-color: #5a4538 !important;
+  border-color: #5a4538 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+}
+
+:deep(.fc-button-group) {
+  display: inline-flex !important;
+  gap: 6px !important;
+  align-items: center !important;
+  vertical-align: middle !important;
+}
+
+:deep(.fc-button-group > button) {
+  height: 36px !important;
+  min-height: 36px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  vertical-align: middle !important;
+  padding: 8px 16px !important;
+  min-width: 100px !important;
+}
+
+:deep(.fc-button:hover:not(.fc-downloadCalendar-button)) {
   background-color: #f8f9fa !important;
   border-color: #adb5bd !important;
   transform: translateY(-1px);

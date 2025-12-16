@@ -597,11 +597,61 @@ export default defineComponent({
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  height: 40px;
+}
+
+.header-actions > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-actions .btn {
+  height: 32px;
+  padding: 4px 10px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.header-actions .btn i {
+  font-size: 12px;
 }
 
 .season-select {
-  min-width: 200px;
+  min-width: 140px;
+  flex-shrink: 0;
+  height: 32px !important;
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.season-select :deep(.va-input) {
+  height: 32px !important;
+}
+
+.season-select :deep(.va-input__container) {
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 !important;
+}
+
+.season-select :deep(.va-input__field) {
+  height: 32px !important;
+  min-height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 4px 8px !important;
+}
+
+.season-select :deep(input) {
+  height: 32px !important;
+  line-height: 32px !important;
 }
 
 .pipeline-content {

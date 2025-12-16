@@ -1,27 +1,31 @@
 <template>
-  <!-- filter elements and download btn slot -->
-  <slot name="filter-elements-and-download-btn"> </slot>
-  <StandardDataTable
-    :columns="columns"
-    :data="items"
-    :loading="loading"
-    :disable-search="false"
-    :disable-pagination="false"
-  >
-    <template #actions="{ row }">
-      <div class="d-flex gap-1">
-        <button v-if="showEdit" class="btn btn-warning btn-sm" title="Edit" @click="clickedEdit(row)">
-          <i class="fa fa-edit"></i>
-        </button>
-        <button class="btn btn-info btn-sm" title="View" @click="clickedView(row)">
-          <i :class="'fa fa-' + (btnViewicon === 'visibility' ? 'eye' : btnViewicon)"></i>
-        </button>
-        <button v-if="showDelete" class="btn btn-danger btn-sm" title="Delete" @click="clickedDelete(row)">
-          <i class="fa fa-trash"></i>
-        </button>
-      </div>
-    </template>
-  </StandardDataTable>
+  <div class="module-table-container">
+    <StandardDataTable
+      :columns="columns"
+      :data="items"
+      :loading="loading"
+      :disable-search="false"
+      :disable-pagination="false"
+      :selectable="selectable"
+    >
+      <template #header-actions>
+        <slot name="filter-elements-and-download-btn"> </slot>
+      </template>
+      <template #actions="{ row }">
+        <div class="d-flex gap-1">
+          <button v-if="showEdit" class="btn btn-warning btn-sm" title="Edit" @click="clickedEdit(row)">
+            <i class="fa fa-edit"></i>
+          </button>
+          <button class="btn btn-info btn-sm" title="View" @click="clickedView(row)">
+            <i :class="'fa fa-' + (btnViewicon === 'visibility' ? 'eye' : btnViewicon)"></i>
+          </button>
+          <button v-if="showDelete" class="btn btn-danger btn-sm" title="Delete" @click="clickedDelete(row)">
+            <i class="fa fa-trash"></i>
+          </button>
+        </div>
+      </template>
+    </StandardDataTable>
+  </div>
 </template>
 
 <script>
@@ -58,6 +62,10 @@ export default defineComponent({
     showDelete: {
       type: Boolean,
       default: true,
+    },
+    selectable: {
+      type: Boolean,
+      default: false,
     },
   },
   emits: ['onView', 'onEdit', 'onDelete', 'on-download'],
